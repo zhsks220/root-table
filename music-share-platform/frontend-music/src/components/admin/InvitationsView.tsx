@@ -53,8 +53,15 @@ export function InvitationsView() {
         }
     };
 
+    const getInviteLink = (code: string) => {
+        const baseUrl = import.meta.env.PROD
+            ? 'https://frontend-music-livid.vercel.app'
+            : 'http://localhost:3002';
+        return `${baseUrl}/invite/${code}`;
+    };
+
     const copyInviteLink = (code: string) => {
-        const link = `http://localhost:3002/invite/${code}`;
+        const link = getInviteLink(code);
         navigator.clipboard.writeText(link);
         setCopied(true);
         setTimeout(() => setCopied(false), 2000);
@@ -162,7 +169,7 @@ export function InvitationsView() {
                             </div>
                             <div className="flex items-center gap-2">
                                 <code className="flex-1 bg-white border border-green-200 rounded px-3 py-2 text-sm font-mono text-green-700 truncate">
-                                    http://localhost:3002/invite/{newInviteCode}
+                                    {getInviteLink(newInviteCode)}
                                 </code>
                                 <button
                                     onClick={() => copyInviteLink(newInviteCode)}

@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { adminAPI } from '../../services/api';
+import { adminAPI, trackAPI } from '../../services/api';
 import { Track } from '../../types';
 import { PageTransition } from '../PageTransition';
-import { Music, Trash2, RefreshCw } from 'lucide-react';
+import { Music, Trash2, RefreshCw, Download } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 export function TracksView() {
@@ -32,6 +32,16 @@ export function TracksView() {
             loadTracks();
         } catch (error) {
             alert('삭제에 실패했습니다');
+        }
+    };
+
+    const handleDownload = async (track: Track) => {
+        try {
+            const response = await trackAPI.getDownloadUrl(track.id);
+            const { downloadUrl } = response.data;
+            window.location.href = downloadUrl;
+        } catch (error) {
+            alert('다운로드할 수 없습니다. 파일이 업로드되지 않았을 수 있습니다.');
         }
     };
 
@@ -93,10 +103,18 @@ export function TracksView() {
                                     <td className="px-6 py-4 text-gray-600">{formatSize(track.file_size)}</td>
                                     <td className="px-6 py-4 text-gray-600">{formatDate(track.created_at)}</td>
                                     <td className="px-6 py-4">
-                                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex justify-end">
+                                        <div className="opacity-0 group-hover:opacity-100 transition-opacity flex justify-end gap-1">
+                                            <button
+                                                onClick={() => handleDownload(track)}
+                                                className="p-1.5 text-gray-400 hover:text-blue-500 hover:bg-blue-50 rounded transition-colors"
+                                                title="다운로드"
+                                            >
+                                                <Download className="w-4 h-4" />
+                                            </button>
                                             <button
                                                 onClick={() => handleDeleteTrack(track.id)}
                                                 className="p-1.5 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                                                title="삭제"
                                             >
                                                 <Trash2 className="w-4 h-4" />
                                             </button>

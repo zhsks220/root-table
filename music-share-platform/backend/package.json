@@ -8,14 +8,14 @@
     "build": "tsc",
     "start": "node dist/index.js",
     "db:migrate": "node -r tsx/esm src/db/migrate.ts",
-    "db:seed": "node -r tsx/esm src/db/seed.ts"
+    "db:seed": "node -r tsx/esm src/db/seed.ts",
+    "db:seed-storage": "tsx src/db/seedWithStorage.ts"
   },
   "keywords": ["music", "sharing", "invite"],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@aws-sdk/client-s3": "^3.470.0",
-    "@aws-sdk/s3-request-presigner": "^3.470.0",
+    "@supabase/supabase-js": "^2.39.0",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",

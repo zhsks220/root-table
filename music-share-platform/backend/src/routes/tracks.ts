@@ -2,7 +2,7 @@ import { Router, Response } from 'express';
 import { pool } from '../db';
 import { AuthRequest } from '../types';
 import { authenticateToken } from '../middleware/auth';
-import { getStreamUrl, getDownloadUrl } from '../services/s3';
+import { getStreamUrl, getDownloadUrl } from '../services/supabaseStorage';
 
 const router = Router();
 

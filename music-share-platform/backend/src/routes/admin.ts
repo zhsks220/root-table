@@ -5,7 +5,7 @@ import crypto from 'crypto';
 import { pool } from '../db';
 import { AuthRequest } from '../types';
 import { authenticateToken, requireAdmin } from '../middleware/auth';
-import { uploadFile, deleteFile } from '../services/s3';
+import { uploadFile, deleteFile } from '../services/supabaseStorage';
 
 const router = Router();
 const upload = multer({

@@ -16,9 +16,9 @@ if (!databaseUrl) {
 // PostgreSQL 연결 풀 생성
 export const pool = new Pool({
   connectionString: databaseUrl,
-  max: 20, // 최대 연결 수
+  max: 10,
   idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  connectionTimeoutMillis: 10000,
   ssl: {
     rejectUnauthorized: false
   }

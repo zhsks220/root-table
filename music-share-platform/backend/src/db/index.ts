@@ -19,6 +19,9 @@ export const pool = new Pool({
   max: 20, // 최대 연결 수
   idleTimeoutMillis: 30000,
   connectionTimeoutMillis: 2000,
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 // 연결 테스트

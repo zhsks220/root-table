@@ -6,8 +6,35 @@ import { cn } from '../../lib/utils';
 
 export function UploadView() {
     const [file, setFile] = useState<File | null>(null);
+    const [duration, setDuration] = useState<number | null>(null);
     const [form, setForm] = useState({ title: '', artist: '', album: '' });
     const [uploading, setUploading] = useState(false);
+
+    // 오디오 파일에서 duration 추출
+    const extractDuration = (audioFile: File): Promise<number> => {
+        return new Promise((resolve) => {
+            const audio = new Audio();
+            audio.src = URL.createObjectURL(audioFile);
+            audio.onloadedmetadata = () => {
+                URL.revokeObjectURL(audio.src);
+                resolve(Math.round(audio.duration));
+            };
+            audio.onerror = () => {
+                URL.revokeObjectURL(audio.src);
+                resolve(0);
+            };
+        });
+    };
+
+    const handleFileSelect = async (selectedFile: File | null) => {
+        setFile(selectedFile);
+        if (selectedFile) {
+            const dur = await extractDuration(selectedFile);
+            setDuration(dur);
+        } else {
+            setDuration(null);
+        }
+    };
 
     const handleUpload = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -18,12 +45,14 @@ export function UploadView() {
         data.append('title', form.title);
         data.append('artist', form.artist);
         if (form.album) data.append('album', form.album);
+        if (duration) data.append('duration', duration.toString());
 
         setUploading(true);
         try {
             await adminAPI.uploadTrack(data);
             alert('트랙이 성공적으로 업로드되었습니다!');
             setFile(null);
+            setDuration(null);
             setForm({ title: '', artist: '', album: '' });
         } catch (error: any) {
             alert('업로드 실패: ' + (error.response?.data?.error || error.message));
@@ -52,7 +81,7 @@ export function UploadView() {
                             <input
                                 type="file"
                                 accept="audio/*"
-                                onChange={(e) => setFile(e.target.files?.[0] || null)}
+                                onChange={(e) => handleFileSelect(e.target.files?.[0] || null)}
                                 className="hidden"
                                 id="file-upload"
                             />
@@ -63,7 +92,10 @@ export function UploadView() {
                                             <Music className="w-6 h-6" />
                                         </div>
                                         <p className="font-medium text-indigo-900">{file.name}</p>
-                                        <p className="text-xs text-indigo-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+                                        <p className="text-xs text-indigo-500">
+                                            {(file.size / 1024 / 1024).toFixed(2)} MB
+                                            {duration ? ` · ${Math.floor(duration / 60)}:${(duration % 60).toString().padStart(2, '0')}` : ''}
+                                        </p>
                                     </div>
                                 ) : (
                                     <div className="flex flex-col items-center gap-2 text-gray-400">

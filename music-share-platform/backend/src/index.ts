@@ -57,8 +57,8 @@ app.use('/api/admin', adminRoutes);
 
 // 로컬 파일 서빙 (USE_LOCAL_STORAGE=true 일 때)
 if (USE_LOCAL_STORAGE) {
-  app.get('/files/*', (req, res) => {
-    const key = req.params[0]; // 와일드카드로 캡처된 경로
+  app.get('/files/*', (req: express.Request, res: express.Response) => {
+    const key = (req.params as Record<string, string>)[0]; // 와일드카드로 캡처된 경로
     const filePath = getLocalFilePath(key);
 
     if (!filePath) {

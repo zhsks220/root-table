@@ -32,10 +32,10 @@ async function seed() {
       { title: 'Mountain Echo', artist: 'Nature Sounds', album: 'Ambient Vol.1', duration: 210 },
       { title: 'Coffee Shop Jazz', artist: 'Jazz Trio', album: 'Cafe Vibes', duration: 195 },
       { title: 'Electronic Pulse', artist: 'Synth Wave', album: 'Digital Era', duration: 225 },
-      { title: '봄날의 기억', artist: '루트레이블 아티스트', album: '사계', duration: 200 },
-      { title: '여름밤의 꿈', artist: '루트레이블 아티스트', album: '사계', duration: 185 },
-      { title: '가을 산책', artist: '루트레이블 아티스트', album: '사계', duration: 220 },
-      { title: '겨울 이야기', artist: '루트레이블 아티스트', album: '사계', duration: 250 },
+      { title: '봄날의 기억', artist: 'ROUTELABEL Artist', album: '사계', duration: 200 },
+      { title: '여름밤의 꿈', artist: 'ROUTELABEL Artist', album: '사계', duration: 185 },
+      { title: '가을 산책', artist: 'ROUTELABEL Artist', album: '사계', duration: 220 },
+      { title: '겨울 이야기', artist: 'ROUTELABEL Artist', album: '사계', duration: 250 },
       { title: 'Urban Groove', artist: 'City Beats', album: 'Metropolitan', duration: 190 },
     ];
 

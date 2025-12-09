@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { invitationAPI } from '../services/api';
+import { motion } from 'framer-motion';
+import { Loader2, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react';
+import { cn } from '../lib/utils';
 
 export default function InvitePage() {
   const { code } = useParams<{ code: string }>();
@@ -38,10 +41,10 @@ export default function InvitePage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
-        <div className="bg-white rounded-lg shadow-xl p-8 text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">초대 코드 확인 중...</p>
+      <div className="min-h-screen bg-[#fbfbfb] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-4">
+          <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
+          <p className="text-gray-500 font-medium">초대 코드를 확인하고 있습니다...</p>
         </div>
       </div>
     );
@@ -49,33 +52,56 @@ export default function InvitePage() {
 
   if (!valid) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-red-500 to-pink-600 flex items-center justify-center p-4">
-        <div className="bg-white rounded-lg shadow-xl p-8 max-w-md text-center">
-          <div className="text-6xl mb-4">❌</div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-4">초대 링크 오류</h1>
-          <p className="text-gray-600 mb-6">{error}</p>
+      <div className="min-h-screen bg-[#fbfbfb] flex items-center justify-center p-4">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.95 }}
+          animate={{ opacity: 1, scale: 1 }}
+          className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 p-8 max-w-sm w-full text-center border border-gray-100"
+        >
+          <div className="w-16 h-16 bg-red-50 rounded-full flex items-center justify-center mx-auto mb-6">
+            <AlertCircle className="w-8 h-8 text-red-500" />
+          </div>
+          <h1 className="text-xl font-bold text-gray-900 mb-2">링크가 유효하지 않습니다</h1>
+          <p className="text-gray-500 text-sm mb-8">{error}</p>
           <button
             onClick={() => navigate('/login')}
-            className="bg-gray-600 hover:bg-gray-700 text-white px-6 py-2 rounded-lg"
+            className="w-full bg-gray-900 hover:bg-black text-white font-medium py-3 rounded-xl transition-all flex items-center justify-center gap-2"
           >
-            로그인 페이지로
+            로그인 화면으로
+            <ArrowRight className="w-4 h-4" />
           </button>
-        </div>
+        </motion.div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-500 to-blue-600 flex items-center justify-center p-4">
-      <div className="bg-white rounded-lg shadow-xl p-8 max-w-md text-center">
-        <div className="text-6xl mb-4">✅</div>
-        <h1 className="text-2xl font-bold text-gray-800 mb-4">초대가 확인되었습니다!</h1>
-        <p className="text-gray-600 mb-2">{trackCount}개의 음원에 접근할 수 있습니다.</p>
-        <p className="text-sm text-gray-500 mb-6">잠시 후 회원가입 페이지로 이동합니다...</p>
-        <div className="animate-pulse">
-          <div className="h-2 bg-blue-600 rounded"></div>
+    <div className="min-h-screen bg-[#fbfbfb] flex items-center justify-center p-4">
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="bg-white rounded-2xl shadow-xl shadow-gray-200/50 p-8 max-w-sm w-full text-center border border-gray-100"
+      >
+        <div className="w-16 h-16 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-6">
+          <CheckCircle2 className="w-8 h-8 text-green-500" />
         </div>
-      </div>
+
+        <h1 className="text-xl font-bold text-gray-900 mb-2">초대가 확인되었습니다</h1>
+        <p className="text-gray-500 text-sm mb-8">
+          <span className="font-semibold text-gray-900">{trackCount}개의 음원</span>에 접근할 권한이 있습니다.<br />
+          잠시 후 회원가입 페이지로 이동합니다.
+        </p>
+
+        <div className="w-full bg-gray-100 rounded-full h-1.5 mb-2 overflow-hidden">
+          <motion.div
+            initial={{ width: "0%" }}
+            animate={{ width: "100%" }}
+            transition={{ duration: 3, ease: "linear" }}
+            className="h-full bg-orange-500"
+          />
+        </div>
+        <p className="text-xs text-gray-400">자동으로 이동하지 않으면 새로고침하세요</p>
+      </motion.div>
     </div>
   );
 }

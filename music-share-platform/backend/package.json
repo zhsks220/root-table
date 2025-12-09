@@ -7,7 +7,8 @@
     "dev": "tsx watch src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js",
-    "db:migrate": "node -r tsx/esm src/db/migrate.ts"
+    "db:migrate": "node -r tsx/esm src/db/migrate.ts",
+    "db:seed": "node -r tsx/esm src/db/seed.ts"
   },
   "keywords": ["music", "sharing", "invite"],
   "author": "",

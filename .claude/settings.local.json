@@ -1,0 +1,31 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npm install)",
+      "Bash(brew install postgresql@15)",
+      "Bash(brew services start:*)",
+      "Bash(brew services:*)",
+      "Bash(createdb:*)",
+      "Bash(psql:*)",
+      "Bash(export PATH=\"/opt/homebrew/opt/postgresql@15/bin:$PATH\")",
+      "Bash(npm run db:migrate:*)",
+      "Bash(npx tsx:*)",
+      "Bash(npm run dev:*)",
+      "Bash(curl:*)",
+      "Bash(for i in {1..5})",
+      "Bash(do dd if=/dev/zero of=\"track_$i.mp3\" bs=1024 count=1024)",
+      "Bash(echo:*)",
+      "Bash(done)",
+      "Bash(lsof:*)",
+      "Bash(xargs kill -9)",
+      "Bash(npm install:*)",
+      "Bash(git reset:*)",
+      "Bash(git add:*)",
+      "Bash(git commit -m \"$(cat <<''EOF''\nfeat: 초대 기반 음악 공유 플랫폼 초기 구현\n\n- 백엔드: Express + TypeScript + PostgreSQL 기반 API\n  - 사용자 인증 (JWT)\n  - 초대 코드 시스템\n  - 트랙 업로드/관리\n  - 관리자 기능\n- 프론트엔드: React + Vite + Tailwind CSS\n  - 메인, 음악, 관리자용 3개 도메인 분리\n  - 사용자 인증 UI\n  - 트랙 관리 페이지\n- 문서: 아키텍처 설계 및 가이드\n\n🤖 Generated with [Claude Code](https://claude.com/claude-code)\n\nCo-Authored-By: Claude Opus 4.5 <noreply@anthropic.com>\nEOF\n)\")",
+      "Bash(gh auth status:*)",
+      "Bash(gh repo create:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

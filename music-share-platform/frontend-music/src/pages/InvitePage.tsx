@@ -3,7 +3,6 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { invitationAPI } from '../services/api';
 import { motion } from 'framer-motion';
 import { Loader2, AlertCircle, CheckCircle2, ArrowRight } from 'lucide-react';
-import { cn } from '../lib/utils';
 
 export default function InvitePage() {
   const { code } = useParams<{ code: string }>();

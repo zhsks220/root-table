@@ -1,7 +1,10 @@
 import axios from 'axios';
 
+// Vercel 배포 시 환경변수에서 API URL 읽기, 로컬에서는 프록시 사용
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
+
 const api = axios.create({
-  baseURL: '/api',
+  baseURL: API_BASE_URL,
   headers: {
     'Content-Type': 'application/json',
   },

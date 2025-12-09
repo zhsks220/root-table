@@ -21,6 +21,12 @@ const allowedOrigins = [
   'http://localhost:3003', // Admin site
 ];
 
+// 환경변수에서 추가 CORS 도메인 로드 (Vercel 배포 등)
+if (process.env.CORS_ORIGINS) {
+  const additionalOrigins = process.env.CORS_ORIGINS.split(',').map(o => o.trim());
+  allowedOrigins.push(...additionalOrigins);
+}
+
 app.use(cors({
   origin: (origin, callback) => {
     // Allow requests with no origin (like mobile apps or curl requests)
@@ -29,6 +35,7 @@ app.use(cors({
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
     } else {
+      console.log(`CORS blocked origin: ${origin}`);
       callback(new Error('Not allowed by CORS'));
     }
   },

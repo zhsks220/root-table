@@ -56,9 +56,19 @@ export default function MyTracksPage() {
 
   const handleDownload = async (track: Track) => {
     try {
-      const response = await trackAPI.getDownloadUrl(track.id);
-      const { downloadUrl } = response.data;
-      window.location.href = downloadUrl;
+      // MP3로 변환된 파일 직접 다운로드
+      const response = await trackAPI.downloadTrack(track.id);
+
+      // Blob에서 다운로드 링크 생성
+      const blob = new Blob([response.data], { type: 'audio/mpeg' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${track.artist} - ${track.title}.mp3`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
     } catch (error) {
       alert('다운로드할 수 없습니다.');
     }

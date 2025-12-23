@@ -112,4 +112,24 @@ export function getPublicUrl(key: string): string {
   return data.publicUrl;
 }
 
+// 파일 다운로드 (버퍼로 반환)
+export async function downloadFile(key: string): Promise<Buffer> {
+  if (!supabase) {
+    throw new Error('Supabase Storage is not configured. Please set SUPABASE_URL and SUPABASE_SERVICE_KEY.');
+  }
+
+  const { data, error } = await supabase.storage
+    .from(BUCKET_NAME)
+    .download(key);
+
+  if (error) {
+    console.error('Supabase Storage download error:', error);
+    throw new Error(`Failed to download file: ${error.message}`);
+  }
+
+  // Blob을 Buffer로 변환
+  const arrayBuffer = await data.arrayBuffer();
+  return Buffer.from(arrayBuffer);
+}
+
 export { supabase, BUCKET_NAME };

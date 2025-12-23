@@ -54,7 +54,10 @@ export const invitationAPI = {
 export const trackAPI = {
   getMyTracks: () => api.get('/tracks/my-tracks'),
   getStreamUrl: (trackId: string) => api.get(`/tracks/${trackId}/stream`),
-  getDownloadUrl: (trackId: string) => api.post(`/tracks/${trackId}/download`),
+  // MP3로 변환된 파일 직접 다운로드
+  downloadTrack: (trackId: string) => api.get(`/tracks/${trackId}/download`, {
+    responseType: 'blob',
+  }),
 };
 
 // Category API
@@ -113,7 +116,10 @@ export const adminAPI = {
   deleteTrack: (trackId: string) => api.delete(`/admin/tracks/${trackId}`),
   // 관리자 전용 스트리밍/다운로드 (user_tracks 체크 안함)
   getStreamUrl: (trackId: string) => api.get(`/admin/tracks/${trackId}/stream`),
-  getDownloadUrl: (trackId: string) => api.post(`/admin/tracks/${trackId}/download`),
+  // MP3로 변환된 파일 직접 다운로드
+  downloadTrack: (trackId: string) => api.get(`/admin/tracks/${trackId}/download`, {
+    responseType: 'blob',
+  }),
   createInvitation: (trackIds: string[], expiresInDays?: number) =>
     api.post('/admin/invitations', { trackIds, expiresInDays }),
   getInvitations: () => api.get('/admin/invitations'),

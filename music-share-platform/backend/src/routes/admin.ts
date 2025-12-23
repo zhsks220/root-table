@@ -5,8 +5,8 @@ import crypto from 'crypto';
 import { pool } from '../db';
 import { AuthRequest } from '../types';
 import { authenticateToken, requireAdmin } from '../middleware/auth';
-import { uploadFile, deleteFile, getStreamUrl, getDownloadUrl } from '../services/supabaseStorage';
-import { transcodeToFlac, getAudioMetadata, checkFfmpegInstalled } from '../services/transcoder';
+import { uploadFile, deleteFile, getStreamUrl, downloadFile } from '../services/supabaseStorage';
+import { transcodeToFlac, transcodeToMp3, getAudioMetadata, checkFfmpegInstalled } from '../services/transcoder';
 
 const router = Router();
 const upload = multer({
@@ -460,8 +460,8 @@ router.get('/tracks/:trackId/stream', async (req: AuthRequest, res: Response) =>
   }
 });
 
-// 관리자 다운로드 URL 조회 (user_tracks 체크 안함)
-router.post('/tracks/:trackId/download', async (req: AuthRequest, res: Response) => {
+// 관리자 다운로드 (FLAC → MP3 실시간 변환)
+router.get('/tracks/:trackId/download', async (req: AuthRequest, res: Response) => {
   try {
     const { trackId } = req.params;
 
@@ -477,16 +477,32 @@ router.post('/tracks/:trackId/download', async (req: AuthRequest, res: Response)
 
     const { file_key, title, artist } = result.rows[0];
 
-    // 파일 확장자 추출
-    const ext = file_key.split('.').pop() || 'mp3';
-    const filename = `${artist} - ${title}.${ext}`;
+    // 파일명 생성 (MP3로 다운로드)
+    const filename = `${artist} - ${title}.mp3`;
 
-    const downloadUrl = await getDownloadUrl(file_key, filename);
+    // Supabase에서 파일 다운로드
+    console.log(`📥 [Admin] Downloading file for conversion: ${file_key}`);
+    const fileBuffer = await downloadFile(file_key);
 
-    res.json({ downloadUrl });
+    // FLAC인 경우 MP3로 변환, 아니면 그대로
+    let outputBuffer: Buffer;
+    const isFlac = file_key.toLowerCase().endsWith('.flac');
+
+    if (isFlac) {
+      console.log(`🔄 [Admin] Converting FLAC to MP3...`);
+      outputBuffer = await transcodeToMp3(fileBuffer);
+    } else {
+      outputBuffer = fileBuffer;
+    }
+
+    // MP3 파일 전송
+    res.setHeader('Content-Type', 'audio/mpeg');
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
+    res.setHeader('Content-Length', outputBuffer.length);
+    res.send(outputBuffer);
   } catch (error) {
-    console.error('Admin download URL error:', error);
-    res.status(500).json({ error: 'Failed to get download URL' });
+    console.error('Admin download error:', error);
+    res.status(500).json({ error: 'Failed to download file' });
   }
 });
 

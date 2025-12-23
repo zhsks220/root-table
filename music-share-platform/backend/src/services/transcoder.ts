@@ -174,6 +174,64 @@ export async function checkFfmpegInstalled(): Promise<boolean> {
   });
 }
 
+/**
+ * FLAC 파일을 MP3로 변환 (다운로드용)
+ * @param inputBuffer - FLAC 오디오 버퍼
+ * @returns MP3로 변환된 버퍼
+ */
+export async function transcodeToMp3(inputBuffer: Buffer): Promise<Buffer> {
+  const tempId = crypto.randomBytes(8).toString('hex');
+  const tempDir = os.tmpdir();
+  const inputPath = path.join(tempDir, `input-${tempId}.flac`);
+  const outputPath = path.join(tempDir, `output-${tempId}.mp3`);
+
+  try {
+    // 입력 버퍼를 임시 파일로 저장
+    await fs.promises.writeFile(inputPath, inputBuffer);
+
+    // FFmpeg로 MP3 변환 (320kbps 고품질)
+    await new Promise<void>((resolve, reject) => {
+      const ffmpeg = spawn('ffmpeg', [
+        '-y',                    // 덮어쓰기
+        '-i', inputPath,         // 입력 파일
+        '-c:a', 'libmp3lame',    // MP3 코덱
+        '-b:a', '320k',          // 320kbps 비트레이트 (최고 품질)
+        '-ar', '44100',          // 44.1kHz 샘플레이트
+        outputPath               // 출력 파일
+      ]);
+
+      let stderr = '';
+      ffmpeg.stderr.on('data', (data) => {
+        stderr += data.toString();
+      });
+
+      ffmpeg.on('close', (code) => {
+        if (code === 0) {
+          resolve();
+        } else {
+          reject(new Error(`FFmpeg MP3 conversion failed with code ${code}: ${stderr}`));
+        }
+      });
+
+      ffmpeg.on('error', (err) => {
+        reject(new Error(`FFmpeg spawn error: ${err.message}`));
+      });
+    });
+
+    // 변환된 파일 읽기
+    const mp3Buffer = await fs.promises.readFile(outputPath);
+    console.log(`🎵 Converted to MP3: ${formatBytes(inputBuffer.length)} → ${formatBytes(mp3Buffer.length)}`);
+
+    return mp3Buffer;
+  } finally {
+    // 임시 파일 정리
+    try {
+      await fs.promises.unlink(inputPath).catch(() => {});
+      await fs.promises.unlink(outputPath).catch(() => {});
+    } catch {}
+  }
+}
+
 function formatBytes(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;

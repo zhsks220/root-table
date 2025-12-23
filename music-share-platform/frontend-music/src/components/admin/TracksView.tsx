@@ -145,10 +145,19 @@ export function TracksView() {
 
   const handleDownload = async (track: Track) => {
     try {
-      // 관리자는 adminAPI 사용 (user_tracks 체크 없이 모든 트랙 다운로드 가능)
-      const response = await adminAPI.getDownloadUrl(track.id);
-      const { downloadUrl } = response.data;
-      window.location.href = downloadUrl;
+      // 관리자는 adminAPI 사용 - MP3로 변환된 파일 직접 다운로드
+      const response = await adminAPI.downloadTrack(track.id);
+
+      // Blob에서 다운로드 링크 생성
+      const blob = new Blob([response.data], { type: 'audio/mpeg' });
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `${track.artist} - ${track.title}.mp3`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      window.URL.revokeObjectURL(url);
     } catch (error) {
       alert('다운로드할 수 없습니다. 파일이 업로드되지 않았을 수 있습니다.');
     }

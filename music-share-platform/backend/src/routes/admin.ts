@@ -5,7 +5,7 @@ import crypto from 'crypto';
 import { pool } from '../db';
 import { AuthRequest } from '../types';
 import { authenticateToken, requireAdmin } from '../middleware/auth';
-import { uploadFile, deleteFile } from '../services/supabaseStorage';
+import { uploadFile, deleteFile, getStreamUrl, getDownloadUrl } from '../services/supabaseStorage';
 import { transcodeToFlac, getAudioMetadata, checkFfmpegInstalled } from '../services/transcoder';
 
 const router = Router();
@@ -432,6 +432,61 @@ router.get('/tracks/:trackId', async (req: AuthRequest, res: Response) => {
   } catch (error) {
     console.error('Get track error:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 관리자 스트리밍 URL 조회 (user_tracks 체크 안함)
+router.get('/tracks/:trackId/stream', async (req: AuthRequest, res: Response) => {
+  try {
+    const { trackId } = req.params;
+
+    // 관리자는 모든 트랙에 접근 가능 - 직접 tracks 테이블에서 조회
+    const result = await pool.query(
+      'SELECT file_key FROM tracks WHERE id = $1',
+      [trackId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Track not found' });
+    }
+
+    const { file_key } = result.rows[0];
+    const streamUrl = await getStreamUrl(file_key);
+
+    res.json({ streamUrl });
+  } catch (error) {
+    console.error('Admin stream URL error:', error);
+    res.status(500).json({ error: 'Failed to get stream URL' });
+  }
+});
+
+// 관리자 다운로드 URL 조회 (user_tracks 체크 안함)
+router.post('/tracks/:trackId/download', async (req: AuthRequest, res: Response) => {
+  try {
+    const { trackId } = req.params;
+
+    // 관리자는 모든 트랙에 접근 가능
+    const result = await pool.query(
+      'SELECT file_key, title, artist FROM tracks WHERE id = $1',
+      [trackId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Track not found' });
+    }
+
+    const { file_key, title, artist } = result.rows[0];
+
+    // 파일 확장자 추출
+    const ext = file_key.split('.').pop() || 'mp3';
+    const filename = `${artist} - ${title}.${ext}`;
+
+    const downloadUrl = await getDownloadUrl(file_key, filename);
+
+    res.json({ downloadUrl });
+  } catch (error) {
+    console.error('Admin download URL error:', error);
+    res.status(500).json({ error: 'Failed to get download URL' });
   }
 });
 

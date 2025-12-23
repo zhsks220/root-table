@@ -46,7 +46,12 @@ export default function MyTracksPage() {
     }
 
     // 새 트랙 재생 (전체 트랙 리스트를 플레이리스트로 전달)
-    await playTrack(track, tracks);
+    try {
+      await playTrack(track, tracks);
+    } catch (error) {
+      console.error('재생 실패:', error);
+      alert('음원을 재생할 수 없습니다.');
+    }
   };
 
   const handleDownload = async (track: Track) => {

@@ -8,7 +8,8 @@ import {
   Volume2,
   VolumeX,
   Loader2,
-  Music
+  Music,
+  X
 } from 'lucide-react';
 
 export default function AudioPlayer() {
@@ -25,6 +26,7 @@ export default function AudioPlayer() {
     currentIndex,
     setAudio,
     togglePlay,
+    stop,
     next,
     previous,
     seek,
@@ -79,15 +81,15 @@ export default function AudioPlayer() {
   // 진행률 계산
   const progress = duration > 0 ? (currentTime / duration) * 100 : 0;
 
-  // 트랙이 없으면 렌더링하지 않음
-  if (!currentTrack) return null;
-
+  // audio 요소는 항상 렌더링되어야 함 (플레이어 초기화 위해)
+  // UI는 트랙이 있을 때만 표시
   return (
     <>
-      {/* 숨겨진 오디오 엘리먼트 */}
+      {/* 숨겨진 오디오 엘리먼트 - 항상 렌더링 */}
       <audio ref={audioRef} preload="metadata" />
 
-      {/* 하단 고정 플레이어 */}
+      {/* 하단 고정 플레이어 - 트랙이 있을 때만 표시 */}
+      {currentTrack && (
       <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-gray-900 to-gray-800 text-white shadow-2xl border-t border-gray-700 z-50">
         {/* 진행 바 (상단) */}
         <div
@@ -191,9 +193,19 @@ export default function AudioPlayer() {
                   [&::-webkit-slider-thumb]:cursor-pointer"
               />
             </div>
+
+            {/* 닫기 버튼 */}
+            <button
+              onClick={stop}
+              className="p-2 hover:bg-gray-700 rounded-full transition ml-2"
+              title="플레이어 닫기"
+            >
+              <X className="w-5 h-5" />
+            </button>
           </div>
         </div>
       </div>
+      )}
     </>
   );
 }

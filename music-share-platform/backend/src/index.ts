@@ -84,18 +84,25 @@ app.use((err: any, req: express.Request, res: express.Response, next: express.Ne
 });
 
 // 서버 시작
-app.listen(PORT, async () => {
+console.log(`🔧 Attempting to start server on 0.0.0.0:${PORT}...`);
+
+const server = app.listen(Number(PORT), '0.0.0.0', async () => {
+  console.log(`✅ Server listening on 0.0.0.0:${PORT}`);
   try {
     // DB 연결 테스트
     await pool.query('SELECT NOW()');
     console.log('🎵 Music Share Platform Backend');
-    console.log(`✅ Server running on port ${PORT}`);
     console.log(`✅ Database connected`);
     console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
   } catch (error) {
     console.error('❌ Failed to connect to database:', error);
-    process.exit(1);
+    // Don't exit, just log the error - server is still running
   }
+});
+
+server.on('error', (err) => {
+  console.error('❌ Server error:', err);
+  process.exit(1);
 });
 
 // Graceful shutdown

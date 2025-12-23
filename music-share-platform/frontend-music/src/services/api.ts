@@ -111,6 +111,9 @@ export const adminAPI = {
   updateTrack: (trackId: string, data: TrackUpdateData) =>
     api.patch(`/admin/tracks/${trackId}`, data),
   deleteTrack: (trackId: string) => api.delete(`/admin/tracks/${trackId}`),
+  // 관리자 전용 스트리밍/다운로드 (user_tracks 체크 안함)
+  getStreamUrl: (trackId: string) => api.get(`/admin/tracks/${trackId}/stream`),
+  getDownloadUrl: (trackId: string) => api.post(`/admin/tracks/${trackId}/download`),
   createInvitation: (trackIds: string[], expiresInDays?: number) =>
     api.post('/admin/invitations', { trackIds, expiresInDays }),
   getInvitations: () => api.get('/admin/invitations'),

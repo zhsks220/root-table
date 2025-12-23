@@ -1,16 +1,20 @@
 import { useState, useEffect, useCallback } from 'react';
-import { adminAPI, trackAPI, categoryAPI, TrackUpdateData } from '../../services/api';
+import { adminAPI, categoryAPI, TrackUpdateData } from '../../services/api';
 import { Track, Category, TrackSearchParams, MoodOption, LanguageOption, Pagination } from '../../types';
 import { PageTransition } from '../PageTransition';
 import {
   Music, Trash2, RefreshCw, Download, Search, X, Edit3,
-  ChevronLeft, ChevronRight, ChevronDown, Save, Loader2
+  ChevronLeft, ChevronRight, ChevronDown, Save, Loader2, Play, Pause
 } from 'lucide-react';
 import { cn } from '../../lib/utils';
+import { usePlayerStore } from '../../store/playerStore';
 
 export function TracksView() {
   const [tracks, setTracks] = useState<Track[]>([]);
   const [loading, setLoading] = useState(false);
+
+  // 글로벌 플레이어 상태
+  const { currentTrack, isPlaying, isLoading: playerLoading, togglePlay } = usePlayerStore();
   const [categories, setCategories] = useState<Category[]>([]);
   const [moods, setMoods] = useState<MoodOption[]>([]);
   const [languages, setLanguages] = useState<LanguageOption[]>([]);
@@ -141,11 +145,57 @@ export function TracksView() {
 
   const handleDownload = async (track: Track) => {
     try {
-      const response = await trackAPI.getDownloadUrl(track.id);
+      // 관리자는 adminAPI 사용 (user_tracks 체크 없이 모든 트랙 다운로드 가능)
+      const response = await adminAPI.getDownloadUrl(track.id);
       const { downloadUrl } = response.data;
       window.location.href = downloadUrl;
     } catch (error) {
       alert('다운로드할 수 없습니다. 파일이 업로드되지 않았을 수 있습니다.');
+    }
+  };
+
+  // 재생 핸들러 (관리자용 - adminAPI 사용)
+  const handlePlay = async (track: Track) => {
+    // 현재 재생 중인 트랙이면 토글
+    if (currentTrack?.id === track.id) {
+      togglePlay();
+      return;
+    }
+
+    // 관리자는 adminAPI 사용 (user_tracks 체크 없이 모든 트랙 재생 가능)
+    const { audio, setLoading } = usePlayerStore.getState();
+
+    if (!audio) {
+      alert('오디오 플레이어가 초기화되지 않았습니다.');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      console.log('🔊 [Admin] Fetching stream URL for track:', track.id);
+      const response = await adminAPI.getStreamUrl(track.id);
+      const { streamUrl } = response.data;
+      console.log('✅ [Admin] Stream URL received');
+
+      // 오디오 재생
+      audio.src = streamUrl;
+      audio.load();
+      await audio.play();
+
+      // 상태 업데이트
+      usePlayerStore.setState({
+        currentTrack: { id: track.id, title: track.title, artist: track.artist, album: track.album || undefined, duration: track.duration },
+        playlist: tracks.map(t => ({ id: t.id, title: t.title, artist: t.artist, album: t.album || undefined, duration: t.duration })),
+        currentIndex: tracks.findIndex(t => t.id === track.id),
+        isPlaying: true,
+        isLoading: false,
+        currentTime: 0
+      });
+    } catch (error) {
+      console.error('❌ [Admin] 재생 실패:', error);
+      setLoading(false);
+      alert('음원을 재생할 수 없습니다. 파일이 업로드되지 않았을 수 있습니다.');
     }
   };
 
@@ -488,7 +538,12 @@ export function TracksView() {
             {/* 모바일: 카드 뷰 */}
             <div className="md:hidden p-3 space-y-3">
               {tracks.map((track) => (
-                <div key={track.id} className="bg-gray-50 rounded-lg p-3 border border-gray-100">
+                <div key={track.id} className={cn(
+                  "bg-gray-50 rounded-lg p-3 border transition-all",
+                  currentTrack?.id === track.id
+                    ? "border-emerald-300 bg-emerald-50/50 ring-1 ring-emerald-200"
+                    : "border-gray-100"
+                )}>
                   <div className="flex items-start gap-3">
                     <div className="w-11 h-11 rounded-lg bg-gradient-to-br from-emerald-100 to-emerald-200 flex items-center justify-center text-emerald-600 flex-shrink-0">
                       <Music className="w-5 h-5" />
@@ -508,6 +563,24 @@ export function TracksView() {
                       )}
                     </div>
                     <div className="flex items-center gap-1">
+                      <button
+                        onClick={() => handlePlay(track)}
+                        disabled={playerLoading && currentTrack?.id === track.id}
+                        className={cn(
+                          "p-2 rounded-lg transition-colors",
+                          currentTrack?.id === track.id && isPlaying
+                            ? "text-emerald-600 bg-emerald-50"
+                            : "text-gray-400 hover:text-emerald-500 hover:bg-white"
+                        )}
+                      >
+                        {currentTrack?.id === track.id && playerLoading ? (
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                        ) : currentTrack?.id === track.id && isPlaying ? (
+                          <Pause className="w-4 h-4" />
+                        ) : (
+                          <Play className="w-4 h-4" />
+                        )}
+                      </button>
                       <button
                         onClick={() => openEditModal(track)}
                         className="p-2 text-gray-400 hover:text-emerald-500 hover:bg-white rounded-lg transition-colors"
@@ -572,7 +645,12 @@ export function TracksView() {
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {tracks.map((track) => (
-                    <tr key={track.id} className="group hover:bg-gray-50/50 transition-colors">
+                    <tr key={track.id} className={cn(
+                      "group transition-colors",
+                      currentTrack?.id === track.id
+                        ? "bg-emerald-50/70 hover:bg-emerald-50"
+                        : "hover:bg-gray-50/50"
+                    )}>
                       <td className="px-6 py-4 font-medium text-gray-900">
                         <div className="flex items-center gap-3">
                           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-100 to-emerald-200 flex items-center justify-center text-emerald-600 flex-shrink-0">
@@ -632,6 +710,25 @@ export function TracksView() {
                       <td className="px-6 py-4 text-gray-600">{formatDate(track.created_at)}</td>
                       <td className="px-6 py-4">
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity flex justify-end gap-1">
+                          <button
+                            onClick={() => handlePlay(track)}
+                            disabled={playerLoading && currentTrack?.id === track.id}
+                            className={cn(
+                              "p-1.5 rounded transition-colors",
+                              currentTrack?.id === track.id && isPlaying
+                                ? "text-emerald-600 bg-emerald-100"
+                                : "text-gray-400 hover:text-emerald-500 hover:bg-emerald-50"
+                            )}
+                            title={currentTrack?.id === track.id && isPlaying ? "일시정지" : "재생"}
+                          >
+                            {currentTrack?.id === track.id && playerLoading ? (
+                              <Loader2 className="w-4 h-4 animate-spin" />
+                            ) : currentTrack?.id === track.id && isPlaying ? (
+                              <Pause className="w-4 h-4" />
+                            ) : (
+                              <Play className="w-4 h-4" />
+                            )}
+                          </button>
                           <button
                             onClick={() => openEditModal(track)}
                             className="p-1.5 text-gray-400 hover:text-emerald-500 hover:bg-emerald-50 rounded transition-colors"

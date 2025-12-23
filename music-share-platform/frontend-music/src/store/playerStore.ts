@@ -55,17 +55,25 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   isMuted: false,
   audio: null,
 
-  setAudio: (audio) => set({ audio }),
+  setAudio: (audio) => {
+    console.log('🔊 Audio element registered in store');
+    set({ audio });
+  },
 
   playTrack: async (track, playlist) => {
     const state = get();
+
+    console.log('🎵 playTrack called:', track.title);
+    console.log('🔊 Audio element exists:', !!state.audio);
 
     set({ isLoading: true });
 
     try {
       // 스트리밍 URL 가져오기
+      console.log('📡 Fetching stream URL for track:', track.id);
       const response = await trackAPI.getStreamUrl(track.id);
       const { streamUrl } = response.data;
+      console.log('✅ Stream URL received:', streamUrl?.substring(0, 100) + '...');
 
       // 플레이리스트 설정
       if (playlist) {
@@ -75,18 +83,24 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
       // 오디오 재생
       if (state.audio) {
+        console.log('▶️ Setting audio source and playing...');
         state.audio.src = streamUrl;
         state.audio.load();
         await state.audio.play();
+        console.log('✅ Audio playing!');
         set({
           currentTrack: track,
           isPlaying: true,
           isLoading: false,
           currentTime: 0
         });
+      } else {
+        console.error('❌ Audio element not found in store!');
+        set({ isLoading: false });
+        throw new Error('Audio element not initialized');
       }
     } catch (error) {
-      console.error('Failed to play track:', error);
+      console.error('❌ Failed to play track:', error);
       set({ isLoading: false });
       throw error;
     }

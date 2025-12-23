@@ -231,7 +231,7 @@ export default function PartnerDashboardPage() {
                   <div>
                     <p className="text-xs sm:text-sm text-gray-500">총 정산금</p>
                     <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
-                      {formatCurrency(dashboard.stats.totalEarnings)}
+                      {formatCurrency(dashboard.stats?.totalEarnings || 0)}
                     </p>
                   </div>
                 </div>
@@ -245,7 +245,7 @@ export default function PartnerDashboardPage() {
                   <div>
                     <p className="text-xs sm:text-sm text-gray-500">지난달 정산</p>
                     <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
-                      {formatCurrency(dashboard.stats.lastMonthEarnings)}
+                      {formatCurrency(dashboard.stats?.lastMonthEarnings || 0)}
                     </p>
                   </div>
                 </div>
@@ -259,7 +259,7 @@ export default function PartnerDashboardPage() {
                   <div>
                     <p className="text-xs sm:text-sm text-gray-500">연결된 트랙</p>
                     <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
-                      {dashboard.stats.trackCount}곡
+                      {dashboard.stats?.trackCount || 0}곡
                     </p>
                   </div>
                 </div>
@@ -273,7 +273,7 @@ export default function PartnerDashboardPage() {
                   <div>
                     <p className="text-xs sm:text-sm text-gray-500">대기중 정산</p>
                     <p className="text-lg sm:text-xl lg:text-2xl font-bold text-gray-900">
-                      {dashboard.stats.pendingSettlements}건
+                      {dashboard.stats?.pendingSettlements || 0}건
                     </p>
                   </div>
                 </div>
@@ -293,13 +293,13 @@ export default function PartnerDashboardPage() {
                 </button>
               </div>
               <div className="p-3 sm:p-4 lg:p-6">
-                {dashboard.recentSettlements.length === 0 ? (
+                {(dashboard.recentSettlements?.length || 0) === 0 ? (
                   <div className="text-center py-6 sm:py-8 text-gray-500 text-sm">
                     아직 정산 내역이 없습니다
                   </div>
                 ) : (
                   <div className="space-y-3 sm:space-y-4">
-                    {dashboard.recentSettlements.slice(0, 5).map((settlement) => (
+                    {(dashboard.recentSettlements || []).slice(0, 5).map((settlement) => (
                       <div
                         key={settlement.id}
                         className="flex items-start sm:items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg sm:rounded-xl gap-3"
@@ -343,13 +343,13 @@ export default function PartnerDashboardPage() {
                 </button>
               </div>
               <div className="p-3 sm:p-4 lg:p-6">
-                {dashboard.assignedTracks.length === 0 ? (
+                {(dashboard.assignedTracks?.length || 0) === 0 ? (
                   <div className="text-center py-6 sm:py-8 text-gray-500 text-sm">
                     연결된 트랙이 없습니다
                   </div>
                 ) : (
                   <div className="space-y-2 sm:space-y-3">
-                    {dashboard.assignedTracks.slice(0, 5).map((track) => (
+                    {(dashboard.assignedTracks || []).slice(0, 5).map((track) => (
                       <div
                         key={track.id}
                         className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg sm:rounded-xl gap-3"
@@ -512,13 +512,13 @@ export default function PartnerDashboardPage() {
               </p>
             </div>
             <div className="p-3 sm:p-4 lg:p-6">
-              {dashboard.assignedTracks.length === 0 ? (
+              {(dashboard.assignedTracks?.length || 0) === 0 ? (
                 <div className="text-center py-8 sm:py-12 text-gray-500 text-sm">
                   연결된 트랙이 없습니다
                 </div>
               ) : (
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
-                  {dashboard.assignedTracks.map((track) => (
+                  {(dashboard.assignedTracks || []).map((track) => (
                     <div
                       key={track.id}
                       className="p-3 sm:p-4 bg-gray-50 rounded-lg sm:rounded-xl border border-gray-100"

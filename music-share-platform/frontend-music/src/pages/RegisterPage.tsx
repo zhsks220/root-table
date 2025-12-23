@@ -3,7 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { authAPI } from '../services/api';
 import { motion } from 'framer-motion';
-import { UserPlus, ArrowRight, Loader2 } from 'lucide-react';
+import { UserPlus, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 export default function RegisterPage() {
@@ -15,6 +15,7 @@ export default function RegisterPage() {
     password: '',
     name: '',
   });
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -46,62 +47,79 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#fbfbfb] flex flex-col items-center justify-center p-4">
+    <div className="min-h-[100dvh] bg-[#fbfbfb] flex flex-col items-center justify-center px-4 py-8 sm:p-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
         className="w-full max-w-sm"
       >
-        <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-orange-500 rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-orange-500/20">
-            <UserPlus className="w-6 h-6 text-white" />
+        {/* 로고 및 헤더 */}
+        <div className="text-center mb-6 sm:mb-8">
+          <div className="w-14 h-14 sm:w-12 sm:h-12 bg-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-xl shadow-emerald-500/20">
+            <UserPlus className="w-7 h-7 sm:w-6 sm:h-6 text-white" />
           </div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight mb-2">
+          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight mb-2">
             계정 생성
           </h1>
-          <p className="text-gray-500 text-sm">
+          <p className="text-gray-500 text-sm px-4 sm:px-0">
             음원을 다운로드하려면 계정을 생성하세요
           </p>
         </div>
 
+        {/* 회원가입 폼 */}
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
+            {/* 이메일 입력 */}
             <div>
               <input
                 type="email"
                 required
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all"
+                className="w-full px-4 py-3.5 sm:py-3 bg-white border border-gray-200 rounded-xl text-base sm:text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
                 placeholder="이메일 주소"
+                autoComplete="email"
+                inputMode="email"
               />
             </div>
 
-            <div>
+            {/* 비밀번호 입력 */}
+            <div className="relative">
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 required
                 minLength={8}
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all"
+                className="w-full px-4 py-3.5 sm:py-3 pr-12 bg-white border border-gray-200 rounded-xl text-base sm:text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
                 placeholder="비밀번호 (8자 이상)"
+                autoComplete="new-password"
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 transition-colors"
+              >
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+              </button>
             </div>
 
+            {/* 이름 입력 */}
             <div>
               <input
                 type="text"
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-3 bg-white border border-gray-200 rounded-xl text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-orange-500/20 focus:border-orange-500 outline-none transition-all"
+                className="w-full px-4 py-3.5 sm:py-3 bg-white border border-gray-200 rounded-xl text-base sm:text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
                 placeholder="이름"
+                autoComplete="name"
               />
             </div>
           </div>
 
+          {/* 에러 메시지 */}
           {error && (
             <motion.div
               initial={{ opacity: 0, height: 0 }}
@@ -112,34 +130,39 @@ export default function RegisterPage() {
             </motion.div>
           )}
 
+          {/* 가입 버튼 */}
           <button
             type="submit"
             disabled={loading}
             className={cn(
-              "w-full bg-gray-900 hover:bg-black text-white font-medium py-3 rounded-xl shadow-lg shadow-gray-900/10 flex items-center justify-center gap-2 transition-all active:scale-[0.98]",
+              "w-full bg-gray-900 hover:bg-black text-white font-medium py-3.5 sm:py-3 rounded-xl shadow-lg shadow-gray-900/10 flex items-center justify-center gap-2 transition-all active:scale-[0.98] text-base sm:text-sm",
               loading && "opacity-80 disabled:cursor-not-allowed"
             )}
           >
             {loading ? (
-              <Loader2 className="w-4 h-4 animate-spin" />
+              <Loader2 className="w-5 h-5 sm:w-4 sm:h-4 animate-spin" />
             ) : (
               <>
                 가입하기
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-5 h-5 sm:w-4 sm:h-4" />
               </>
             )}
           </button>
         </form>
 
-        <div className="mt-8 text-center">
+        {/* 로그인 링크 */}
+        <div className="mt-6 sm:mt-8 text-center">
           <button
             onClick={() => navigate('/login')}
-            className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors"
+            className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors py-2"
           >
-            이미 계정이 있으신가요? <span className="text-orange-600">로그인</span>
+            이미 계정이 있으신가요? <span className="text-emerald-600">로그인</span>
           </button>
         </div>
       </motion.div>
+
+      {/* 모바일 하단 safe area */}
+      <div className="h-[env(safe-area-inset-bottom)] sm:hidden" />
     </div>
   );
 }

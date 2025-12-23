@@ -94,7 +94,7 @@ export function InvitationsView() {
                 {/* Create Invitation Panel */}
                 <div className="bg-white rounded-xl shadow-[0_2px_8px_rgba(0,0,0,0.04)] border border-gray-100 p-6">
                     <h2 className="text-lg font-semibold text-gray-900 mb-6 flex items-center gap-2">
-                        <span className="w-8 h-8 rounded-full bg-indigo-50 text-indigo-600 flex items-center justify-center">
+                        <span className="w-8 h-8 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center">
                             <LinkIcon className="w-4 h-4" />
                         </span>
                         새 링크 생성
@@ -114,14 +114,14 @@ export function InvitationsView() {
                                             key={track.id}
                                             className={cn(
                                                 "flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors border-b last:border-0 border-gray-50",
-                                                selectedTracks.includes(track.id) ? "bg-indigo-50/50" : "hover:bg-gray-50"
+                                                selectedTracks.includes(track.id) ? "bg-emerald-50/50" : "hover:bg-gray-50"
                                             )}
                                         >
                                             <input
                                                 type="checkbox"
                                                 checked={selectedTracks.includes(track.id)}
                                                 onChange={() => toggleTrackSelection(track.id)}
-                                                className="w-4 h-4 text-indigo-600 rounded border-gray-300 focus:ring-indigo-500"
+                                                className="w-4 h-4 text-emerald-600 rounded border-gray-300 focus:ring-emerald-500"
                                             />
                                             <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-medium text-gray-900 truncate">{track.title}</p>
@@ -138,7 +138,7 @@ export function InvitationsView() {
                             <select
                                 value={expiresInDays}
                                 onChange={(e) => setExpiresInDays(Number(e.target.value))}
-                                className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-shadow"
+                                className="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-shadow"
                             >
                                 <option value={7}>7일</option>
                                 <option value={30}>30일</option>
@@ -194,7 +194,7 @@ export function InvitationsView() {
                             </div>
                         ) : (
                             invitations.map(inv => (
-                                <div key={inv.id} className="group border border-gray-100 hover:border-indigo-100 rounded-lg p-4 transition-all hover:shadow-sm">
+                                <div key={inv.id} className="group border border-gray-100 hover:border-emerald-100 rounded-lg p-4 transition-all hover:shadow-sm">
                                     <div className="flex items-start justify-between mb-3">
                                         <div>
                                             <div className="flex items-center gap-2 mb-1">
@@ -215,7 +215,7 @@ export function InvitationsView() {
                                         {!inv.is_used && (
                                             <button
                                                 onClick={() => copyInviteLink(inv.code)}
-                                                className="text-gray-400 hover:text-indigo-600 transition-colors"
+                                                className="text-gray-400 hover:text-emerald-600 transition-colors"
                                             >
                                                 <Copy className="w-4 h-4" />
                                             </button>
@@ -225,7 +225,7 @@ export function InvitationsView() {
                                     <div className="flex items-center justify-between text-xs border-t border-gray-50 pt-3">
                                         <span className="text-gray-400">생성일: {formatDate(inv.created_at)}</span>
                                         {inv.expires_at && (
-                                            <span className="flex items-center gap-1 text-orange-400 bg-orange-50 px-2 py-0.5 rounded-full">
+                                            <span className="flex items-center gap-1 text-amber-500 bg-amber-50 px-2 py-0.5 rounded-full">
                                                 <Calendar className="w-3 h-3" />
                                                 만료: {formatDate(inv.expires_at)}
                                             </span>

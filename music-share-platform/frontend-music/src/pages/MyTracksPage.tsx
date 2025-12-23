@@ -70,7 +70,7 @@ export default function MyTracksPage() {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-600 mx-auto mb-4"></div>
           <p className="text-gray-600">로딩 중...</p>
         </div>
       </div>
@@ -84,7 +84,7 @@ export default function MyTracksPage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-3">
-              <Music className="h-8 w-8 text-blue-600" />
+              <Music className="h-8 w-8 text-emerald-600" />
               <h1 className="text-2xl font-bold text-gray-900">내 음원</h1>
             </div>
             <div className="flex items-center space-x-4">
@@ -143,7 +143,7 @@ export default function MyTracksPage() {
                   {track.can_download && (
                     <button
                       onClick={() => handleDownload(track)}
-                      className="flex items-center justify-center space-x-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition"
+                      className="flex items-center justify-center space-x-2 px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-lg transition"
                     >
                       <Download className="h-4 w-4" />
                     </button>

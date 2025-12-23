@@ -42,7 +42,7 @@ export default function InvitePage() {
     return (
       <div className="min-h-screen bg-[#fbfbfb] flex items-center justify-center">
         <div className="flex flex-col items-center gap-4">
-          <Loader2 className="w-8 h-8 text-orange-500 animate-spin" />
+          <Loader2 className="w-8 h-8 text-emerald-500 animate-spin" />
           <p className="text-gray-500 font-medium">초대 코드를 확인하고 있습니다...</p>
         </div>
       </div>
@@ -96,7 +96,7 @@ export default function InvitePage() {
             initial={{ width: "0%" }}
             animate={{ width: "100%" }}
             transition={{ duration: 3, ease: "linear" }}
-            className="h-full bg-orange-500"
+            className="h-full bg-emerald-500"
           />
         </div>
         <p className="text-xs text-gray-400">자동으로 이동하지 않으면 새로고침하세요</p>

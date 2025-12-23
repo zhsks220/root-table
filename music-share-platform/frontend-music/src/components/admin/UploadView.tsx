@@ -1,14 +1,52 @@
-import { useState } from 'react';
-import { adminAPI } from '../../services/api';
+import { useState, useEffect } from 'react';
+import { adminAPI, categoryAPI } from '../../services/api';
+import { Category, MoodOption, LanguageOption } from '../../types';
 import { PageTransition } from '../PageTransition';
-import { Upload, Music, Disc, User as UserIcon } from 'lucide-react';
+import { Upload, Music, Disc, User as UserIcon, Tag, Globe, Sparkles, ChevronDown, X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 
 export function UploadView() {
     const [file, setFile] = useState<File | null>(null);
     const [duration, setDuration] = useState<number | null>(null);
-    const [form, setForm] = useState({ title: '', artist: '', album: '' });
+    const [form, setForm] = useState({
+        title: '',
+        artist: '',
+        album: '',
+        description: '',
+        tags: '',
+        mood: '',
+        language: 'ko',
+        bpm: '',
+        release_year: new Date().getFullYear().toString(),
+        is_explicit: false
+    });
+    const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
     const [uploading, setUploading] = useState(false);
+
+    // 데이터 로딩
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [moods, setMoods] = useState<MoodOption[]>([]);
+    const [languages, setLanguages] = useState<LanguageOption[]>([]);
+    const [showAdvanced, setShowAdvanced] = useState(false);
+
+    useEffect(() => {
+        loadOptions();
+    }, []);
+
+    const loadOptions = async () => {
+        try {
+            const [catRes, moodRes, langRes] = await Promise.all([
+                categoryAPI.getCategories(),
+                categoryAPI.getMoods(),
+                categoryAPI.getLanguages()
+            ]);
+            setCategories(catRes.data.categories);
+            setMoods(moodRes.data.moods);
+            setLanguages(langRes.data.languages);
+        } catch (error) {
+            console.error('Failed to load options:', error);
+        }
+    };
 
     // 오디오 파일에서 duration 추출
     const extractDuration = (audioFile: File): Promise<number> => {
@@ -36,9 +74,23 @@ export function UploadView() {
         }
     };
 
+    const handleCategoryToggle = (categoryId: string) => {
+        setSelectedCategories(prev => {
+            if (prev.includes(categoryId)) {
+                return prev.filter(id => id !== categoryId);
+            }
+            if (prev.length >= 3) {
+                alert('최대 3개까지 선택할 수 있습니다.');
+                return prev;
+            }
+            return [...prev, categoryId];
+        });
+    };
+
     const handleUpload = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!file) return alert('파일을 선택해주세요.');
+        if (selectedCategories.length === 0) return alert('카테고리를 선택해주세요.');
 
         const data = new FormData();
         data.append('file', file);
@@ -47,13 +99,30 @@ export function UploadView() {
         if (form.album) data.append('album', form.album);
         if (duration) data.append('duration', duration.toString());
 
+        // 카테고리
+        data.append('categoryIds', JSON.stringify(selectedCategories));
+
+        // 추가 메타데이터
+        if (form.mood) data.append('mood', form.mood);
+        if (form.language) data.append('language', form.language);
+        if (form.bpm) data.append('bpm', form.bpm);
+        if (form.release_year) data.append('release_year', form.release_year);
+        if (form.is_explicit) data.append('is_explicit', 'true');
+        if (form.description) data.append('description', form.description);
+        if (form.tags) data.append('tags', form.tags);
+
         setUploading(true);
         try {
             await adminAPI.uploadTrack(data);
             alert('트랙이 성공적으로 업로드되었습니다!');
             setFile(null);
             setDuration(null);
-            setForm({ title: '', artist: '', album: '' });
+            setSelectedCategories([]);
+            setForm({
+                title: '', artist: '', album: '', description: '', tags: '',
+                mood: '', language: 'ko', bpm: '',
+                release_year: new Date().getFullYear().toString(), is_explicit: false
+            });
         } catch (error: any) {
             alert('업로드 실패: ' + (error.response?.data?.error || error.message));
         } finally {
@@ -62,7 +131,7 @@ export function UploadView() {
     };
 
     return (
-        <PageTransition className="p-8 max-w-2xl mx-auto">
+        <PageTransition className="p-8 max-w-3xl mx-auto">
             <div className="text-center mb-10">
                 <h1 className="text-3xl font-bold text-gray-900 mb-2">트랙 업로드</h1>
                 <p className="text-gray-500">라이브러리에 새 음악을 추가하세요</p>
@@ -76,7 +145,7 @@ export function UploadView() {
                         <label className="text-sm font-medium text-gray-700">오디오 파일</label>
                         <div className={cn(
                             "border-2 border-dashed rounded-xl p-8 transition-colors text-center cursor-pointer",
-                            file ? "border-indigo-200 bg-indigo-50/50" : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                            file ? "border-emerald-200 bg-emerald-50/50" : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                         )}>
                             <input
                                 type="file"
@@ -88,11 +157,11 @@ export function UploadView() {
                             <label htmlFor="file-upload" className="cursor-pointer block">
                                 {file ? (
                                     <div className="flex flex-col items-center gap-2">
-                                        <div className="w-12 h-12 rounded-full bg-indigo-100 text-indigo-600 flex items-center justify-center">
+                                        <div className="w-12 h-12 rounded-full bg-emerald-100 text-emerald-600 flex items-center justify-center">
                                             <Music className="w-6 h-6" />
                                         </div>
-                                        <p className="font-medium text-indigo-900">{file.name}</p>
-                                        <p className="text-xs text-indigo-500">
+                                        <p className="font-medium text-emerald-900">{file.name}</p>
+                                        <p className="text-xs text-emerald-500">
                                             {(file.size / 1024 / 1024).toFixed(2)} MB
                                             {duration ? ` · ${Math.floor(duration / 60)}:${(duration % 60).toString().padStart(2, '0')}` : ''}
                                         </p>
@@ -108,9 +177,10 @@ export function UploadView() {
                         </div>
                     </div>
 
+                    {/* 기본 정보 */}
                     <div className="grid gap-5">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1.5">트랙 제목</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1.5">트랙 제목 *</label>
                             <div className="relative">
                                 <Music className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                 <input
@@ -118,7 +188,7 @@ export function UploadView() {
                                     required
                                     value={form.title}
                                     onChange={e => setForm({ ...form, title: e.target.value })}
-                                    className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-shadow"
+                                    className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-shadow"
                                     placeholder="예: Summer Vibes"
                                 />
                             </div>
@@ -126,7 +196,7 @@ export function UploadView() {
 
                         <div className="grid grid-cols-2 gap-5">
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1.5">아티스트</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">아티스트 *</label>
                                 <div className="relative">
                                     <UserIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                     <input
@@ -134,26 +204,234 @@ export function UploadView() {
                                         required
                                         value={form.artist}
                                         onChange={e => setForm({ ...form, artist: e.target.value })}
-                                        className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-shadow"
+                                        className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-shadow"
                                         placeholder="아티스트 이름"
                                     />
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-medium text-gray-700 mb-1.5">앨범 (선택사항)</label>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">앨범</label>
                                 <div className="relative">
                                     <Disc className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                                     <input
                                         type="text"
                                         value={form.album}
                                         onChange={e => setForm({ ...form, album: e.target.value })}
-                                        className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-shadow"
+                                        className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-shadow"
                                         placeholder="앨범 이름"
                                     />
                                 </div>
                             </div>
                         </div>
                     </div>
+
+                    {/* 카테고리 선택 */}
+                    <div className="space-y-3">
+                        <label className="block text-sm font-medium text-gray-700">
+                            카테고리 * <span className="text-gray-400 font-normal">(최대 3개)</span>
+                        </label>
+
+                        {/* 선택된 카테고리 표시 */}
+                        {selectedCategories.length > 0 && (
+                            <div className="flex flex-wrap gap-2 mb-3">
+                                {selectedCategories.map((catId, index) => {
+                                    const category = categories.flatMap(c => [c, ...(c.children || [])]).find(c => c.id === catId);
+                                    return category ? (
+                                        <span
+                                            key={catId}
+                                            className={cn(
+                                                "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium",
+                                                index === 0 ? "bg-emerald-100 text-emerald-700" : "bg-gray-100 text-gray-700"
+                                            )}
+                                        >
+                                            <span>{category.icon}</span>
+                                            {category.name}
+                                            {index === 0 && <span className="text-xs opacity-60">(주)</span>}
+                                            <button
+                                                type="button"
+                                                onClick={() => handleCategoryToggle(catId)}
+                                                className="ml-1 hover:text-red-500"
+                                            >
+                                                <X className="w-3.5 h-3.5" />
+                                            </button>
+                                        </span>
+                                    ) : null;
+                                })}
+                            </div>
+                        )}
+
+                        {/* 카테고리 그리드 */}
+                        <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
+                            {categories.map(category => (
+                                <button
+                                    key={category.id}
+                                    type="button"
+                                    onClick={() => handleCategoryToggle(category.id)}
+                                    className={cn(
+                                        "p-3 rounded-lg border text-center transition-all hover:shadow-sm",
+                                        selectedCategories.includes(category.id)
+                                            ? "border-emerald-300 bg-emerald-50 text-emerald-700"
+                                            : "border-gray-200 hover:border-gray-300 text-gray-700"
+                                    )}
+                                >
+                                    <div className="text-xl mb-1">{category.icon}</div>
+                                    <div className="text-xs font-medium truncate">{category.name}</div>
+                                </button>
+                            ))}
+                        </div>
+
+                        {/* 서브카테고리 (선택된 메인 카테고리가 있을 때) */}
+                        {selectedCategories.length > 0 && (() => {
+                            const mainCat = categories.find(c => c.id === selectedCategories[0]);
+                            if (mainCat?.children && mainCat.children.length > 0) {
+                                return (
+                                    <div className="mt-3 p-3 bg-gray-50 rounded-lg">
+                                        <label className="block text-xs font-medium text-gray-500 mb-2">
+                                            {mainCat.name} 세부 장르
+                                        </label>
+                                        <div className="flex flex-wrap gap-2">
+                                            {mainCat.children.map(sub => (
+                                                <button
+                                                    key={sub.id}
+                                                    type="button"
+                                                    onClick={() => handleCategoryToggle(sub.id)}
+                                                    className={cn(
+                                                        "px-3 py-1.5 rounded-full text-xs font-medium transition-colors",
+                                                        selectedCategories.includes(sub.id)
+                                                            ? "bg-emerald-500 text-white"
+                                                            : "bg-white border border-gray-200 text-gray-600 hover:border-emerald-300"
+                                                    )}
+                                                >
+                                                    {sub.name}
+                                                </button>
+                                            ))}
+                                        </div>
+                                    </div>
+                                );
+                            }
+                            return null;
+                        })()}
+                    </div>
+
+                    {/* 고급 옵션 토글 */}
+                    <button
+                        type="button"
+                        onClick={() => setShowAdvanced(!showAdvanced)}
+                        className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700"
+                    >
+                        <ChevronDown className={cn("w-4 h-4 transition-transform", showAdvanced && "rotate-180")} />
+                        고급 옵션 {showAdvanced ? '접기' : '펼치기'}
+                    </button>
+
+                    {/* 고급 옵션 */}
+                    {showAdvanced && (
+                        <div className="space-y-5 p-5 bg-gray-50 rounded-xl">
+                            <div className="grid grid-cols-2 gap-5">
+                                {/* 분위기 */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                        <Sparkles className="inline w-4 h-4 mr-1" />
+                                        분위기
+                                    </label>
+                                    <select
+                                        value={form.mood}
+                                        onChange={e => setForm({ ...form, mood: e.target.value })}
+                                        className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                                    >
+                                        <option value="">선택 안함</option>
+                                        {moods.map(mood => (
+                                            <option key={mood.value} value={mood.value}>{mood.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+
+                                {/* 언어 */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                        <Globe className="inline w-4 h-4 mr-1" />
+                                        언어
+                                    </label>
+                                    <select
+                                        value={form.language}
+                                        onChange={e => setForm({ ...form, language: e.target.value })}
+                                        className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                                    >
+                                        {languages.map(lang => (
+                                            <option key={lang.value} value={lang.value}>{lang.label}</option>
+                                        ))}
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-5">
+                                {/* BPM */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">BPM</label>
+                                    <input
+                                        type="number"
+                                        value={form.bpm}
+                                        onChange={e => setForm({ ...form, bpm: e.target.value })}
+                                        className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                                        placeholder="120"
+                                        min="30"
+                                        max="300"
+                                    />
+                                </div>
+
+                                {/* 발매년도 */}
+                                <div>
+                                    <label className="block text-sm font-medium text-gray-700 mb-1.5">발매년도</label>
+                                    <input
+                                        type="number"
+                                        value={form.release_year}
+                                        onChange={e => setForm({ ...form, release_year: e.target.value })}
+                                        className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                                        placeholder="2024"
+                                        min="1900"
+                                        max={new Date().getFullYear() + 1}
+                                    />
+                                </div>
+                            </div>
+
+                            {/* 태그 */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                                    <Tag className="inline w-4 h-4 mr-1" />
+                                    태그 <span className="text-gray-400 font-normal">(쉼표로 구분)</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    value={form.tags}
+                                    onChange={e => setForm({ ...form, tags: e.target.value })}
+                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500"
+                                    placeholder="예: 여름, 드라이브, 청량"
+                                />
+                            </div>
+
+                            {/* 설명 */}
+                            <div>
+                                <label className="block text-sm font-medium text-gray-700 mb-1.5">설명</label>
+                                <textarea
+                                    value={form.description}
+                                    onChange={e => setForm({ ...form, description: e.target.value })}
+                                    className="w-full px-3 py-2.5 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 resize-none"
+                                    rows={3}
+                                    placeholder="트랙에 대한 간단한 설명..."
+                                />
+                            </div>
+
+                            {/* 성인 콘텐츠 여부 */}
+                            <label className="flex items-center gap-2 cursor-pointer">
+                                <input
+                                    type="checkbox"
+                                    checked={form.is_explicit}
+                                    onChange={e => setForm({ ...form, is_explicit: e.target.checked })}
+                                    className="w-4 h-4 rounded border-gray-300 text-emerald-600 focus:ring-emerald-500"
+                                />
+                                <span className="text-sm text-gray-700">성인 콘텐츠 (Explicit)</span>
+                            </label>
+                        </div>
+                    )}
 
                     <button
                         type="submit"

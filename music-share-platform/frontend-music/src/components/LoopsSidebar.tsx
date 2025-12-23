@@ -1,4 +1,4 @@
-import { Music, Link as LinkIcon, Users, Upload, LogOut } from 'lucide-react';
+import { Music, Link as LinkIcon, Users, Upload, LogOut, BarChart3 } from 'lucide-react';
 import { cn } from '../lib/utils';
 import { useAuthStore } from '../store/authStore';
 import { useNavigate } from 'react-router-dom';
@@ -28,7 +28,7 @@ export function LoopsSidebar({ activeTab, onTabChange }: SidebarProps) {
         <aside className="w-64 bg-[#fbfbfb] border-r border-gray-100 flex flex-col h-screen sticky top-0">
             <div className="p-6">
                 <div className="flex items-center gap-2 mb-8">
-                    <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
+                    <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center">
                         <Music className="w-5 h-5 text-white" />
                     </div>
                     <span className="font-bold text-xl tracking-tight text-gray-900">ROUTELABEL</span>
@@ -46,7 +46,7 @@ export function LoopsSidebar({ activeTab, onTabChange }: SidebarProps) {
                                     : "text-gray-500 hover:text-gray-900 hover:bg-gray-100/50"
                             )}
                         >
-                            <item.icon className={cn("w-4 h-4", activeTab === item.id ? "text-orange-500" : "text-gray-400")} />
+                            <item.icon className={cn("w-4 h-4", activeTab === item.id ? "text-emerald-500" : "text-gray-400")} />
                             {item.label}
                         </button>
                     ))}
@@ -55,7 +55,7 @@ export function LoopsSidebar({ activeTab, onTabChange }: SidebarProps) {
 
             <div className="mt-auto p-6 border-t border-gray-100">
                 <div className="flex items-center gap-3 mb-4 px-2">
-                    <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-indigo-600 font-bold text-xs">
+                    <div className="w-8 h-8 rounded-full bg-emerald-100 flex items-center justify-center text-emerald-600 font-bold text-xs">
                         {user?.name?.[0] || 'A'}
                     </div>
                     <div className="flex-1 min-w-0">
@@ -70,6 +70,15 @@ export function LoopsSidebar({ activeTab, onTabChange }: SidebarProps) {
                     <LogOut className="w-4 h-4" />
                     로그아웃
                 </button>
+                <div className="mt-4 pt-4 border-t border-gray-100">
+                    <button
+                        onClick={() => navigate('/cms-rl2025x')}
+                        className="w-full flex items-center gap-2 px-3 py-2 text-xs text-gray-400 hover:text-emerald-600 hover:bg-emerald-50 rounded-lg transition-colors"
+                    >
+                        <BarChart3 className="w-4 h-4" />
+                        유통사 CMS
+                    </button>
+                </div>
                 <p className="mt-4 text-xs text-gray-400 px-2">v1.0.0 • 관리자 콘솔</p>
             </div>
         </aside>

@@ -1,5 +1,8 @@
+# Railway Nixpacks configuration
+providers = ["node"]
+
 [phases.setup]
-nixPkgs = ["nodejs-20_x"]
+nixPkgs = ["nodejs_20", "npm"]
 
 [phases.install]
 cmds = ["npm ci || npm install"]

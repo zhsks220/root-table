@@ -6,6 +6,7 @@ import { pool } from '../db';
 import { AuthRequest } from '../types';
 import { authenticateToken, requireAdmin } from '../middleware/auth';
 import { uploadFile, deleteFile } from '../services/supabaseStorage';
+import { transcodeToFlac, getAudioMetadata, checkFfmpegInstalled } from '../services/transcoder';
 
 const router = Router();
 const upload = multer({
@@ -24,7 +25,7 @@ const upload = multer({
 // 모든 라우트에 인증 + 관리자 권한 필요
 router.use(authenticateToken, requireAdmin);
 
-// 음원 업로드 (카테고리 지원)
+// 음원 업로드 (카테고리 지원 + FLAC 트랜스코딩)
 router.post('/tracks', upload.single('file'), async (req: AuthRequest, res: Response) => {
   try {
     if (!req.file) {
@@ -41,12 +42,41 @@ router.post('/tracks', upload.single('file'), async (req: AuthRequest, res: Resp
       return res.status(400).json({ error: 'Title and artist are required' });
     }
 
-    // S3 키 생성
-    const fileExt = req.file.originalname.split('.').pop();
+    // FLAC으로 트랜스코딩 (무손실 압축)
+    let finalBuffer = req.file.buffer;
+    let finalMimeType = req.file.mimetype;
+    let compressionInfo = '';
+
+    // FFmpeg가 설치되어 있으면 FLAC으로 변환
+    const ffmpegAvailable = await checkFfmpegInstalled();
+    if (ffmpegAvailable && req.file.mimetype !== 'audio/flac') {
+      try {
+        const result = await transcodeToFlac(req.file.buffer, req.file.mimetype);
+        finalBuffer = result.buffer;
+        finalMimeType = 'audio/flac';
+        compressionInfo = ` (${Math.round(result.compressionRatio * 100)}% of original)`;
+        console.log(`🎵 Transcoded to FLAC: ${result.originalSize} → ${result.compressedSize}${compressionInfo}`);
+      } catch (transcodeError) {
+        console.warn('⚠️ FLAC transcoding failed, using original file:', transcodeError);
+        // 트랜스코딩 실패 시 원본 사용
+      }
+    }
+
+    // 파일 키 생성 (항상 .flac 확장자 사용, 실패 시 원본 확장자)
+    const fileExt = finalMimeType === 'audio/flac' ? 'flac' : req.file.originalname.split('.').pop();
     const fileKey = `tracks/${Date.now()}-${crypto.randomBytes(8).toString('hex')}.${fileExt}`;
 
-    // S3 업로드
-    await uploadFile(fileKey, req.file.buffer, req.file.mimetype);
+    // 오디오 메타데이터 추출 (duration)
+    let extractedDuration = duration ? parseFloat(duration) : null;
+    if (!extractedDuration && ffmpegAvailable) {
+      try {
+        const metadata = await getAudioMetadata(req.file.buffer);
+        extractedDuration = metadata.duration || null;
+      } catch {}
+    }
+
+    // Supabase Storage 업로드
+    await uploadFile(fileKey, finalBuffer, finalMimeType);
 
     const client = await pool.connect();
     try {
@@ -60,7 +90,7 @@ router.post('/tracks', upload.single('file'), async (req: AuthRequest, res: Resp
           : tags;
       }
 
-      // DB에 저장
+      // DB에 저장 (압축된 파일 크기 사용)
       const result = await client.query(
         `INSERT INTO tracks (
           title, artist, album, duration, file_key, file_size, uploaded_by,
@@ -69,7 +99,7 @@ router.post('/tracks', upload.single('file'), async (req: AuthRequest, res: Resp
         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
         RETURNING *`,
         [
-          title, artist, album || null, duration || null, fileKey, req.file.size, req.user!.id,
+          title, artist, album || null, extractedDuration, fileKey, finalBuffer.length, req.user!.id,
           mood || null, language || 'ko', bpm ? parseInt(bpm) : null,
           release_year ? parseInt(release_year) : null,
           is_explicit === 'true' || is_explicit === true,

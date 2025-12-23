@@ -11,6 +11,8 @@ import PartnerLoginPage from './pages/PartnerLoginPage';
 import PartnerRegisterPage from './pages/PartnerRegisterPage';
 import PartnerDashboardPage from './pages/PartnerDashboardPage';
 import PartnerSettingsPage from './pages/PartnerSettingsPage';
+import MyTracksPage from './pages/MyTracksPage';
+import AudioPlayer from './components/AudioPlayer';
 
 function AdminRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, user } = useAuthStore();
@@ -54,13 +56,33 @@ function PartnerRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function UserRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated } = useAuthStore();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+
+  return <>{children}</>;
+}
+
 function App() {
   return (
     <BrowserRouter>
+      {/* 글로벌 오디오 플레이어 */}
+      <AudioPlayer />
+
       <Routes>
         <Route path="/login" element={<LoginPage />} />
         <Route path="/invite/:code" element={<InvitePage />} />
         <Route path="/register/:code" element={<RegisterPage />} />
+
+        {/* 사용자 음원 페이지 */}
+        <Route path="/my-tracks" element={
+          <UserRoute>
+            <MyTracksPage />
+          </UserRoute>
+        } />
 
         <Route path="/" element={
           <AdminRoute>

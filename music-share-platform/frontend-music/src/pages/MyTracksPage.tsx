@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { usePlayerStore } from '../store/playerStore';
 import { trackAPI } from '../services/api';
-import { Music, Download, Play, LogOut } from 'lucide-react';
+import { Music, Download, Play, Pause, LogOut } from 'lucide-react';
 
 interface Track {
   id: string;
@@ -18,7 +19,9 @@ export default function MyTracksPage() {
   const { user, logout } = useAuthStore();
   const [tracks, setTracks] = useState<Track[]>([]);
   const [loading, setLoading] = useState(true);
-  const [playingTrack, setPlayingTrack] = useState<string | null>(null);
+
+  // 글로벌 플레이어 상태
+  const { currentTrack, isPlaying, isLoading, playTrack, togglePlay } = usePlayerStore();
 
   useEffect(() => {
     loadTracks();
@@ -36,19 +39,14 @@ export default function MyTracksPage() {
   };
 
   const handlePlay = async (track: Track) => {
-    try {
-      const response = await trackAPI.getStreamUrl(track.id);
-      const { streamUrl } = response.data;
-
-      // 간단한 오디오 재생 (실제로는 더 복잡한 플레이어 구현 필요)
-      const audio = new Audio(streamUrl);
-      audio.play();
-      setPlayingTrack(track.id);
-
-      audio.onended = () => setPlayingTrack(null);
-    } catch (error) {
-      alert('재생할 수 없습니다.');
+    // 현재 재생 중인 트랙이면 토글
+    if (currentTrack?.id === track.id) {
+      togglePlay();
+      return;
     }
+
+    // 새 트랙 재생 (전체 트랙 리스트를 플레이리스트로 전달)
+    await playTrack(track, tracks);
   };
 
   const handleDownload = async (track: Track) => {
@@ -118,12 +116,32 @@ export default function MyTracksPage() {
             {tracks.map((track) => (
               <div
                 key={track.id}
-                className="bg-white rounded-lg shadow-md hover:shadow-lg transition-shadow p-6"
+                className={`bg-white rounded-lg shadow-md hover:shadow-lg transition-all p-6 ${
+                  currentTrack?.id === track.id
+                    ? 'ring-2 ring-emerald-500 shadow-emerald-100'
+                    : ''
+                }`}
               >
                 <div className="mb-4">
-                  <h3 className="text-lg font-semibold text-gray-900 mb-1">
-                    {track.title}
-                  </h3>
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-lg font-semibold text-gray-900">
+                      {track.title}
+                    </h3>
+                    {currentTrack?.id === track.id && (
+                      <span className="flex items-center gap-1 text-xs text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-full">
+                        {isPlaying ? (
+                          <>
+                            <span className="flex gap-0.5">
+                              <span className="w-1 h-3 bg-emerald-500 rounded-full animate-pulse" />
+                              <span className="w-1 h-3 bg-emerald-500 rounded-full animate-pulse" style={{ animationDelay: '0.2s' }} />
+                              <span className="w-1 h-3 bg-emerald-500 rounded-full animate-pulse" style={{ animationDelay: '0.4s' }} />
+                            </span>
+                            재생 중
+                          </>
+                        ) : '일시정지'}
+                      </span>
+                    )}
+                  </div>
                   <p className="text-gray-600">{track.artist}</p>
                   {track.album && (
                     <p className="text-sm text-gray-500 mt-1">{track.album}</p>
@@ -133,11 +151,29 @@ export default function MyTracksPage() {
                 <div className="flex space-x-2">
                   <button
                     onClick={() => handlePlay(track)}
-                    disabled={playingTrack === track.id}
-                    className="flex-1 flex items-center justify-center space-x-2 px-4 py-2 bg-green-600 hover:bg-green-700 disabled:bg-green-300 text-white rounded-lg transition"
+                    disabled={isLoading && currentTrack?.id === track.id}
+                    className={`flex-1 flex items-center justify-center space-x-2 px-4 py-2 text-white rounded-lg transition ${
+                      currentTrack?.id === track.id && isPlaying
+                        ? 'bg-orange-600 hover:bg-orange-700'
+                        : 'bg-green-600 hover:bg-green-700'
+                    } disabled:opacity-50`}
                   >
-                    <Play className="h-4 w-4" />
-                    <span>{playingTrack === track.id ? '재생 중...' : '재생'}</span>
+                    {currentTrack?.id === track.id && isPlaying ? (
+                      <>
+                        <Pause className="h-4 w-4" />
+                        <span>일시정지</span>
+                      </>
+                    ) : currentTrack?.id === track.id && isLoading ? (
+                      <>
+                        <div className="animate-spin rounded-full h-4 w-4 border-2 border-white border-t-transparent" />
+                        <span>로딩 중...</span>
+                      </>
+                    ) : (
+                      <>
+                        <Play className="h-4 w-4" />
+                        <span>재생</span>
+                      </>
+                    )}
                   </button>
 
                   {track.can_download && (

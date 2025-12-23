@@ -61,10 +61,12 @@ export function TracksView() {
     setLoading(true);
     try {
       const res = await adminAPI.getTracks(searchParams);
-      setTracks(res.data.tracks);
-      setPagination(res.data.pagination);
+      setTracks(res.data.tracks || []);
+      setPagination(res.data.pagination || { page: 1, limit: 20, total: 0, totalPages: 0 });
     } catch (error) {
       console.error('Failed to load tracks:', error);
+      setTracks([]);
+      setPagination({ page: 1, limit: 20, total: 0, totalPages: 0 });
     } finally {
       setLoading(false);
     }

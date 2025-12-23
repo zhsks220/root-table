@@ -61,6 +61,37 @@ router.get('/main', async (req: Request, res: Response) => {
   }
 });
 
+// 분위기(Mood) 옵션 목록 - /:slug보다 먼저 정의해야 함
+router.get('/options/moods', async (req: Request, res: Response) => {
+  const moods = [
+    { value: 'bright', label: '밝은', label_en: 'Bright' },
+    { value: 'dark', label: '어두운', label_en: 'Dark' },
+    { value: 'emotional', label: '감성적', label_en: 'Emotional' },
+    { value: 'energetic', label: '에너지틱', label_en: 'Energetic' },
+    { value: 'calm', label: '차분한', label_en: 'Calm' },
+    { value: 'happy', label: '행복한', label_en: 'Happy' },
+    { value: 'sad', label: '슬픈', label_en: 'Sad' },
+    { value: 'romantic', label: '로맨틱', label_en: 'Romantic' },
+    { value: 'intense', label: '강렬한', label_en: 'Intense' },
+    { value: 'chill', label: '편안한', label_en: 'Chill' }
+  ];
+  res.json({ moods });
+});
+
+// 언어(Language) 옵션 목록 - /:slug보다 먼저 정의해야 함
+router.get('/options/languages', async (req: Request, res: Response) => {
+  const languages = [
+    { value: 'ko', label: '한국어', label_en: 'Korean' },
+    { value: 'en', label: '영어', label_en: 'English' },
+    { value: 'ja', label: '일본어', label_en: 'Japanese' },
+    { value: 'zh', label: '중국어', label_en: 'Chinese' },
+    { value: 'es', label: '스페인어', label_en: 'Spanish' },
+    { value: 'instrumental', label: '연주곡', label_en: 'Instrumental' },
+    { value: 'other', label: '기타', label_en: 'Other' }
+  ];
+  res.json({ languages });
+});
+
 // 특정 카테고리의 서브카테고리 조회
 router.get('/:slug/subcategories', async (req: Request, res: Response) => {
   try {
@@ -108,37 +139,6 @@ router.get('/:slug', async (req: Request, res: Response) => {
     console.error('Get category error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
-});
-
-// 분위기(Mood) 옵션 목록
-router.get('/options/moods', async (req: Request, res: Response) => {
-  const moods = [
-    { value: 'bright', label: '밝은', label_en: 'Bright' },
-    { value: 'dark', label: '어두운', label_en: 'Dark' },
-    { value: 'emotional', label: '감성적', label_en: 'Emotional' },
-    { value: 'energetic', label: '에너지틱', label_en: 'Energetic' },
-    { value: 'calm', label: '차분한', label_en: 'Calm' },
-    { value: 'happy', label: '행복한', label_en: 'Happy' },
-    { value: 'sad', label: '슬픈', label_en: 'Sad' },
-    { value: 'romantic', label: '로맨틱', label_en: 'Romantic' },
-    { value: 'intense', label: '강렬한', label_en: 'Intense' },
-    { value: 'chill', label: '편안한', label_en: 'Chill' }
-  ];
-  res.json({ moods });
-});
-
-// 언어(Language) 옵션 목록
-router.get('/options/languages', async (req: Request, res: Response) => {
-  const languages = [
-    { value: 'ko', label: '한국어', label_en: 'Korean' },
-    { value: 'en', label: '영어', label_en: 'English' },
-    { value: 'ja', label: '일본어', label_en: 'Japanese' },
-    { value: 'zh', label: '중국어', label_en: 'Chinese' },
-    { value: 'es', label: '스페인어', label_en: 'Spanish' },
-    { value: 'instrumental', label: '연주곡', label_en: 'Instrumental' },
-    { value: 'other', label: '기타', label_en: 'Other' }
-  ];
-  res.json({ languages });
 });
 
 // ============================================

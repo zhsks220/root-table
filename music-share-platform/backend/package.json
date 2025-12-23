@@ -9,9 +9,16 @@
     "start": "node dist/index.js",
     "db:migrate": "node -r tsx/esm src/db/migrate.ts",
     "db:seed": "node -r tsx/esm src/db/seed.ts",
-    "db:seed-storage": "tsx src/db/seedWithStorage.ts"
+    "db:seed-storage": "tsx src/db/seedWithStorage.ts",
+    "db:cms-migrate": "tsx src/db/cms-migrate.ts",
+    "db:cms-seed": "tsx src/db/cms-seed.ts",
+    "db:partner-migrate": "tsx src/db/partner-migrate.ts"
   },
-  "keywords": ["music", "sharing", "invite"],
+  "keywords": [
+    "music",
+    "sharing",
+    "invite"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
@@ -23,6 +30,7 @@
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
     "pg": "^8.11.3",
+    "xlsx": "^0.18.5",
     "zod": "^3.22.4"
   },
   "devDependencies": {

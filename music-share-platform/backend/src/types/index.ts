@@ -4,7 +4,8 @@ import { Request } from 'express';
 export interface JWTPayload {
   id: string;
   email: string;
-  role: 'user' | 'admin';
+  role: 'user' | 'admin' | 'partner';
+  partnerId?: string;
 }
 
 // 인증된 요청
@@ -18,7 +19,7 @@ export interface User {
   email: string;
   password_hash: string;
   name: string;
-  role: 'user' | 'admin';
+  role: 'user' | 'admin' | 'partner';
   invitation_code?: string;
   created_at: Date;
   updated_at: Date;

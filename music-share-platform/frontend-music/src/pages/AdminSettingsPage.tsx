@@ -483,23 +483,23 @@ export default function AdminSettingsPage() {
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
                     <div className="bg-emerald-50 rounded-xl p-4">
                       <p className="text-xs sm:text-sm text-emerald-600 font-medium">전체 사용자</p>
-                      <p className="text-xl sm:text-2xl font-bold text-emerald-700 mt-1">{systemInfo.stats.total_users}</p>
+                      <p className="text-xl sm:text-2xl font-bold text-emerald-700 mt-1">{systemInfo.stats?.total_users || 0}</p>
                     </div>
                     <div className="bg-blue-50 rounded-xl p-4">
                       <p className="text-xs sm:text-sm text-blue-600 font-medium">파트너</p>
-                      <p className="text-xl sm:text-2xl font-bold text-blue-700 mt-1">{systemInfo.stats.total_partners}</p>
+                      <p className="text-xl sm:text-2xl font-bold text-blue-700 mt-1">{systemInfo.stats?.total_partners || 0}</p>
                     </div>
                     <div className="bg-purple-50 rounded-xl p-4">
                       <p className="text-xs sm:text-sm text-purple-600 font-medium">음원</p>
-                      <p className="text-xl sm:text-2xl font-bold text-purple-700 mt-1">{systemInfo.stats.total_tracks}</p>
+                      <p className="text-xl sm:text-2xl font-bold text-purple-700 mt-1">{systemInfo.stats?.total_tracks || 0}</p>
                     </div>
                     <div className="bg-amber-50 rounded-xl p-4">
                       <p className="text-xs sm:text-sm text-amber-600 font-medium">대기 초대</p>
-                      <p className="text-xl sm:text-2xl font-bold text-amber-700 mt-1">{systemInfo.stats.pending_invitations}</p>
+                      <p className="text-xl sm:text-2xl font-bold text-amber-700 mt-1">{systemInfo.stats?.pending_invitations || 0}</p>
                     </div>
                     <div className="bg-rose-50 rounded-xl p-4">
                       <p className="text-xs sm:text-sm text-rose-600 font-medium">파트너 초대</p>
-                      <p className="text-xl sm:text-2xl font-bold text-rose-700 mt-1">{systemInfo.stats.pending_partner_invitations}</p>
+                      <p className="text-xl sm:text-2xl font-bold text-rose-700 mt-1">{systemInfo.stats?.pending_partner_invitations || 0}</p>
                     </div>
                   </div>
 

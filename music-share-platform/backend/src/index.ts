@@ -5,6 +5,11 @@ import authRoutes from './routes/auth';
 import invitationRoutes from './routes/invitations';
 import trackRoutes from './routes/tracks';
 import adminRoutes from './routes/admin';
+import cmsRoutes from './routes/cms';
+import categoryRoutes from './routes/categories';
+import partnerAdminRoutes from './routes/partner-admin';
+import partnerRoutes from './routes/partner';
+import settingsRoutes from './routes/settings';
 import { pool } from './db';
 
 dotenv.config();
@@ -17,6 +22,7 @@ const allowedOrigins = [
   'http://localhost:3000', // Main site
   'http://localhost:3002', // Music download site
   'http://localhost:3003', // Admin site
+  'http://localhost:3004', // Partner portal
 ];
 
 // 환경변수에서 추가 CORS 도메인 로드 (Vercel 배포 등)
@@ -52,6 +58,19 @@ app.use('/api/auth', authRoutes);
 app.use('/api/invitations', invitationRoutes);
 app.use('/api/tracks', trackRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/categories', categoryRoutes);
+
+// CMS 라우트 (숨겨진 경로)
+app.use('/api/cms-rl2025x', cmsRoutes);
+
+// 파트너 관리 라우트 (관리자 전용)
+app.use('/api/partner/admin', partnerAdminRoutes);
+
+// 파트너 라우트 (파트너 전용)
+app.use('/api/partner', partnerRoutes);
+
+// 설정 라우트 (공통 + 관리자)
+app.use('/api/settings', settingsRoutes);
 
 // 404 처리
 app.use((req, res) => {

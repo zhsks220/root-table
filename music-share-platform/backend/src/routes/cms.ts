@@ -3,6 +3,54 @@ import { pool } from '../db';
 import { authenticateToken, requireAdmin } from '../middleware/auth';
 import { AuthRequest } from '../types';
 import multer from 'multer';
+import * as XLSX from 'xlsx';
+
+// 엑셀 파싱을 위한 인터페이스
+interface SettlementRow {
+  유통사?: string;
+  정산월?: string;
+  총매출?: number;
+  순매출?: number;
+  관리수수료?: number;
+  스트리밍수?: number;
+  다운로드수?: number;
+  트랙명?: string;
+  아티스트?: string;
+  // 영문 컬럼명도 지원
+  distributor?: string;
+  year_month?: string;
+  gross_revenue?: number;
+  net_revenue?: number;
+  management_fee?: number;
+  stream_count?: number;
+  download_count?: number;
+  track_title?: string;
+  artist?: string;
+}
+
+// 엑셀 파싱 유틸리티 함수
+function parseExcelFile(buffer: Buffer): SettlementRow[] {
+  const workbook = XLSX.read(buffer, { type: 'buffer' });
+  const sheetName = workbook.SheetNames[0];
+  const sheet = workbook.Sheets[sheetName];
+  const data = XLSX.utils.sheet_to_json<SettlementRow>(sheet);
+  return data;
+}
+
+// 정규화된 정산 데이터 추출
+function normalizeSettlementRow(row: SettlementRow) {
+  return {
+    distributorCode: row.유통사 || row.distributor || '',
+    yearMonth: row.정산월 || row.year_month || '',
+    grossRevenue: Number(row.총매출 || row.gross_revenue || 0),
+    netRevenue: Number(row.순매출 || row.net_revenue || 0),
+    managementFee: Number(row.관리수수료 || row.management_fee || 0),
+    streamCount: Number(row.스트리밍수 || row.stream_count || 0),
+    downloadCount: Number(row.다운로드수 || row.download_count || 0),
+    trackTitle: row.트랙명 || row.track_title || null,
+    artist: row.아티스트 || row.artist || null,
+  };
+}
 
 const router = Router();
 
@@ -355,21 +403,138 @@ router.post('/upload/settlements', upload.single('file'), async (req: AuthReques
 
     const uploadId = uploadResult.rows[0].id;
 
-    // TODO: 실제 엑셀 파싱 및 데이터 삽입 로직
-    // xlsx 라이브러리로 파싱 후 monthly_settlements에 삽입
+    // 엑셀 파일 파싱
+    let rows: SettlementRow[];
+    try {
+      rows = parseExcelFile(req.file.buffer);
+    } catch (parseError) {
+      await pool.query(`
+        UPDATE settlement_uploads
+        SET status = 'failed', error_message = $2
+        WHERE id = $1
+      `, [uploadId, '엑셀 파일 파싱 실패: 올바른 형식인지 확인해주세요.']);
+      return res.status(400).json({ error: 'Failed to parse Excel file' });
+    }
 
-    // 임시: 성공 처리
+    if (rows.length === 0) {
+      await pool.query(`
+        UPDATE settlement_uploads
+        SET status = 'failed', error_message = '데이터가 없습니다.'
+        WHERE id = $1
+      `, [uploadId]);
+      return res.status(400).json({ error: 'No data found in Excel file' });
+    }
+
+    // 유통사 코드 → ID 매핑 가져오기
+    const distributorsResult = await pool.query('SELECT id, code, name FROM distributors');
+    const distributorMap = new Map<string, string>();
+    distributorsResult.rows.forEach((d: { id: string; code: string; name: string }) => {
+      distributorMap.set(d.code.toLowerCase(), d.id);
+      distributorMap.set(d.name.toLowerCase(), d.id);
+    });
+
+    // 데이터 삽입
+    let insertedCount = 0;
+    let skippedCount = 0;
+    const errors: string[] = [];
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const normalized = normalizeSettlementRow(row);
+      const rowNum = i + 2; // 엑셀 행 번호 (헤더 포함)
+
+      // 필수 필드 검증
+      if (!normalized.distributorCode || !normalized.yearMonth) {
+        errors.push(`행 ${rowNum}: 유통사 또는 정산월이 누락됨`);
+        skippedCount++;
+        continue;
+      }
+
+      // 유통사 ID 조회
+      const distributorId = distributorMap.get(normalized.distributorCode.toLowerCase());
+      if (!distributorId) {
+        errors.push(`행 ${rowNum}: 알 수 없는 유통사 "${normalized.distributorCode}"`);
+        skippedCount++;
+        continue;
+      }
+
+      // 정산월 형식 검증 (YYYY-MM)
+      if (!/^\d{4}-\d{2}$/.test(normalized.yearMonth)) {
+        errors.push(`행 ${rowNum}: 잘못된 정산월 형식 "${normalized.yearMonth}" (YYYY-MM 형식 필요)`);
+        skippedCount++;
+        continue;
+      }
+
+      try {
+        // 기존 데이터 확인 (유통사 + 정산월 조합)
+        const existingResult = await pool.query(`
+          SELECT id FROM monthly_settlements
+          WHERE distributor_id = $1 AND year_month = $2
+        `, [distributorId, normalized.yearMonth]);
+
+        if (existingResult.rows.length > 0) {
+          // 기존 데이터 업데이트
+          await pool.query(`
+            UPDATE monthly_settlements
+            SET gross_revenue = $3, net_revenue = $4, management_fee = $5,
+                stream_count = $6, download_count = $7, data_source = 'excel',
+                updated_at = NOW()
+            WHERE id = $1
+          `, [
+            existingResult.rows[0].id,
+            normalized.grossRevenue,
+            normalized.netRevenue,
+            normalized.managementFee,
+            normalized.streamCount,
+            normalized.downloadCount
+          ]);
+        } else {
+          // 새 데이터 삽입
+          await pool.query(`
+            INSERT INTO monthly_settlements
+            (distributor_id, year_month, gross_revenue, net_revenue, management_fee,
+             stream_count, download_count, data_source)
+            VALUES ($1, $2, $3, $4, $5, $6, $7, 'excel')
+          `, [
+            distributorId,
+            normalized.yearMonth,
+            normalized.grossRevenue,
+            normalized.netRevenue,
+            normalized.managementFee,
+            normalized.streamCount,
+            normalized.downloadCount
+          ]);
+        }
+        insertedCount++;
+      } catch (dbError) {
+        console.error(`Row ${rowNum} insert error:`, dbError);
+        errors.push(`행 ${rowNum}: 데이터베이스 오류`);
+        skippedCount++;
+      }
+    }
+
+    // 업로드 상태 업데이트
+    const status = skippedCount === rows.length ? 'failed' :
+                   errors.length > 0 ? 'completed_with_errors' : 'completed';
+    const errorMessage = errors.length > 0 ? errors.slice(0, 10).join('\n') : null;
+
     await pool.query(`
       UPDATE settlement_uploads
-      SET status = 'completed', processed_at = NOW()
+      SET status = $2, record_count = $3, error_message = $4, processed_at = NOW()
       WHERE id = $1
-    `, [uploadId]);
+    `, [uploadId, status, insertedCount, errorMessage]);
 
     res.json({
-      message: 'File uploaded successfully',
+      message: status === 'completed' ? '정산 데이터가 성공적으로 업로드되었습니다.' :
+               status === 'completed_with_errors' ? '일부 오류와 함께 업로드가 완료되었습니다.' :
+               '업로드가 실패했습니다.',
       uploadId,
       fileName: req.file.originalname,
       fileSize: req.file.size,
+      totalRows: rows.length,
+      insertedCount,
+      skippedCount,
+      errors: errors.slice(0, 10),
     });
   } catch (error) {
     console.error('Settlement upload error:', error);

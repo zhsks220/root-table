@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { useAuthStore } from './store/authStore';
+import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import InvitePage from './pages/InvitePage';
@@ -73,6 +74,9 @@ function App() {
       <AudioPlayer />
 
       <Routes>
+        {/* 랜딩 페이지 (메인) */}
+        <Route path="/" element={<LandingPage />} />
+
         <Route path="/login" element={<LoginPage />} />
         <Route path="/invite/:code" element={<InvitePage />} />
         <Route path="/register/:code" element={<RegisterPage />} />
@@ -84,7 +88,8 @@ function App() {
           </UserRoute>
         } />
 
-        <Route path="/" element={
+        {/* 관리자 메인 페이지 */}
+        <Route path="/admin" element={
           <AdminRoute>
             <AdminPage />
           </AdminRoute>

@@ -1,6 +1,7 @@
 import { useState, useRef } from 'react';
 import { Upload, FileSpreadsheet, X, CheckCircle, AlertCircle, Loader2 } from 'lucide-react';
 import { cmsAPI } from '../../services/cmsApi';
+import { useThemeStore } from '../../store/themeStore';
 
 interface ExcelUploadProps {
   onUploadComplete?: () => void;
@@ -15,6 +16,8 @@ export function ExcelUpload({ onUploadComplete }: ExcelUploadProps) {
     message: string;
   } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { theme } = useThemeStore();
+  const isDark = theme === 'dark';
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();
@@ -86,8 +89,8 @@ export function ExcelUpload({ onUploadComplete }: ExcelUploadProps) {
   };
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 p-6">
-      <h3 className="text-base font-semibold text-gray-900 mb-4">정산 데이터 업로드</h3>
+    <div className={`rounded-xl border p-6 ${isDark ? 'bg-[#0a0a0a] border-white/10' : 'bg-white border-gray-100'}`}>
+      <h3 className={`text-base font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>정산 데이터 업로드</h3>
 
       {/* 드래그 앤 드롭 영역 */}
       <div
@@ -98,8 +101,8 @@ export function ExcelUpload({ onUploadComplete }: ExcelUploadProps) {
         className={`
           border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all
           ${isDragging
-            ? 'border-emerald-500 bg-emerald-50'
-            : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+            ? isDark ? 'border-emerald-500 bg-emerald-900/20' : 'border-emerald-500 bg-emerald-50'
+            : isDark ? 'border-white/20 hover:border-white/30 hover:bg-white/5' : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
           }
         `}
       >
@@ -111,28 +114,28 @@ export function ExcelUpload({ onUploadComplete }: ExcelUploadProps) {
           className="hidden"
         />
 
-        <Upload className={`w-10 h-10 mx-auto mb-3 ${isDragging ? 'text-emerald-500' : 'text-gray-400'}`} />
-        <p className="text-sm text-gray-600 mb-1">
+        <Upload className={`w-10 h-10 mx-auto mb-3 ${isDragging ? 'text-emerald-500' : isDark ? 'text-gray-500' : 'text-gray-400'}`} />
+        <p className={`text-sm mb-1 ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
           파일을 드래그하거나 클릭하여 업로드
         </p>
-        <p className="text-xs text-gray-400">
+        <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
           Excel (.xlsx, .xls) 또는 CSV 파일 지원 (최대 10MB)
         </p>
       </div>
 
       {/* 선택된 파일 */}
       {selectedFile && (
-        <div className="mt-4 p-4 bg-gray-50 rounded-lg flex items-center justify-between">
+        <div className={`mt-4 p-4 rounded-lg flex items-center justify-between ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
           <div className="flex items-center gap-3">
-            <FileSpreadsheet className="w-8 h-8 text-green-600" />
+            <FileSpreadsheet className={`w-8 h-8 ${isDark ? 'text-emerald-400' : 'text-green-600'}`} />
             <div>
-              <p className="text-sm font-medium text-gray-900">{selectedFile.name}</p>
-              <p className="text-xs text-gray-500">{formatFileSize(selectedFile.size)}</p>
+              <p className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{selectedFile.name}</p>
+              <p className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{formatFileSize(selectedFile.size)}</p>
             </div>
           </div>
           <button
             onClick={() => setSelectedFile(null)}
-            className="p-1 text-gray-400 hover:text-gray-600"
+            className={`p-1 ${isDark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}
           >
             <X className="w-5 h-5" />
           </button>
@@ -144,8 +147,8 @@ export function ExcelUpload({ onUploadComplete }: ExcelUploadProps) {
         <div
           className={`mt-4 p-4 rounded-lg flex items-center gap-3 ${
             uploadResult.success
-              ? 'bg-green-50 text-green-700'
-              : 'bg-red-50 text-red-700'
+              ? isDark ? 'bg-green-900/30 text-green-400' : 'bg-green-50 text-green-700'
+              : isDark ? 'bg-red-900/30 text-red-400' : 'bg-red-50 text-red-700'
           }`}
         >
           {uploadResult.success ? (
@@ -179,9 +182,9 @@ export function ExcelUpload({ onUploadComplete }: ExcelUploadProps) {
       )}
 
       {/* 안내 사항 */}
-      <div className="mt-6 p-4 bg-emerald-50 rounded-lg">
-        <h4 className="text-sm font-medium text-emerald-900 mb-2">📋 업로드 가이드</h4>
-        <ul className="text-xs text-emerald-700 space-y-1">
+      <div className={`mt-6 p-4 rounded-lg ${isDark ? 'bg-emerald-900/20' : 'bg-emerald-50'}`}>
+        <h4 className={`text-sm font-medium mb-2 ${isDark ? 'text-emerald-400' : 'text-emerald-900'}`}>📋 업로드 가이드</h4>
+        <ul className={`text-xs space-y-1 ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>
           <li>• 첫 번째 행은 헤더로 인식됩니다.</li>
           <li>• 필수 컬럼: 정산월, 유통사코드, 총매출, 순매출</li>
           <li>• 유통사코드는 시스템에 등록된 코드와 일치해야 합니다.</li>

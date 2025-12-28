@@ -1,15 +1,18 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { useThemeStore } from '../store/themeStore';
 import { authAPI } from '../services/api';
 import { motion } from 'framer-motion';
-import { UserPlus, ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
+import { ArrowRight, Loader2, Eye, EyeOff } from 'lucide-react';
 import { cn } from '../lib/utils';
 
 export default function RegisterPage() {
   const { code } = useParams<{ code: string }>();
   const navigate = useNavigate();
   const setAuth = useAuthStore((state) => state.setAuth);
+  const { theme } = useThemeStore();
+  const isDark = theme === 'dark';
   const [formData, setFormData] = useState({
     email: '',
     password: '',
@@ -47,7 +50,7 @@ export default function RegisterPage() {
   };
 
   return (
-    <div className="min-h-[100dvh] bg-[#fbfbfb] flex flex-col items-center justify-center px-4 py-8 sm:p-4">
+    <div className={`min-h-[100dvh] flex flex-col items-center justify-center px-4 py-8 sm:p-4 ${isDark ? 'bg-black' : 'bg-[#fbfbfb]'}`}>
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -56,13 +59,15 @@ export default function RegisterPage() {
       >
         {/* 로고 및 헤더 */}
         <div className="text-center mb-6 sm:mb-8">
-          <div className="w-14 h-14 sm:w-12 sm:h-12 bg-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-4 sm:mb-6 shadow-xl shadow-emerald-500/20">
-            <UserPlus className="w-7 h-7 sm:w-6 sm:h-6 text-white" />
-          </div>
-          <h1 className="text-xl sm:text-2xl font-bold text-gray-900 tracking-tight mb-2">
+          <img
+            src={isDark ? "/images/typelogo_W.png" : "/images/typelogo_B.png"}
+            alt="ROUTELABEL"
+            className="h-10 sm:h-12 mx-auto mb-4 sm:mb-6 object-contain"
+          />
+          <h1 className={`text-xl sm:text-2xl font-bold tracking-tight mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
             계정 생성
           </h1>
-          <p className="text-gray-500 text-sm px-4 sm:px-0">
+          <p className={`text-sm px-4 sm:px-0 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
             음원을 다운로드하려면 계정을 생성하세요
           </p>
         </div>
@@ -77,7 +82,11 @@ export default function RegisterPage() {
                 required
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="w-full px-4 py-3.5 sm:py-3 bg-white border border-gray-200 rounded-xl text-base sm:text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                className={`w-full px-4 py-3.5 sm:py-3 border rounded-xl text-base sm:text-sm placeholder:text-gray-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all ${
+                  isDark
+                    ? 'bg-white/5 border-white/10 text-white'
+                    : 'bg-white border-gray-200 text-gray-900'
+                }`}
                 placeholder="이메일 주소"
                 autoComplete="email"
                 inputMode="email"
@@ -92,14 +101,18 @@ export default function RegisterPage() {
                 minLength={8}
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="w-full px-4 py-3.5 sm:py-3 pr-12 bg-white border border-gray-200 rounded-xl text-base sm:text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                className={`w-full px-4 py-3.5 sm:py-3 pr-12 border rounded-xl text-base sm:text-sm placeholder:text-gray-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all ${
+                  isDark
+                    ? 'bg-white/5 border-white/10 text-white'
+                    : 'bg-white border-gray-200 text-gray-900'
+                }`}
                 placeholder="비밀번호 (8자 이상)"
                 autoComplete="new-password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 text-gray-400 hover:text-gray-600 transition-colors"
+                className={`absolute right-3 top-1/2 -translate-y-1/2 p-1.5 transition-colors ${isDark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}
               >
                 {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
@@ -112,7 +125,11 @@ export default function RegisterPage() {
                 required
                 value={formData.name}
                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                className="w-full px-4 py-3.5 sm:py-3 bg-white border border-gray-200 rounded-xl text-base sm:text-sm text-gray-900 placeholder:text-gray-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                className={`w-full px-4 py-3.5 sm:py-3 border rounded-xl text-base sm:text-sm placeholder:text-gray-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all ${
+                  isDark
+                    ? 'bg-white/5 border-white/10 text-white'
+                    : 'bg-white border-gray-200 text-gray-900'
+                }`}
                 placeholder="이름"
                 autoComplete="name"
               />
@@ -124,7 +141,7 @@ export default function RegisterPage() {
             <motion.div
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
-              className="text-red-500 text-sm bg-red-50 px-4 py-3 rounded-lg border border-red-100"
+              className={`text-sm px-4 py-3 rounded-lg border ${isDark ? 'text-red-400 bg-red-900/30 border-red-900/50' : 'text-red-500 bg-red-50 border-red-100'}`}
             >
               {error}
             </motion.div>
@@ -135,7 +152,10 @@ export default function RegisterPage() {
             type="submit"
             disabled={loading}
             className={cn(
-              "w-full bg-gray-900 hover:bg-black text-white font-medium py-3.5 sm:py-3 rounded-xl shadow-lg shadow-gray-900/10 flex items-center justify-center gap-2 transition-all active:scale-[0.98] text-base sm:text-sm",
+              "w-full font-medium py-3.5 sm:py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98] text-base sm:text-sm",
+              isDark
+                ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20"
+                : "bg-gray-900 hover:bg-black text-white shadow-gray-900/10",
               loading && "opacity-80 disabled:cursor-not-allowed"
             )}
           >
@@ -154,9 +174,9 @@ export default function RegisterPage() {
         <div className="mt-6 sm:mt-8 text-center">
           <button
             onClick={() => navigate('/login')}
-            className="text-sm font-medium text-gray-600 hover:text-gray-900 transition-colors py-2"
+            className={`text-sm font-medium transition-colors py-2 ${isDark ? 'text-gray-400 hover:text-white' : 'text-gray-600 hover:text-gray-900'}`}
           >
-            이미 계정이 있으신가요? <span className="text-emerald-600">로그인</span>
+            이미 계정이 있으신가요? <span className="text-emerald-500">로그인</span>
           </button>
         </div>
       </motion.div>

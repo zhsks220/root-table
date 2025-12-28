@@ -9,7 +9,7 @@ CREATE TABLE users (
   email VARCHAR(255) UNIQUE NOT NULL,
   password_hash VARCHAR(255) NOT NULL,
   name VARCHAR(100) NOT NULL,
-  role VARCHAR(20) DEFAULT 'user' CHECK (role IN ('user', 'admin')),
+  role VARCHAR(20) DEFAULT 'user' CHECK (role IN ('user', 'admin', 'partner')),
   invitation_code VARCHAR(50),
   created_at TIMESTAMP DEFAULT NOW(),
   updated_at TIMESTAMP DEFAULT NOW()

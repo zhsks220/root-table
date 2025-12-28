@@ -7,6 +7,7 @@ import {
   Area,
   AreaChart,
 } from 'recharts';
+import { useThemeStore } from '../../store/themeStore';
 
 interface MonthlyData {
   yearMonth: string;
@@ -43,11 +44,17 @@ const formatMonth = (yearMonth: string) => {
 };
 
 // 커스텀 툴팁
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label, isDark }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
-        <p className="text-sm font-medium text-gray-900 mb-2">{formatMonth(label)}</p>
+      <div className={`p-3 rounded-lg shadow-lg border ${
+        isDark
+          ? 'bg-[#1a1a1a] border-white/10'
+          : 'bg-white border-gray-200'
+      }`}>
+        <p className={`text-sm font-medium mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+          {formatMonth(label)}
+        </p>
         {payload.map((entry: any, index: number) => (
           <p key={index} className="text-sm" style={{ color: entry.color }}>
             {entry.name}: {formatFullCurrency(entry.value)}
@@ -60,13 +67,20 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 };
 
 export function RevenueLineChart({ data, title = '월별 정산금액 변동', dateRange }: RevenueLineChartProps) {
+  const { theme } = useThemeStore();
+  const isDark = theme === 'dark';
+
   // Y축 최대값 계산 (데이터 기반)
   const maxValue = Math.max(...data.map(d => d.grossRevenue)) * 1.1;
 
   return (
-    <div className="bg-white rounded-xl border border-gray-100 p-6">
+    <div className={`rounded-xl border p-6 ${
+      isDark
+        ? 'bg-[#0a0a0a] border-white/10'
+        : 'bg-white border-gray-100'
+    }`}>
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-base font-semibold text-gray-900">{title}</h3>
+        <h3 className={`text-base font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{title}</h3>
         {dateRange && (
           <span className="text-xs text-emerald-500 font-medium">{dateRange}</span>
         )}
@@ -75,11 +89,11 @@ export function RevenueLineChart({ data, title = '월별 정산금액 변동', d
       <div className="flex items-center gap-4 mb-4">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-emerald-500" />
-          <span className="text-xs text-gray-600">총정산금액</span>
+          <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>총정산금액</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-emerald-300" />
-          <span className="text-xs text-gray-600">관리사정산금액</span>
+          <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>관리사정산금액</span>
         </div>
       </div>
 
@@ -99,23 +113,23 @@ export function RevenueLineChart({ data, title = '월별 정산금액 변동', d
                 <stop offset="95%" stopColor="#93C5FD" stopOpacity={0} />
               </linearGradient>
             </defs>
-            <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#333' : '#E5E7EB'} vertical={false} />
             <XAxis
               dataKey="yearMonth"
               axisLine={false}
               tickLine={false}
-              tick={{ fill: '#9CA3AF', fontSize: 11 }}
+              tick={{ fill: isDark ? '#6B7280' : '#9CA3AF', fontSize: 11 }}
               tickFormatter={(value) => value.slice(2)} // 2025-01 -> 25-01
             />
             <YAxis
               axisLine={false}
               tickLine={false}
-              tick={{ fill: '#9CA3AF', fontSize: 11 }}
+              tick={{ fill: isDark ? '#6B7280' : '#9CA3AF', fontSize: 11 }}
               tickFormatter={formatCurrency}
               domain={[0, maxValue]}
               width={60}
             />
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip content={<CustomTooltip isDark={isDark} />} />
             <Area
               type="monotone"
               dataKey="grossRevenue"

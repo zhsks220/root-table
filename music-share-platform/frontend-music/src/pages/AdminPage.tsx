@@ -5,6 +5,7 @@ import { InvitationsView } from '../components/admin/InvitationsView';
 import { UsersView } from '../components/admin/UsersView';
 import { UploadView } from '../components/admin/UploadView';
 import { MobileLayout, MenuItem, QuickLink } from '../components/layout/MobileLayout';
+import { useThemeStore } from '../store/themeStore';
 import { AnimatePresence } from 'framer-motion';
 
 type Tab = 'tracks' | 'invitations' | 'users' | 'upload';
@@ -17,12 +18,16 @@ const menuItems: MenuItem[] = [
 ];
 
 const quickLinks: QuickLink[] = [
-  { label: '유통사 CMS', path: '/cms-rl2025x', icon: BarChart3 },
+  { label: '음원 라이브러리', path: '/admin', icon: Music },
+  { label: 'CMS 대시보드', path: '/cms', icon: BarChart3 },
+  { label: '파트너 페이지', path: '/partner-admin', icon: Users },
   { label: '설정', path: '/admin/settings', icon: Settings },
 ];
 
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<Tab>('tracks');
+  const { theme } = useThemeStore();
+  const isDark = theme === 'dark';
 
   return (
     <MobileLayout
@@ -32,11 +37,12 @@ export default function AdminPage() {
       activeTab={activeTab}
       onTabChange={(tab) => setActiveTab(tab as Tab)}
       quickLinks={quickLinks}
-      logoIcon={Music}
-      logoText="ROUTELABEL"
-      theme="light"
+      logoImage="/images/wordmark_B.png"
+      logoImageDark="/images/wordmark_W.png"
+      logoTypeImage="/images/typelogo_B.png"
+      logoTypeImageDark="/images/typelogo_W.png"
     >
-      <div className="bg-white min-h-full">
+      <div className={isDark ? "bg-black min-h-full" : "bg-white min-h-full"}>
         <AnimatePresence mode="wait">
           {activeTab === 'tracks' && <TracksView key="tracks" />}
           {activeTab === 'invitations' && <InvitationsView key="invitations" />}

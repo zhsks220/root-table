@@ -8,6 +8,7 @@ import {
   ResponsiveContainer,
   Cell,
 } from 'recharts';
+import { useThemeStore } from '../../store/themeStore';
 
 interface ShareData {
   yearMonth: string;
@@ -21,11 +22,15 @@ interface MarketShareBarChartProps {
 }
 
 // 커스텀 툴팁
-const CustomTooltip = ({ active, payload, label }: any) => {
+const CustomTooltip = ({ active, payload, label, isDark }: any) => {
   if (active && payload && payload.length) {
     return (
-      <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
-        <p className="text-sm font-medium text-gray-900 mb-1">
+      <div className={`p-3 rounded-lg shadow-lg border ${
+        isDark
+          ? 'bg-[#1a1a1a] border-white/10'
+          : 'bg-white border-gray-200'
+      }`}>
+        <p className={`text-sm font-medium mb-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>
           {label.slice(0, 4)}년 {label.slice(5)}월
         </p>
         <p className="text-sm text-emerald-600 font-semibold">
@@ -42,10 +47,17 @@ export function MarketShareBarChart({
   title = '월별 점유율 변동',
   dateRange,
 }: MarketShareBarChartProps) {
+  const { theme } = useThemeStore();
+  const isDark = theme === 'dark';
+
   return (
-    <div className="bg-white rounded-xl border border-gray-100 p-6">
+    <div className={`rounded-xl border p-6 ${
+      isDark
+        ? 'bg-[#0a0a0a] border-white/10'
+        : 'bg-white border-gray-100'
+    }`}>
       <div className="flex items-center justify-between mb-6">
-        <h3 className="text-base font-semibold text-gray-900">{title}</h3>
+        <h3 className={`text-base font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>{title}</h3>
         {dateRange && (
           <span className="text-xs text-emerald-500 font-medium">{dateRange}</span>
         )}
@@ -54,11 +66,11 @@ export function MarketShareBarChart({
       <div className="flex items-center gap-4 mb-4">
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-emerald-400" />
-          <span className="text-xs text-gray-600">점유율</span>
+          <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>점유율</span>
         </div>
         <div className="flex items-center gap-2">
           <div className="w-3 h-3 rounded-full bg-emerald-200" />
-          <span className="text-xs text-gray-600">총정산금액</span>
+          <span className={`text-xs ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>총정산금액</span>
         </div>
       </div>
 
@@ -68,23 +80,23 @@ export function MarketShareBarChart({
             data={data}
             margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
           >
-            <CartesianGrid strokeDasharray="3 3" stroke="#E5E7EB" vertical={false} />
+            <CartesianGrid strokeDasharray="3 3" stroke={isDark ? '#333' : '#E5E7EB'} vertical={false} />
             <XAxis
               dataKey="yearMonth"
               axisLine={false}
               tickLine={false}
-              tick={{ fill: '#9CA3AF', fontSize: 11 }}
+              tick={{ fill: isDark ? '#6B7280' : '#9CA3AF', fontSize: 11 }}
               tickFormatter={(value) => value.slice(2)} // 2025-01 -> 25-01
             />
             <YAxis
               axisLine={false}
               tickLine={false}
-              tick={{ fill: '#9CA3AF', fontSize: 11 }}
+              tick={{ fill: isDark ? '#6B7280' : '#9CA3AF', fontSize: 11 }}
               domain={[0, 100]}
               tickFormatter={(value) => `${value}`}
               width={40}
             />
-            <Tooltip content={<CustomTooltip />} />
+            <Tooltip content={<CustomTooltip isDark={isDark} />} />
             <Bar
               dataKey="sharePercent"
               name="점유율"

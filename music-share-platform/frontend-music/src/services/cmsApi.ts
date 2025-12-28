@@ -99,6 +99,44 @@ export interface UploadHistory {
   uploadedByName: string;
 }
 
+// 상담 문의 타입
+export interface ContactInquiry {
+  id: string;
+  name: string;
+  organization: string | null;
+  email: string;
+  workLink: string;
+  message: string | null;
+  status: 'pending' | 'in_progress' | 'completed' | 'cancelled';
+  adminNotes: string | null;
+  respondedAt: string | null;
+  respondedByName: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface ContactInquiriesResponse {
+  inquiries: ContactInquiry[];
+  pagination: {
+    page: number;
+    limit: number;
+    total: number;
+    totalPages: number;
+  };
+}
+
+export interface ContactStatsResponse {
+  total: number;
+  byStatus: {
+    pending: number;
+    in_progress: number;
+    completed: number;
+    cancelled: number;
+  };
+  today: number;
+  thisWeek: number;
+}
+
 // CMS API 클라이언트
 export const cmsAPI = {
   // 대시보드 요약
@@ -156,6 +194,30 @@ export const cmsAPI = {
       params: { startDate, endDate, format },
       ...(format === 'csv' ? { responseType: 'blob' } : {}),
     }),
+
+  // =====================================================
+  // 상담 문의 관리 API
+  // =====================================================
+
+  // 문의 목록 조회
+  getContactInquiries: (params?: { status?: string; page?: number; limit?: number; search?: string }) =>
+    api.get<ContactInquiriesResponse>('/contact/admin', { params }),
+
+  // 문의 통계
+  getContactStats: () =>
+    api.get<ContactStatsResponse>('/contact/admin/stats'),
+
+  // 문의 상세 조회
+  getContactInquiry: (id: string) =>
+    api.get<{ inquiry: ContactInquiry }>(`/contact/admin/${id}`),
+
+  // 문의 상태 업데이트
+  updateContactInquiry: (id: string, data: { status?: string; adminNotes?: string }) =>
+    api.put(`/contact/admin/${id}`, data),
+
+  // 문의 삭제
+  deleteContactInquiry: (id: string) =>
+    api.delete(`/contact/admin/${id}`),
 };
 
 export default cmsAPI;

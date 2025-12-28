@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
+import { useThemeStore } from '../store/themeStore';
 import { settingsAPI } from '../services/settingsApi';
 import { MobileLayout, MenuItem, QuickLink } from '../components/layout/MobileLayout';
 import { AnimatePresence, motion } from 'framer-motion';
@@ -14,11 +15,11 @@ import {
   Trash2,
   AlertCircle,
   CheckCircle,
-  Music,
   BarChart3,
   Users,
   Eye,
   EyeOff,
+  Music,
 } from 'lucide-react';
 
 interface Distributor {
@@ -38,15 +39,18 @@ const menuItems: MenuItem[] = [
 ];
 
 const quickLinks: QuickLink[] = [
-  { label: '관리자 대시보드', path: '/', icon: Music },
-  { label: '유통사 CMS', path: '/cms', icon: BarChart3 },
-  { label: '파트너 관리', path: '/partner-admin', icon: Users },
+  { label: '음원 라이브러리', path: '/admin', icon: Music },
+  { label: 'CMS 대시보드', path: '/cms', icon: BarChart3 },
+  { label: '파트너 페이지', path: '/partner-admin', icon: Users },
+  { label: '설정', path: '/admin/settings', icon: Settings },
 ];
 
 export default function AdminSettingsPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { user } = useAuthStore();
+  const { theme } = useThemeStore();
+  const isDark = theme === 'dark';
 
   // URL 쿼리 파라미터로 탭 선택 지원
   const initialTab = (searchParams.get('tab') as Tab) || 'account';
@@ -179,17 +183,18 @@ export default function AdminSettingsPage() {
       activeTab={activeTab}
       onTabChange={handleTabChange}
       quickLinks={quickLinks}
-      logoIcon={Music}
-      logoText="ROUTELABEL"
+      logoImage="/images/wordmark_B.png"
+      logoImageDark="/images/wordmark_W.png"
+      logoTypeImage="/images/typelogo_B.png"
+      logoTypeImageDark="/images/typelogo_W.png"
       logoSubtext="Settings"
-      theme="light"
     >
       {/* 알림 메시지 */}
       {message && (
         <div className={`mx-4 sm:mx-6 lg:mx-8 mt-4 p-4 rounded-lg flex items-center gap-2 ${
           message.type === 'success'
-            ? 'bg-green-50 text-green-700 border border-green-200'
-            : 'bg-red-50 text-red-700 border border-red-200'
+            ? isDark ? 'bg-green-900/30 text-green-400 border border-green-800' : 'bg-green-50 text-green-700 border border-green-200'
+            : isDark ? 'bg-red-900/30 text-red-400 border border-red-800' : 'bg-red-50 text-red-700 border border-red-200'
         }`}>
           {message.type === 'success' ? (
             <CheckCircle className="w-5 h-5 flex-shrink-0" />
@@ -212,28 +217,28 @@ export default function AdminSettingsPage() {
             className="p-4 sm:p-6 lg:p-8"
           >
             <div className="mb-4 sm:mb-6">
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">계정 설정</h1>
-              <p className="text-xs sm:text-sm text-gray-500 mt-1">비밀번호 변경 및 계정 정보를 관리합니다</p>
+              <h1 className={`text-xl sm:text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>계정 설정</h1>
+              <p className={`text-xs sm:text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>비밀번호 변경 및 계정 정보를 관리합니다</p>
             </div>
 
-            <div className="bg-white rounded-xl border border-gray-100 p-4 sm:p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-6">비밀번호 변경</h2>
+            <div className={`rounded-xl p-4 sm:p-6 ${isDark ? 'bg-[#0a0a0a] border border-white/10' : 'bg-white border border-gray-100'}`}>
+              <h2 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>비밀번호 변경</h2>
 
               <form onSubmit={handlePasswordChange} className="space-y-4 max-w-md">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">현재 비밀번호</label>
+                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>현재 비밀번호</label>
                   <div className="relative">
                     <input
                       type={showCurrentPassword ? 'text' : 'password'}
                       value={passwordForm.currentPassword}
                       onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                      className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                      className={`w-full px-4 py-3 pr-12 rounded-lg outline-none transition-all ${isDark ? 'bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500' : 'border border-gray-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500'}`}
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className={`absolute right-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'}`}
                     >
                       {showCurrentPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
@@ -241,20 +246,20 @@ export default function AdminSettingsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">새 비밀번호</label>
+                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>새 비밀번호</label>
                   <div className="relative">
                     <input
                       type={showNewPassword ? 'text' : 'password'}
                       value={passwordForm.newPassword}
                       onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
                       placeholder="8자 이상"
-                      className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                      className={`w-full px-4 py-3 pr-12 rounded-lg outline-none transition-all ${isDark ? 'bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500' : 'border border-gray-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500'}`}
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className={`absolute right-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'}`}
                     >
                       {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
@@ -262,19 +267,19 @@ export default function AdminSettingsPage() {
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">새 비밀번호 확인</label>
+                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>새 비밀번호 확인</label>
                   <div className="relative">
                     <input
                       type={showConfirmPassword ? 'text' : 'password'}
                       value={passwordForm.confirmPassword}
                       onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                      className="w-full px-4 py-3 pr-12 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                      className={`w-full px-4 py-3 pr-12 rounded-lg outline-none transition-all ${isDark ? 'bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500' : 'border border-gray-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500'}`}
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                      className={`absolute right-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'}`}
                     >
                       {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                     </button>
@@ -294,20 +299,20 @@ export default function AdminSettingsPage() {
                 </button>
               </form>
 
-              <div className="mt-8 pt-6 border-t border-gray-100">
-                <h3 className="text-sm font-medium text-gray-700 mb-3">계정 정보</h3>
-                <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+              <div className={`mt-8 pt-6 border-t ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
+                <h3 className={`text-sm font-medium mb-3 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>계정 정보</h3>
+                <div className={`rounded-lg p-4 space-y-2 ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">이메일</span>
-                    <span className="text-gray-900 font-medium">{user?.email}</span>
+                    <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>이메일</span>
+                    <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{user?.email}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">이름</span>
-                    <span className="text-gray-900 font-medium">{user?.name}</span>
+                    <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>이름</span>
+                    <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{user?.name}</span>
                   </div>
                   <div className="flex justify-between text-sm">
-                    <span className="text-gray-500">역할</span>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                    <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>역할</span>
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${isDark ? 'bg-emerald-900/50 text-emerald-400' : 'bg-emerald-100 text-emerald-700'}`}>
                       {user?.role === 'admin' ? '관리자' : user?.role}
                     </span>
                   </div>
@@ -328,20 +333,20 @@ export default function AdminSettingsPage() {
             className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6"
           >
             <div className="mb-4 sm:mb-6">
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">유통사 관리</h1>
-              <p className="text-xs sm:text-sm text-gray-500 mt-1">유통사 정보를 추가하고 관리합니다</p>
+              <h1 className={`text-xl sm:text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>유통사 관리</h1>
+              <p className={`text-xs sm:text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>유통사 정보를 추가하고 관리합니다</p>
             </div>
 
             {/* 유통사 추가 */}
-            <div className="bg-white rounded-xl border border-gray-100 p-4 sm:p-6">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4">유통사 추가</h2>
+            <div className={`rounded-xl p-4 sm:p-6 ${isDark ? 'bg-[#0a0a0a] border border-white/10' : 'bg-white border border-gray-100'}`}>
+              <h2 className={`text-lg font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>유통사 추가</h2>
               <form onSubmit={handleAddDistributor} className="flex flex-col sm:flex-row gap-3">
                 <input
                   type="text"
                   placeholder="유통사명"
                   value={newDistributor.name}
                   onChange={(e) => setNewDistributor({ ...newDistributor, name: e.target.value })}
-                  className="flex-1 px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                  className={`flex-1 px-4 py-3 rounded-lg outline-none transition-all ${isDark ? 'bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500' : 'border border-gray-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500'}`}
                   required
                 />
                 <input
@@ -349,7 +354,7 @@ export default function AdminSettingsPage() {
                   placeholder="코드"
                   value={newDistributor.code}
                   onChange={(e) => setNewDistributor({ ...newDistributor, code: e.target.value })}
-                  className="w-full sm:w-32 px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                  className={`w-full sm:w-32 px-4 py-3 rounded-lg outline-none transition-all ${isDark ? 'bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500' : 'border border-gray-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500'}`}
                   required
                 />
                 <input
@@ -357,7 +362,7 @@ export default function AdminSettingsPage() {
                   placeholder="수수료%"
                   value={newDistributor.commissionRate}
                   onChange={(e) => setNewDistributor({ ...newDistributor, commissionRate: Number(e.target.value) })}
-                  className="w-full sm:w-28 px-4 py-3 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all"
+                  className={`w-full sm:w-28 px-4 py-3 rounded-lg outline-none transition-all ${isDark ? 'bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500' : 'border border-gray-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500'}`}
                 />
                 <button
                   type="submit"
@@ -371,34 +376,36 @@ export default function AdminSettingsPage() {
             </div>
 
             {/* 유통사 목록 */}
-            <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
-              <div className="p-4 sm:p-6 border-b border-gray-100">
-                <h2 className="text-lg font-semibold text-gray-900">유통사 목록</h2>
+            <div className={`rounded-xl overflow-hidden ${isDark ? 'bg-[#0a0a0a] border border-white/10' : 'bg-white border border-gray-100'}`}>
+              <div className={`p-4 sm:p-6 border-b ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
+                <h2 className={`text-lg font-semibold ${isDark ? 'text-white' : 'text-gray-900'}`}>유통사 목록</h2>
               </div>
 
               {/* 모바일 카드 뷰 */}
-              <div className="sm:hidden divide-y divide-gray-100">
+              <div className={`sm:hidden divide-y ${isDark ? 'divide-white/10' : 'divide-gray-100'}`}>
                 {distributors.length === 0 ? (
-                  <div className="p-8 text-center text-gray-500 text-sm">등록된 유통사가 없습니다.</div>
+                  <div className={`p-8 text-center text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>등록된 유통사가 없습니다.</div>
                 ) : (
                   distributors.map((dist) => (
                     <div key={dist.id} className="p-4">
                       <div className="flex items-start justify-between">
                         <div>
-                          <p className="font-medium text-gray-900">{dist.name}</p>
-                          <p className="text-sm text-gray-500 mt-1">코드: {dist.code}</p>
-                          <p className="text-sm text-gray-500">수수료: {dist.commission_rate}%</p>
+                          <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{dist.name}</p>
+                          <p className={`text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>코드: {dist.code}</p>
+                          <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>수수료: {dist.commission_rate}%</p>
                         </div>
                         <div className="flex items-center gap-2">
                           <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${
-                            dist.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'
+                            dist.is_active
+                              ? isDark ? 'bg-emerald-900/50 text-emerald-400' : 'bg-emerald-100 text-emerald-700'
+                              : isDark ? 'bg-white/5 text-gray-400' : 'bg-gray-100 text-gray-500'
                           }`}>
                             {dist.is_active ? '활성' : '비활성'}
                           </span>
                           {dist.is_active && (
                             <button
                               onClick={() => handleDeleteDistributor(dist.id)}
-                              className="p-2 text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                              className={`p-2 text-red-500 rounded-lg transition-colors ${isDark ? 'hover:bg-red-900/30' : 'hover:bg-red-50'}`}
                             >
                               <Trash2 className="w-4 h-4" />
                             </button>
@@ -413,31 +420,33 @@ export default function AdminSettingsPage() {
               {/* 데스크톱 테이블 뷰 */}
               <div className="hidden sm:block overflow-x-auto">
                 <table className="w-full">
-                  <thead className="bg-gray-50">
+                  <thead className={isDark ? 'bg-white/5' : 'bg-gray-50'}>
                     <tr>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">유통사명</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">코드</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">수수료</th>
-                      <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">상태</th>
-                      <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">작업</th>
+                      <th className={`px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>유통사명</th>
+                      <th className={`px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>코드</th>
+                      <th className={`px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>수수료</th>
+                      <th className={`px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>상태</th>
+                      <th className={`px-6 py-3 text-right text-xs font-medium uppercase ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>작업</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-100">
+                  <tbody className={`divide-y ${isDark ? 'divide-white/10' : 'divide-gray-100'}`}>
                     {distributors.length === 0 ? (
                       <tr>
-                        <td colSpan={5} className="px-6 py-12 text-center text-gray-500 text-sm">
+                        <td colSpan={5} className={`px-6 py-12 text-center text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                           등록된 유통사가 없습니다.
                         </td>
                       </tr>
                     ) : (
                       distributors.map((dist) => (
-                        <tr key={dist.id} className="hover:bg-gray-50">
-                          <td className="px-6 py-4 text-sm font-medium text-gray-900">{dist.name}</td>
-                          <td className="px-6 py-4 text-sm text-gray-500">{dist.code}</td>
-                          <td className="px-6 py-4 text-sm text-gray-500">{dist.commission_rate}%</td>
+                        <tr key={dist.id} className={isDark ? 'hover:bg-white/5' : 'hover:bg-gray-50'}>
+                          <td className={`px-6 py-4 text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{dist.name}</td>
+                          <td className={`px-6 py-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{dist.code}</td>
+                          <td className={`px-6 py-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{dist.commission_rate}%</td>
                           <td className="px-6 py-4">
                             <span className={`px-2.5 py-1 text-xs font-medium rounded-full ${
-                              dist.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-gray-100 text-gray-500'
+                              dist.is_active
+                                ? isDark ? 'bg-emerald-900/50 text-emerald-400' : 'bg-emerald-100 text-emerald-700'
+                                : isDark ? 'bg-white/5 text-gray-400' : 'bg-gray-100 text-gray-500'
                             }`}>
                               {dist.is_active ? '활성' : '비활성'}
                             </span>
@@ -473,46 +482,46 @@ export default function AdminSettingsPage() {
             className="p-4 sm:p-6 lg:p-8"
           >
             <div className="mb-4 sm:mb-6">
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">시스템 정보</h1>
-              <p className="text-xs sm:text-sm text-gray-500 mt-1">시스템 현황 및 통계를 확인합니다</p>
+              <h1 className={`text-xl sm:text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>시스템 정보</h1>
+              <p className={`text-xs sm:text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>시스템 현황 및 통계를 확인합니다</p>
             </div>
 
-            <div className="bg-white rounded-xl border border-gray-100 p-4 sm:p-6">
+            <div className={`rounded-xl p-4 sm:p-6 ${isDark ? 'bg-[#0a0a0a] border border-white/10' : 'bg-white border border-gray-100'}`}>
               {systemInfo ? (
                 <>
                   <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-3 sm:gap-4">
-                    <div className="bg-emerald-50 rounded-xl p-4">
-                      <p className="text-xs sm:text-sm text-emerald-600 font-medium">전체 사용자</p>
-                      <p className="text-xl sm:text-2xl font-bold text-emerald-700 mt-1">{systemInfo.stats?.total_users || 0}</p>
+                    <div className={`rounded-xl p-4 ${isDark ? 'bg-emerald-900/30' : 'bg-emerald-50'}`}>
+                      <p className={`text-xs sm:text-sm font-medium ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>전체 사용자</p>
+                      <p className={`text-xl sm:text-2xl font-bold mt-1 ${isDark ? 'text-emerald-300' : 'text-emerald-700'}`}>{systemInfo.stats?.total_users || 0}</p>
                     </div>
-                    <div className="bg-blue-50 rounded-xl p-4">
-                      <p className="text-xs sm:text-sm text-blue-600 font-medium">파트너</p>
-                      <p className="text-xl sm:text-2xl font-bold text-blue-700 mt-1">{systemInfo.stats?.total_partners || 0}</p>
+                    <div className={`rounded-xl p-4 ${isDark ? 'bg-indigo-900/30' : 'bg-indigo-50'}`}>
+                      <p className={`text-xs sm:text-sm font-medium ${isDark ? 'text-indigo-400' : 'text-indigo-600'}`}>파트너</p>
+                      <p className={`text-xl sm:text-2xl font-bold mt-1 ${isDark ? 'text-indigo-300' : 'text-indigo-700'}`}>{systemInfo.stats?.total_partners || 0}</p>
                     </div>
-                    <div className="bg-purple-50 rounded-xl p-4">
-                      <p className="text-xs sm:text-sm text-purple-600 font-medium">음원</p>
-                      <p className="text-xl sm:text-2xl font-bold text-purple-700 mt-1">{systemInfo.stats?.total_tracks || 0}</p>
+                    <div className={`rounded-xl p-4 ${isDark ? 'bg-purple-900/30' : 'bg-purple-50'}`}>
+                      <p className={`text-xs sm:text-sm font-medium ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>음원</p>
+                      <p className={`text-xl sm:text-2xl font-bold mt-1 ${isDark ? 'text-purple-300' : 'text-purple-700'}`}>{systemInfo.stats?.total_tracks || 0}</p>
                     </div>
-                    <div className="bg-amber-50 rounded-xl p-4">
-                      <p className="text-xs sm:text-sm text-amber-600 font-medium">대기 초대</p>
-                      <p className="text-xl sm:text-2xl font-bold text-amber-700 mt-1">{systemInfo.stats?.pending_invitations || 0}</p>
+                    <div className={`rounded-xl p-4 ${isDark ? 'bg-amber-900/30' : 'bg-amber-50'}`}>
+                      <p className={`text-xs sm:text-sm font-medium ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>대기 초대</p>
+                      <p className={`text-xl sm:text-2xl font-bold mt-1 ${isDark ? 'text-amber-300' : 'text-amber-700'}`}>{systemInfo.stats?.pending_invitations || 0}</p>
                     </div>
-                    <div className="bg-rose-50 rounded-xl p-4">
-                      <p className="text-xs sm:text-sm text-rose-600 font-medium">파트너 초대</p>
-                      <p className="text-xl sm:text-2xl font-bold text-rose-700 mt-1">{systemInfo.stats?.pending_partner_invitations || 0}</p>
+                    <div className={`rounded-xl p-4 ${isDark ? 'bg-rose-900/30' : 'bg-rose-50'}`}>
+                      <p className={`text-xs sm:text-sm font-medium ${isDark ? 'text-rose-400' : 'text-rose-600'}`}>파트너 초대</p>
+                      <p className={`text-xl sm:text-2xl font-bold mt-1 ${isDark ? 'text-rose-300' : 'text-rose-700'}`}>{systemInfo.stats?.pending_partner_invitations || 0}</p>
                     </div>
                   </div>
 
-                  <div className="mt-6 pt-6 border-t border-gray-100">
-                    <h3 className="text-sm font-medium text-gray-700 mb-3">시스템 상태</h3>
-                    <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+                  <div className={`mt-6 pt-6 border-t ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
+                    <h3 className={`text-sm font-medium mb-3 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>시스템 상태</h3>
+                    <div className={`rounded-lg p-4 space-y-2 ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">버전</span>
-                        <span className="text-gray-900 font-medium">{systemInfo?.version || '1.0.0'}</span>
+                        <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>버전</span>
+                        <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{systemInfo?.version || '1.0.0'}</span>
                       </div>
                       <div className="flex justify-between text-sm">
-                        <span className="text-gray-500">환경</span>
-                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-700">
+                        <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>환경</span>
+                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${isDark ? 'bg-emerald-900/50 text-emerald-400' : 'bg-emerald-100 text-emerald-700'}`}>
                           {systemInfo?.environment || 'production'}
                         </span>
                       </div>

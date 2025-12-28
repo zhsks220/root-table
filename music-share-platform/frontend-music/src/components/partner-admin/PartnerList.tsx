@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Partner } from '../../services/partnerAdminApi';
 import { Users, Building2, Music2, MoreVertical, Trash2, Eye } from 'lucide-react';
 import { PartnerDetailModal } from './PartnerDetailModal';
+import { useThemeStore } from '../../store/themeStore';
 
 interface PartnerListProps {
   partners: Partner[];
@@ -13,6 +14,8 @@ export function PartnerList({ partners, onDelete, onRefresh }: PartnerListProps)
   const [selectedPartner, setSelectedPartner] = useState<Partner | null>(null);
   const [showDetailModal, setShowDetailModal] = useState(false);
   const [openMenuId, setOpenMenuId] = useState<string | null>(null);
+  const { theme } = useThemeStore();
+  const isDark = theme === 'dark';
 
   const getPartnerTypeIcon = (type: string) => {
     switch (type) {
@@ -64,28 +67,28 @@ export function PartnerList({ partners, onDelete, onRefresh }: PartnerListProps)
 
   return (
     <>
-      <div className="bg-white rounded-xl border border-gray-100 overflow-hidden">
+      <div className={`rounded-xl border overflow-hidden ${isDark ? 'bg-[#0a0a0a] border-white/10' : 'bg-white border-gray-100'}`}>
         {/* 요약 카드 */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 p-6 border-b border-gray-100">
-          <div className="bg-gray-50 rounded-lg p-4">
-            <p className="text-sm text-gray-500">전체 파트너</p>
-            <p className="text-2xl font-bold text-gray-900">{partners.length}</p>
+        <div className={`grid grid-cols-1 md:grid-cols-4 gap-4 p-6 border-b ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
+          <div className={`rounded-lg p-4 ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
+            <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>전체 파트너</p>
+            <p className={`text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>{partners.length}</p>
           </div>
-          <div className="bg-purple-50 rounded-lg p-4">
-            <p className="text-sm text-purple-600">아티스트</p>
-            <p className="text-2xl font-bold text-purple-900">
+          <div className={`rounded-lg p-4 ${isDark ? 'bg-purple-900/30' : 'bg-purple-50'}`}>
+            <p className={`text-sm ${isDark ? 'text-purple-400' : 'text-purple-600'}`}>아티스트</p>
+            <p className={`text-2xl font-bold ${isDark ? 'text-purple-300' : 'text-purple-900'}`}>
               {partners.filter(p => p.partnerType === 'artist').length}
             </p>
           </div>
-          <div className="bg-blue-50 rounded-lg p-4">
-            <p className="text-sm text-blue-600">기획사</p>
-            <p className="text-2xl font-bold text-blue-900">
+          <div className={`rounded-lg p-4 ${isDark ? 'bg-blue-900/30' : 'bg-blue-50'}`}>
+            <p className={`text-sm ${isDark ? 'text-blue-400' : 'text-blue-600'}`}>기획사</p>
+            <p className={`text-2xl font-bold ${isDark ? 'text-blue-300' : 'text-blue-900'}`}>
               {partners.filter(p => p.partnerType === 'company').length}
             </p>
           </div>
-          <div className="bg-amber-50 rounded-lg p-4">
-            <p className="text-sm text-amber-600">작곡가</p>
-            <p className="text-2xl font-bold text-amber-900">
+          <div className={`rounded-lg p-4 ${isDark ? 'bg-amber-900/30' : 'bg-amber-50'}`}>
+            <p className={`text-sm ${isDark ? 'text-amber-400' : 'text-amber-600'}`}>작곡가</p>
+            <p className={`text-2xl font-bold ${isDark ? 'text-amber-300' : 'text-amber-900'}`}>
               {partners.filter(p => p.partnerType === 'composer').length}
             </p>
           </div>
@@ -93,41 +96,43 @@ export function PartnerList({ partners, onDelete, onRefresh }: PartnerListProps)
 
         {/* 테이블 */}
         <table className="w-full">
-          <thead className="bg-gray-50 border-b border-gray-100">
+          <thead className={`border-b ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-100'}`}>
             <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">파트너</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">유형</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">연락처</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">기본 정산율</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">상태</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">등록일</th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">작업</th>
+              <th className={`px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>파트너</th>
+              <th className={`px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>유형</th>
+              <th className={`px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>연락처</th>
+              <th className={`px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>기본 정산율</th>
+              <th className={`px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>상태</th>
+              <th className={`px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>등록일</th>
+              <th className={`px-6 py-3 text-left text-xs font-medium uppercase ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>작업</th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100">
+          <tbody className={`divide-y ${isDark ? 'divide-white/10' : 'divide-gray-100'}`}>
             {partners.length === 0 ? (
               <tr>
-                <td colSpan={7} className="px-6 py-12 text-center text-gray-500">
+                <td colSpan={7} className={`px-6 py-12 text-center ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                   등록된 파트너가 없습니다
                 </td>
               </tr>
             ) : (
               partners.map((partner) => (
-                <tr key={partner.id} className="hover:bg-gray-50">
+                <tr key={partner.id} className={`${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-50'}`}>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        partner.partnerType === 'artist' ? 'bg-purple-100 text-purple-600' :
-                        partner.partnerType === 'company' ? 'bg-blue-100 text-blue-600' :
-                        'bg-amber-100 text-amber-600'
+                        partner.partnerType === 'artist'
+                          ? (isDark ? 'bg-purple-900/50 text-purple-400' : 'bg-purple-100 text-purple-600')
+                          : partner.partnerType === 'company'
+                            ? (isDark ? 'bg-blue-900/50 text-blue-400' : 'bg-blue-100 text-blue-600')
+                            : (isDark ? 'bg-amber-900/50 text-amber-400' : 'bg-amber-100 text-amber-600')
                       }`}>
                         {getPartnerTypeIcon(partner.partnerType)}
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900">
+                        <p className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>
                           {partner.businessName || partner.representativeName || '이름 없음'}
                         </p>
-                        <p className="text-sm text-gray-500">{partner.email}</p>
+                        <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{partner.email}</p>
                       </div>
                     </div>
                   </td>
@@ -137,45 +142,47 @@ export function PartnerList({ partners, onDelete, onRefresh }: PartnerListProps)
                       {getPartnerTypeName(partner.partnerType)}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
+                  <td className={`px-6 py-4 text-sm ${isDark ? 'text-gray-300' : 'text-gray-600'}`}>
                     {partner.phone || '-'}
                   </td>
                   <td className="px-6 py-4">
-                    <span className="text-sm font-medium text-emerald-600">
+                    <span className={`text-sm font-medium ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
                       {partner.defaultShareRate}%
                     </span>
                   </td>
                   <td className="px-6 py-4">
                     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      partner.isActive ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
+                      partner.isActive
+                        ? (isDark ? 'bg-green-900/50 text-green-400' : 'bg-green-100 text-green-800')
+                        : (isDark ? 'bg-white/5 text-gray-300' : 'bg-gray-100 text-gray-800')
                     }`}>
                       {partner.isActive ? '활성' : '비활성'}
                     </span>
                   </td>
-                  <td className="px-6 py-4 text-sm text-gray-500">
+                  <td className={`px-6 py-4 text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
                     {new Date(partner.createdAt).toLocaleDateString('ko-KR')}
                   </td>
                   <td className="px-6 py-4">
                     <div className="relative">
                       <button
                         onClick={() => setOpenMenuId(openMenuId === partner.id ? null : partner.id)}
-                        className="p-2 hover:bg-gray-100 rounded-lg"
+                        className={`p-2 rounded-lg ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}
                       >
-                        <MoreVertical className="w-4 h-4 text-gray-500" />
+                        <MoreVertical className={`w-4 h-4 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
                       </button>
 
                       {openMenuId === partner.id && (
-                        <div className="absolute right-0 mt-1 w-40 bg-white rounded-lg shadow-lg border border-gray-100 py-1 z-10">
+                        <div className={`absolute right-0 mt-1 w-40 rounded-lg shadow-lg border py-1 z-10 ${isDark ? 'bg-white/5 border-white/10' : 'bg-white border-gray-100'}`}>
                           <button
                             onClick={() => handleViewDetail(partner)}
-                            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                            className={`w-full flex items-center gap-2 px-4 py-2 text-sm ${isDark ? 'text-gray-200 hover:bg-white/10' : 'text-gray-700 hover:bg-gray-50'}`}
                           >
                             <Eye className="w-4 h-4" />
                             상세보기
                           </button>
                           <button
                             onClick={() => handleDelete(partner.id)}
-                            className="w-full flex items-center gap-2 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                            className={`w-full flex items-center gap-2 px-4 py-2 text-sm ${isDark ? 'text-red-400 hover:bg-red-900/30' : 'text-red-600 hover:bg-red-50'}`}
                           >
                             <Trash2 className="w-4 h-4" />
                             삭제

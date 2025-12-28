@@ -1,14 +1,20 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
-import { Loader2, Music2, AlertCircle } from 'lucide-react';
+import { useThemeStore } from '../store/themeStore';
+import { Loader2, AlertCircle, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { cn } from '../lib/utils';
 
 export default function PartnerLoginPage() {
   const navigate = useNavigate();
   const { login, isLoading, error: authError } = useAuthStore();
+  const { theme } = useThemeStore();
+  const isDark = theme === 'dark';
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -38,92 +44,134 @@ export default function PartnerLoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-emerald-50 to-teal-100 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        {/* 헤더 */}
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center mx-auto mb-4">
-            <Music2 className="w-8 h-8 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-900">파트너 로그인</h1>
-          <p className="text-gray-500 mt-2">루트레이블 파트너 대시보드</p>
+    <div className={`min-h-[100dvh] flex flex-col items-center justify-center px-4 py-8 sm:p-4 ${isDark ? 'bg-black' : 'bg-[#fbfbfb]'}`}>
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.5, ease: "easeOut" }}
+        className="w-full max-w-sm"
+      >
+        {/* 로고 및 헤더 */}
+        <div className="text-center mb-6 sm:mb-8">
+          <img
+            src={isDark ? "/images/typelogo_W.png" : "/images/typelogo_B.png"}
+            alt="ROUTELABEL"
+            className="h-10 sm:h-12 mx-auto mb-4 sm:mb-6 object-contain"
+          />
+          <h1 className={`text-xl sm:text-2xl font-bold tracking-tight mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>
+            파트너 로그인
+          </h1>
+          <p className={`text-sm px-4 sm:px-0 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+            루트레이블 파트너 대시보드에 접속하세요
+          </p>
         </div>
 
-        <div className="bg-white rounded-2xl shadow-xl p-8">
-          {(error || authError) && (
-            <div className="mb-6 p-4 bg-red-50 rounded-lg flex items-start gap-3">
-              <AlertCircle className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-red-600">{error || authError}</p>
-            </div>
-          )}
+        {/* 에러 메시지 */}
+        {(error || authError) && (
+          <motion.div
+            initial={{ opacity: 0, height: 0 }}
+            animate={{ opacity: 1, height: 'auto' }}
+            className={`mb-4 text-sm px-4 py-3 rounded-lg border flex items-start gap-3 ${isDark ? 'text-red-400 bg-red-900/30 border-red-900/50' : 'text-red-500 bg-red-50 border-red-100'}`}
+          >
+            <AlertCircle className="w-5 h-5 flex-shrink-0 mt-0.5" />
+            <p>{error || authError}</p>
+          </motion.div>
+        )}
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+        {/* 로그인 폼 */}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="space-y-3 sm:space-y-4">
+            {/* 이메일 입력 */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                이메일
-              </label>
               <input
                 type="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="partner@example.com"
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                className={`w-full px-4 py-3.5 sm:py-3 border rounded-xl text-base sm:text-sm placeholder:text-gray-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all ${
+                  isDark
+                    ? 'bg-white/5 border-white/10 text-white'
+                    : 'bg-white border-gray-200 text-gray-900'
+                }`}
+                placeholder="이메일 주소"
+                autoComplete="email"
+                inputMode="email"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">
-                비밀번호
-              </label>
+            {/* 비밀번호 입력 */}
+            <div className="relative">
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                className={`w-full px-4 py-3.5 sm:py-3 pr-12 border rounded-xl text-base sm:text-sm placeholder:text-gray-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all ${
+                  isDark
+                    ? 'bg-white/5 border-white/10 text-white'
+                    : 'bg-white border-gray-200 text-gray-900'
+                }`}
+                placeholder="비밀번호"
+                autoComplete="current-password"
               />
-            </div>
-
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="w-full flex items-center justify-center gap-2 px-4 py-3 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-colors disabled:opacity-50"
-            >
-              {isLoading ? (
-                <>
-                  <Loader2 className="w-5 h-5 animate-spin" />
-                  로그인 중...
-                </>
-              ) : (
-                '로그인'
-              )}
-            </button>
-          </form>
-
-          <div className="mt-6 text-center space-y-3">
-            <button
-              onClick={() => navigate('/partner/register')}
-              className="text-sm text-emerald-600 hover:text-emerald-700"
-            >
-              초대 코드로 등록하기
-            </button>
-            <div className="text-sm text-gray-500">
-              관리자이신가요?{' '}
               <button
-                onClick={() => navigate('/login')}
-                className="text-emerald-600 hover:text-emerald-700"
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className={`absolute right-3 top-1/2 -translate-y-1/2 p-1.5 transition-colors ${isDark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}
               >
-                관리자 로그인
+                {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
               </button>
             </div>
           </div>
-        </div>
 
-        {/* 푸터 */}
-        <div className="mt-8 text-center text-sm text-gray-500">
-          <p>© 2024 루트레이블. All rights reserved.</p>
+          {/* 로그인 버튼 */}
+          <button
+            type="submit"
+            disabled={isLoading}
+            className={cn(
+              "w-full font-medium py-3.5 sm:py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98] text-base sm:text-sm",
+              isDark
+                ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20"
+                : "bg-gray-900 hover:bg-black text-white shadow-gray-900/10",
+              isLoading && "opacity-80 disabled:cursor-not-allowed"
+            )}
+          >
+            {isLoading ? (
+              <Loader2 className="w-5 h-5 sm:w-4 sm:h-4 animate-spin" />
+            ) : (
+              <>
+                로그인
+                <ArrowRight className="w-5 h-5 sm:w-4 sm:h-4" />
+              </>
+            )}
+          </button>
+        </form>
+
+        {/* 푸터 링크 */}
+        <div className="mt-6 sm:mt-8 text-center space-y-3 sm:space-y-4">
+          <button
+            onClick={() => navigate('/partner/register')}
+            className="text-sm font-medium text-emerald-500 hover:text-emerald-600 transition-colors py-2"
+          >
+            초대 코드로 등록하기
+          </button>
+
+          <div className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+            관리자이신가요?{' '}
+            <button
+              onClick={() => navigate('/login')}
+              className="text-emerald-500 hover:text-emerald-600 transition-colors"
+            >
+              관리자 로그인
+            </button>
+          </div>
+
+          <p className={`text-xs ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
+            © 2024 루트레이블. All rights reserved.
+          </p>
         </div>
-      </div>
+      </motion.div>
+
+      {/* 모바일 하단 safe area */}
+      <div className="h-[env(safe-area-inset-bottom)] sm:hidden" />
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { Calendar, ChevronDown, Search } from 'lucide-react';
+import { useThemeStore } from '../../store/themeStore';
 
 interface DateRangeFilterProps {
   startDate: string;
@@ -37,6 +38,8 @@ export function DateRangeFilter({
   onDateChange,
   onSearch,
 }: DateRangeFilterProps) {
+  const { theme } = useThemeStore();
+  const isDark = theme === 'dark';
   const [showPresets, setShowPresets] = useState(false);
   const monthOptions = generateMonthOptions();
 
@@ -62,20 +65,32 @@ export function DateRangeFilter({
       <div className="relative">
         <button
           onClick={() => setShowPresets(!showPresets)}
-          className="flex items-center gap-2 px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+          className={`flex items-center gap-2 px-3 py-2 border rounded-lg text-sm transition-colors ${
+            isDark
+              ? 'bg-white/5 border-white/10 text-gray-300 hover:bg-white/10'
+              : 'bg-white border-gray-200 text-gray-700 hover:bg-gray-50'
+          }`}
         >
-          <Calendar className="w-4 h-4 text-gray-400" />
+          <Calendar className={`w-4 h-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
           <span>조회기간</span>
-          <ChevronDown className="w-4 h-4 text-gray-400" />
+          <ChevronDown className={`w-4 h-4 ${isDark ? 'text-gray-500' : 'text-gray-400'}`} />
         </button>
 
         {showPresets && (
-          <div className="absolute top-full left-0 mt-1 bg-white border border-gray-200 rounded-lg shadow-lg py-1 z-10 min-w-[120px]">
+          <div className={`absolute top-full left-0 mt-1 border rounded-lg shadow-lg py-1 z-10 min-w-[120px] ${
+            isDark
+              ? 'bg-[#1a1a1a] border-white/10'
+              : 'bg-white border-gray-200'
+          }`}>
             {presets.map((preset) => (
               <button
                 key={preset.label}
                 onClick={() => handlePresetClick(preset)}
-                className="w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-50"
+                className={`w-full px-4 py-2 text-sm text-left ${
+                  isDark
+                    ? 'text-gray-300 hover:bg-white/10'
+                    : 'text-gray-700 hover:bg-gray-50'
+                }`}
               >
                 {preset.label}
               </button>
@@ -89,25 +104,33 @@ export function DateRangeFilter({
         <select
           value={startDate}
           onChange={(e) => onDateChange(e.target.value, endDate)}
-          className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+          className={`px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${
+            isDark
+              ? 'bg-white/5 border-white/10 text-white'
+              : 'bg-white border-gray-200 text-gray-700'
+          }`}
         >
           {monthOptions.map((option) => (
-            <option key={option.value} value={option.value}>
+            <option key={option.value} value={option.value} className={isDark ? 'bg-[#1a1a1a] text-white' : ''}>
               {option.label}
             </option>
           ))}
         </select>
 
-        <span className="text-gray-400">~</span>
+        <span className={isDark ? 'text-gray-500' : 'text-gray-400'}>~</span>
 
         {/* 종료일 */}
         <select
           value={endDate}
           onChange={(e) => onDateChange(startDate, e.target.value)}
-          className="px-3 py-2 bg-white border border-gray-200 rounded-lg text-sm text-gray-700 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+          className={`px-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${
+            isDark
+              ? 'bg-white/5 border-white/10 text-white'
+              : 'bg-white border-gray-200 text-gray-700'
+          }`}
         >
           {monthOptions.map((option) => (
-            <option key={option.value} value={option.value}>
+            <option key={option.value} value={option.value} className={isDark ? 'bg-[#1a1a1a] text-white' : ''}>
               {option.label}
             </option>
           ))}

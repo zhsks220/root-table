@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { partnerAdminAPI } from '../../services/partnerAdminApi';
 import { X, Copy, Check, Loader2, UserPlus } from 'lucide-react';
+import { useThemeStore } from '../../store/themeStore';
 
 interface PartnerInviteModalProps {
   isOpen: boolean;
@@ -12,6 +13,8 @@ export function PartnerInviteModal({ isOpen, onClose, onComplete }: PartnerInvit
   const [loading, setLoading] = useState(false);
   const [copied, setCopied] = useState(false);
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
+  const { theme } = useThemeStore();
+  const isDark = theme === 'dark';
 
   const [formData, setFormData] = useState({
     partnerType: 'artist' as 'artist' | 'company' | 'composer',
@@ -78,20 +81,20 @@ export function PartnerInviteModal({ isOpen, onClose, onComplete }: PartnerInvit
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-2xl w-full max-w-lg mx-4 overflow-hidden">
+      <div className={`rounded-2xl w-full max-w-lg mx-4 overflow-hidden ${isDark ? 'bg-[#0a0a0a]' : 'bg-white'}`}>
         {/* 헤더 */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
+        <div className={`flex items-center justify-between px-6 py-4 border-b ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-emerald-100 rounded-lg flex items-center justify-center">
-              <UserPlus className="w-5 h-5 text-emerald-600" />
+            <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${isDark ? 'bg-emerald-900/50' : 'bg-emerald-100'}`}>
+              <UserPlus className={`w-5 h-5 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
             </div>
             <div>
-              <h2 className="text-lg font-bold text-gray-900">파트너 초대</h2>
-              <p className="text-sm text-gray-500">새로운 파트너를 초대합니다</p>
+              <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>파트너 초대</h2>
+              <p className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>새로운 파트너를 초대합니다</p>
             </div>
           </div>
-          <button onClick={handleClose} className="p-2 hover:bg-gray-100 rounded-lg">
-            <X className="w-5 h-5 text-gray-500" />
+          <button onClick={handleClose} className={`p-2 rounded-lg ${isDark ? 'hover:bg-white/10' : 'hover:bg-gray-100'}`}>
+            <X className={`w-5 h-5 ${isDark ? 'text-gray-400' : 'text-gray-500'}`} />
           </button>
         </div>
 
@@ -100,20 +103,20 @@ export function PartnerInviteModal({ isOpen, onClose, onComplete }: PartnerInvit
           {generatedCode ? (
             // 초대코드 생성 완료
             <div className="text-center py-4">
-              <div className="w-16 h-16 bg-emerald-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                <Check className="w-8 h-8 text-emerald-600" />
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4 ${isDark ? 'bg-emerald-900/50' : 'bg-emerald-100'}`}>
+                <Check className={`w-8 h-8 ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`} />
               </div>
-              <h3 className="text-lg font-bold text-gray-900 mb-2">초대 링크가 생성되었습니다</h3>
-              <p className="text-sm text-gray-500 mb-6">아래 링크를 파트너에게 전달하세요</p>
+              <h3 className={`text-lg font-bold mb-2 ${isDark ? 'text-white' : 'text-gray-900'}`}>초대 링크가 생성되었습니다</h3>
+              <p className={`text-sm mb-6 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>아래 링크를 파트너에게 전달하세요</p>
 
-              <div className="bg-gray-50 rounded-lg p-4 mb-4">
-                <p className="text-xs text-gray-500 mb-2">초대 코드</p>
-                <code className="text-lg font-mono font-bold text-emerald-600">{generatedCode}</code>
+              <div className={`rounded-lg p-4 mb-4 ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
+                <p className={`text-xs mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>초대 코드</p>
+                <code className={`text-lg font-mono font-bold ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>{generatedCode}</code>
               </div>
 
-              <div className="bg-gray-50 rounded-lg p-4 mb-6">
-                <p className="text-xs text-gray-500 mb-2">초대 링크</p>
-                <p className="text-sm text-gray-700 break-all">
+              <div className={`rounded-lg p-4 mb-6 ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
+                <p className={`text-xs mb-2 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>초대 링크</p>
+                <p className={`text-sm break-all ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                   {window.location.origin}/partner/register?code={generatedCode}
                 </p>
               </div>
@@ -140,7 +143,7 @@ export function PartnerInviteModal({ isOpen, onClose, onComplete }: PartnerInvit
             <form onSubmit={handleSubmit} className="space-y-4">
               {/* 파트너 유형 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                   파트너 유형 *
                 </label>
                 <div className="grid grid-cols-3 gap-2">
@@ -152,7 +155,7 @@ export function PartnerInviteModal({ isOpen, onClose, onComplete }: PartnerInvit
                       className={`px-4 py-2 rounded-lg text-sm font-medium transition-colors ${
                         formData.partnerType === type
                           ? 'bg-emerald-500 text-white'
-                          : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                          : (isDark ? 'bg-white/5 text-gray-300 hover:bg-white/10' : 'bg-gray-100 text-gray-700 hover:bg-gray-200')
                       }`}
                     >
                       {type === 'artist' ? '아티스트' : type === 'company' ? '기획사' : '작곡가'}
@@ -163,7 +166,7 @@ export function PartnerInviteModal({ isOpen, onClose, onComplete }: PartnerInvit
 
               {/* 이름/사업자명 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                   이름 / 사업자명
                 </label>
                 <input
@@ -171,13 +174,13 @@ export function PartnerInviteModal({ isOpen, onClose, onComplete }: PartnerInvit
                   value={formData.businessName}
                   onChange={(e) => setFormData({ ...formData, businessName: e.target.value })}
                   placeholder="예: 홍길동 / (주)뮤직컴퍼니"
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-gray-500' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
                 />
               </div>
 
               {/* 이메일 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                   이메일
                 </label>
                 <input
@@ -185,13 +188,13 @@ export function PartnerInviteModal({ isOpen, onClose, onComplete }: PartnerInvit
                   value={formData.email}
                   onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                   placeholder="partner@example.com"
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-gray-500' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
                 />
               </div>
 
               {/* 연락처 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                   연락처
                 </label>
                 <input
@@ -199,13 +202,13 @@ export function PartnerInviteModal({ isOpen, onClose, onComplete }: PartnerInvit
                   value={formData.phone}
                   onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
                   placeholder="010-1234-5678"
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-gray-500' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
                 />
               </div>
 
               {/* 기본 정산율 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                   기본 정산율 (%)
                 </label>
                 <input
@@ -215,20 +218,20 @@ export function PartnerInviteModal({ isOpen, onClose, onComplete }: PartnerInvit
                   step="0.1"
                   value={formData.defaultShareRate}
                   onChange={(e) => setFormData({ ...formData, defaultShareRate: parseFloat(e.target.value) || 0 })}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
                 />
-                <p className="text-xs text-gray-500 mt-1">파트너가 받을 정산 비율입니다</p>
+                <p className={`text-xs mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>파트너가 받을 정산 비율입니다</p>
               </div>
 
               {/* 유효기간 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                   초대 유효기간
                 </label>
                 <select
                   value={formData.expiresInDays}
                   onChange={(e) => setFormData({ ...formData, expiresInDays: parseInt(e.target.value) })}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
                 >
                   <option value={7}>7일</option>
                   <option value={14}>14일</option>
@@ -240,7 +243,7 @@ export function PartnerInviteModal({ isOpen, onClose, onComplete }: PartnerInvit
 
               {/* 메모 */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                   메모 (선택)
                 </label>
                 <textarea
@@ -248,7 +251,7 @@ export function PartnerInviteModal({ isOpen, onClose, onComplete }: PartnerInvit
                   onChange={(e) => setFormData({ ...formData, memo: e.target.value })}
                   placeholder="내부 참고용 메모"
                   rows={2}
-                  className="w-full px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none"
+                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent resize-none ${isDark ? 'bg-white/5 border-white/10 text-white placeholder-gray-500' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
                 />
               </div>
 
@@ -257,7 +260,7 @@ export function PartnerInviteModal({ isOpen, onClose, onComplete }: PartnerInvit
                 <button
                   type="button"
                   onClick={handleClose}
-                  className="flex-1 px-4 py-2.5 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors"
+                  className={`flex-1 px-4 py-2.5 rounded-lg transition-colors ${isDark ? 'bg-white/5 text-gray-300 hover:bg-white/10' : 'bg-gray-100 text-gray-700 hover:bg-gray-200'}`}
                 >
                   취소
                 </button>

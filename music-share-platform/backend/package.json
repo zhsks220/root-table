@@ -12,7 +12,8 @@
     "db:seed-storage": "tsx src/db/seedWithStorage.ts",
     "db:cms-migrate": "tsx src/db/cms-migrate.ts",
     "db:cms-seed": "tsx src/db/cms-seed.ts",
-    "db:partner-migrate": "tsx src/db/partner-migrate.ts"
+    "db:partner-migrate": "tsx src/db/partner-migrate.ts",
+    "db:fix-role": "tsx src/db/fix-role-migrate.ts"
   },
   "keywords": [
     "music",
@@ -30,6 +31,7 @@
     "fluent-ffmpeg": "^2.1.3",
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
+    "nodemailer": "^7.0.12",
     "pg": "^8.11.3",
     "xlsx": "^0.18.5",
     "zod": "^3.22.4"
@@ -42,6 +44,7 @@
     "@types/jsonwebtoken": "^9.0.5",
     "@types/multer": "^1.4.11",
     "@types/node": "^20.10.5",
+    "@types/nodemailer": "^7.0.4",
     "@types/pg": "^8.10.9",
     "tsx": "^4.7.0",
     "typescript": "^5.3.3"

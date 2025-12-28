@@ -76,7 +76,7 @@ export default function MyTracksPage() {
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/');
   };
 
   if (loading) {

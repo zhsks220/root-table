@@ -10,6 +10,7 @@ import categoryRoutes from './routes/categories';
 import partnerAdminRoutes from './routes/partner-admin';
 import partnerRoutes from './routes/partner';
 import settingsRoutes from './routes/settings';
+import contactRoutes from './routes/contact';
 import { pool } from './db';
 
 dotenv.config();
@@ -71,6 +72,9 @@ app.use('/api/partner', partnerRoutes);
 
 // 설정 라우트 (공통 + 관리자)
 app.use('/api/settings', settingsRoutes);
+
+// 상담 문의 라우트 (공개 + 관리자)
+app.use('/api/contact', contactRoutes);
 
 // 404 처리
 app.use((req, res) => {

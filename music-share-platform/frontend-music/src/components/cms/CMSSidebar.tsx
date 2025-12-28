@@ -1,6 +1,7 @@
-import { BarChart3, Upload, FileSpreadsheet, Settings, LogOut, Music, Users } from 'lucide-react';
+import { BarChart3, Upload, FileSpreadsheet, Settings, LogOut, Music, Users, Sun, Moon } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useAuthStore } from '../../store/authStore';
+import { useThemeStore } from '../../store/themeStore';
 import { useNavigate } from 'react-router-dom';
 
 interface CMSSidebarProps {
@@ -10,11 +11,13 @@ interface CMSSidebarProps {
 
 export function CMSSidebar({ activeTab, onTabChange }: CMSSidebarProps) {
   const { user, logout } = useAuthStore();
+  const { theme, toggleTheme } = useThemeStore();
   const navigate = useNavigate();
+  const isDark = theme === 'dark';
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/');
   };
 
   const menuItems = [
@@ -25,7 +28,7 @@ export function CMSSidebar({ activeTab, onTabChange }: CMSSidebarProps) {
   ];
 
   return (
-    <aside className="w-64 bg-[#0f172a] flex flex-col h-screen sticky top-0">
+    <aside className="w-64 bg-black flex flex-col h-screen sticky top-0">
       <div className="p-6">
         {/* 로고 */}
         <div className="flex items-center gap-2 mb-8">
@@ -61,7 +64,7 @@ export function CMSSidebar({ activeTab, onTabChange }: CMSSidebarProps) {
         </nav>
 
         {/* 다른 페이지로 이동 링크 */}
-        <div className="mt-8 pt-6 border-t border-gray-800">
+        <div className="mt-8 pt-6 border-t border-white/10">
           <button
             onClick={() => navigate('/partner-admin')}
             className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-500 hover:text-gray-300 hover:bg-white/5 transition-colors"
@@ -79,7 +82,16 @@ export function CMSSidebar({ activeTab, onTabChange }: CMSSidebarProps) {
       </div>
 
       {/* 하단 사용자 정보 */}
-      <div className="mt-auto p-6 border-t border-gray-800">
+      <div className="mt-auto p-6 border-t border-white/10">
+        {/* 테마 토글 버튼 */}
+        <button
+          onClick={toggleTheme}
+          className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors mb-4"
+        >
+          {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+          {isDark ? '라이트 모드' : '다크 모드'}
+        </button>
+
         <div className="flex items-center gap-3 mb-4 px-2">
           <div className="w-8 h-8 rounded-full bg-emerald-900 flex items-center justify-center text-emerald-400 font-bold text-xs">
             {user?.name?.[0] || 'A'}

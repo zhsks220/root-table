@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, X, LogOut, ChevronRight } from 'lucide-react';
+import { Menu, X, LogOut, ChevronRight, Sun, Moon } from 'lucide-react';
 import { useAuthStore } from '../../store/authStore';
+import { useThemeStore } from '../../store/themeStore';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 
@@ -24,8 +25,12 @@ interface MobileLayoutProps {
   activeTab: string;
   onTabChange: (tab: string) => void;
   quickLinks?: QuickLink[];
-  logoIcon: React.ComponentType<{ className?: string }>;
-  logoText: string;
+  logoIcon?: React.ComponentType<{ className?: string }>;
+  logoImage?: string;
+  logoImageDark?: string;
+  logoTypeImage?: string;
+  logoTypeImageDark?: string;
+  logoText?: string;
   logoSubtext?: string;
   theme?: 'light' | 'dark';
 }
@@ -39,12 +44,17 @@ export function MobileLayout({
   onTabChange,
   quickLinks = [],
   logoIcon: LogoIcon,
+  logoImage,
+  logoImageDark,
+  logoTypeImage,
+  logoTypeImageDark,
   logoText,
   logoSubtext,
-  theme = 'light'
+  theme: _themeProp = 'light' // prop은 무시하고 스토어 사용
 }: MobileLayoutProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user, logout } = useAuthStore();
+  const { theme, toggleTheme } = useThemeStore();
   const navigate = useNavigate();
   const location = useLocation();
 
@@ -66,7 +76,7 @@ export function MobileLayout({
 
   const handleLogout = () => {
     logout();
-    navigate('/login');
+    navigate('/');
   };
 
   const handleTabChange = (tab: string) => {
@@ -77,12 +87,12 @@ export function MobileLayout({
   const isDark = theme === 'dark';
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className={cn("min-h-screen", isDark ? "bg-black" : "bg-gray-50")}>
       {/* 모바일 헤더 */}
       <header className={cn(
         "md:hidden fixed top-0 left-0 right-0 z-40 border-b",
         isDark
-          ? "bg-[#0f172a] border-gray-800"
+          ? "bg-black border-white/10"
           : "bg-white border-gray-200"
       )}>
         <div className="flex items-center justify-between px-4 h-14">
@@ -103,15 +113,28 @@ export function MobileLayout({
           </button>
 
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 bg-emerald-500 rounded-lg flex items-center justify-center">
-              <LogoIcon className="w-4 h-4 text-white" />
-            </div>
-            <span className={cn(
-              "font-bold text-base",
-              isDark ? "text-white" : "text-gray-900"
-            )}>
-              {logoText}
-            </span>
+            {logoImage ? (
+              <>
+                <img src={isDark && logoImageDark ? logoImageDark : logoImage} alt="Logo" className="h-6" />
+                {logoTypeImage && (
+                  <img src={isDark && logoTypeImageDark ? logoTypeImageDark : logoTypeImage} alt="Type" className="h-12" />
+                )}
+              </>
+            ) : (
+              <>
+                <div className="w-7 h-7 bg-emerald-500 rounded-lg flex items-center justify-center">
+                  {LogoIcon && <LogoIcon className="w-4 h-4 text-white" />}
+                </div>
+                {logoText && (
+                  <span className={cn(
+                    "font-bold text-base",
+                    isDark ? "text-white" : "text-gray-900"
+                  )}>
+                    {logoText}
+                  </span>
+                )}
+              </>
+            )}
           </div>
 
           <div className={cn(
@@ -145,31 +168,47 @@ export function MobileLayout({
         <div
           className={cn(
             "absolute left-0 top-0 bottom-0 w-72 transition-transform duration-300 flex flex-col",
-            isDark ? "bg-[#0f172a]" : "bg-white",
+            isDark ? "bg-black" : "bg-white",
             isMobileMenuOpen ? "translate-x-0" : "-translate-x-full"
           )}
         >
           {/* 메뉴 헤더 */}
           <div className={cn(
             "p-6 border-b",
-            isDark ? "border-gray-800" : "border-gray-200"
+            isDark ? "border-white/10" : "border-gray-200"
           )}>
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center">
-                <LogoIcon className="w-6 h-6 text-white" />
-              </div>
+            {logoImage ? (
               <div>
-                <span className={cn(
-                  "font-bold text-lg block",
-                  isDark ? "text-white" : "text-gray-900"
-                )}>
-                  {logoText}
-                </span>
+                <div className="flex items-center gap-3">
+                  <img src={isDark && logoImageDark ? logoImageDark : logoImage} alt="Logo" className="h-8" />
+                  {logoTypeImage && (
+                    <img src={isDark && logoTypeImageDark ? logoTypeImageDark : logoTypeImage} alt="Type" className="h-16" />
+                  )}
+                </div>
                 {logoSubtext && (
-                  <span className="text-xs text-emerald-500">{logoSubtext}</span>
+                  <span className="text-xs text-emerald-500 block mt-1">{logoSubtext}</span>
                 )}
               </div>
-            </div>
+            ) : (
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center">
+                  {LogoIcon && <LogoIcon className="w-6 h-6 text-white" />}
+                </div>
+                <div>
+                  {logoText && (
+                    <span className={cn(
+                      "font-bold text-lg block",
+                      isDark ? "text-white" : "text-gray-900"
+                    )}>
+                      {logoText}
+                    </span>
+                  )}
+                  {logoSubtext && (
+                    <span className="text-xs text-emerald-500">{logoSubtext}</span>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           {/* 네비게이션 */}
@@ -200,12 +239,12 @@ export function MobileLayout({
             ))}
 
             {/* 빠른 링크 */}
-            {quickLinks.length > 0 && (
+            {quickLinks.filter(link => link.path !== location.pathname).length > 0 && (
               <div className={cn(
                 "mt-6 pt-6 border-t",
-                isDark ? "border-gray-800" : "border-gray-200"
+                isDark ? "border-white/10" : "border-gray-200"
               )}>
-                {quickLinks.map((link, idx) => (
+                {quickLinks.filter(link => link.path !== location.pathname).map((link, idx) => (
                   <button
                     key={idx}
                     onClick={() => navigate(link.path)}
@@ -230,8 +269,22 @@ export function MobileLayout({
           {/* 사용자 정보 및 로그아웃 */}
           <div className={cn(
             "p-4 border-t",
-            isDark ? "border-gray-800" : "border-gray-200"
+            isDark ? "border-white/10" : "border-gray-200"
           )}>
+            {/* 테마 토글 버튼 */}
+            <button
+              onClick={toggleTheme}
+              className={cn(
+                "w-full flex items-center gap-3 px-4 py-3 rounded-lg text-sm transition-colors mb-3",
+                isDark
+                  ? "text-gray-400 hover:text-white hover:bg-white/10"
+                  : "text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              )}
+            >
+              {isDark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
+              {isDark ? '라이트 모드' : '다크 모드'}
+            </button>
+
             <div className="flex items-center gap-3 px-3 py-2 mb-3">
               <div className={cn(
                 "w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm",
@@ -277,24 +330,42 @@ export function MobileLayout({
         {/* 데스크톱 사이드바 */}
         <aside className={cn(
           "hidden md:flex w-64 flex-col h-screen sticky top-0",
-          isDark ? "bg-[#0f172a]" : "bg-[#fbfbfb] border-r border-gray-100"
+          isDark ? "bg-black" : "bg-[#fbfbfb] border-r border-gray-100"
         )}>
           <div className="p-6">
-            <div className="flex items-center gap-2 mb-8">
-              <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
-                <LogoIcon className="w-5 h-5 text-white" />
-              </div>
-              <div>
-                <span className={cn(
-                  "font-bold text-lg tracking-tight block",
-                  isDark ? "text-white" : "text-gray-900"
-                )}>
-                  {logoText}
-                </span>
-                {logoSubtext && (
-                  <span className="text-xs text-emerald-500">{logoSubtext}</span>
-                )}
-              </div>
+            <div className="mb-8">
+              {logoImage ? (
+                <div>
+                  <div className="flex items-center gap-3">
+                    <img src={isDark && logoImageDark ? logoImageDark : logoImage} alt="Logo" className="h-8" />
+                    {logoTypeImage && (
+                      <img src={isDark && logoTypeImageDark ? logoTypeImageDark : logoTypeImage} alt="Type" className="h-14" />
+                    )}
+                  </div>
+                  {logoSubtext && (
+                    <span className="text-xs text-emerald-500 block mt-1">{logoSubtext}</span>
+                  )}
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center">
+                    {LogoIcon && <LogoIcon className="w-5 h-5 text-white" />}
+                  </div>
+                  <div>
+                    {logoText && (
+                      <span className={cn(
+                        "font-bold text-lg tracking-tight block",
+                        isDark ? "text-white" : "text-gray-900"
+                      )}>
+                        {logoText}
+                      </span>
+                    )}
+                    {logoSubtext && (
+                      <span className="text-xs text-emerald-500">{logoSubtext}</span>
+                    )}
+                  </div>
+                </div>
+              )}
             </div>
 
             <nav className="space-y-1">
@@ -325,12 +396,12 @@ export function MobileLayout({
             </nav>
 
             {/* 빠른 링크 */}
-            {quickLinks.length > 0 && (
+            {quickLinks.filter(link => link.path !== location.pathname).length > 0 && (
               <div className={cn(
                 "mt-8 pt-6 border-t",
-                isDark ? "border-gray-800" : "border-gray-100"
+                isDark ? "border-white/10" : "border-gray-100"
               )}>
-                {quickLinks.map((link, idx) => (
+                {quickLinks.filter(link => link.path !== location.pathname).map((link, idx) => (
                   <button
                     key={idx}
                     onClick={() => navigate(link.path)}
@@ -354,6 +425,20 @@ export function MobileLayout({
             "mt-auto p-6 border-t",
             isDark ? "border-gray-800" : "border-gray-100"
           )}>
+            {/* 테마 토글 버튼 */}
+            <button
+              onClick={toggleTheme}
+              className={cn(
+                "w-full flex items-center gap-2 px-3 py-2 text-sm rounded-lg transition-colors mb-4",
+                isDark
+                  ? "text-gray-400 hover:text-white hover:bg-white/10"
+                  : "text-gray-500 hover:text-gray-700 hover:bg-gray-100"
+              )}
+            >
+              {isDark ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+              {isDark ? '라이트 모드' : '다크 모드'}
+            </button>
+
             <div className="flex items-center gap-3 mb-4 px-2">
               <div className={cn(
                 "w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs",
@@ -400,7 +485,10 @@ export function MobileLayout({
         </aside>
 
         {/* 메인 콘텐츠 */}
-        <main className="flex-1 min-h-screen overflow-x-hidden pt-14 md:pt-0">
+        <main className={cn(
+          "flex-1 min-h-screen overflow-x-hidden pt-14 md:pt-0",
+          isDark ? "bg-black" : "bg-gray-50"
+        )}>
           {children}
         </main>
       </div>

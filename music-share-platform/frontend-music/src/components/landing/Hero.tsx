@@ -31,7 +31,7 @@ export const Hero = () => {
 
                 <h1 className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-6 md:mb-8 leading-[1.1]">
                     웹툰 음악, <br />
-                    외주가 아니라 <span className="text-emerald-500 italic whitespace-nowrap">'연출'</span>입니다.
+                    외주가 아니라 <span className="whitespace-nowrap"><span className="text-emerald-500 italic">'연출'</span>입니다.</span>
                 </h1>
 
                 <p className="text-base sm:text-lg md:text-xl text-white/50 max-w-2xl mx-auto mb-8 md:mb-10 leading-relaxed">

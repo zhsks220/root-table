@@ -8,6 +8,26 @@ const projectFilters = [
     "음악 레퍼런스 선정에 부담을 느끼는 경우"
 ];
 
+const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+        opacity: 1,
+        transition: {
+            staggerChildren: 0.15,
+            delayChildren: 0.1
+        }
+    }
+};
+
+const itemVariants = {
+    hidden: { opacity: 0, x: -20 },
+    visible: {
+        opacity: 1,
+        x: 0,
+        transition: { duration: 0.4 }
+    }
+};
+
 export const WhoWeWorkWith = () => {
     return (
         <section className="py-24 px-6 bg-black">
@@ -23,15 +43,18 @@ export const WhoWeWorkWith = () => {
                     </h2>
                 </motion.div>
 
-                <div className="max-w-2xl mx-auto mb-16">
+                <motion.div
+                    className="max-w-2xl mx-auto mb-16"
+                    variants={containerVariants}
+                    initial="hidden"
+                    whileInView="visible"
+                    viewport={{ once: true, amount: 0.3 }}
+                >
                     <div className="space-y-4">
                         {projectFilters.map((filter, idx) => (
                             <motion.div
                                 key={idx}
-                                initial={{ opacity: 0, x: -20 }}
-                                whileInView={{ opacity: 1, x: 0 }}
-                                transition={{ delay: idx * 0.1 }}
-                                viewport={{ once: true }}
+                                variants={itemVariants}
                                 className="flex items-center gap-4 p-6 rounded-2xl bg-white/[0.02] border border-white/5
                                            hover:border-emerald-500/30 transition-all"
                             >
@@ -42,7 +65,7 @@ export const WhoWeWorkWith = () => {
                             </motion.div>
                         ))}
                     </div>
-                </div>
+                </motion.div>
 
                 {/* 하단 문장 */}
                 <motion.p

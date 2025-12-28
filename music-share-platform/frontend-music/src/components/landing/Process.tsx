@@ -3,28 +3,28 @@ import { motion } from 'framer-motion';
 const steps = [
     {
         num: "01",
-        title: "작품 분석",
-        description: "시놉시스, 캐릭터 관계도, 서사 구조를 면밀히 분석하여 음악적 방향성을 설정합니다."
+        title: "원고·콘티 분석",
+        description: "작품의 서사 구조와 장면 흐름을 면밀히 분석합니다."
     },
     {
         num: "02",
-        title: "음악 플롯 설계",
-        description: "회차별 감정선의 고저에 따른 음악 배치 및 연출 방향을 역제안합니다."
+        title: "감정선 & 캐릭터 매핑",
+        description: "회차별 감정의 고저와 캐릭터 관계를 음악적으로 해석합니다."
     },
     {
         num: "03",
-        title: "사운드 컨셉 도출",
-        description: "작품의 장르와 분위기에 맞는 사운드 팔레트를 구성하고 레퍼런스를 공유합니다."
+        title: "음악 플롯 설계",
+        description: "작품에 어울리는 음악 레퍼런스 방향도 역제안합니다."
     },
     {
         num: "04",
-        title: "제작 및 엔진 믹싱",
-        description: "현업 작곡진의 고퀄리티 제작과 웹툰 감상 환경에 최적화된 엔진 믹싱을 진행합니다."
+        title: "제작 & 수정",
+        description: "현업 작곡진의 제작과 피드백 기반 수정을 진행합니다."
     },
     {
         num: "05",
-        title: "연출 컨설팅",
-        description: "음악이 삽입된 최종 원고의 몰입도를 검수하고 연출 디테일을 조정합니다."
+        title: "OST / 앨범 / 확장 고려",
+        description: "작품의 IP 확장까지 고려한 음악 설계를 완성합니다."
     },
 ];
 
@@ -32,20 +32,19 @@ export const Process = () => {
     return (
         <section id="process" className="py-24 px-6 bg-black">
             <div className="max-w-7xl mx-auto">
-                <div className="flex flex-col md:flex-row justify-between items-end gap-10 mb-20">
-                    <div className="max-w-2xl">
-                        <h2 className="text-3xl md:text-5xl font-black mb-6">읽는 것만으로도 <br /><span className="text-emerald-500 italic">'들리는'</span> 연출</h2>
-                        <p className="text-white/50 text-lg">
-                            루트레이블의 모든 연출은 철저한 분석에서 시작됩니다. <br />
-                            단순 배경음이 아닌 스토리텔링의 한 축으로서의 협업 프로세스입니다.
-                        </p>
-                    </div>
-                    <div className="text-right hidden md:block">
-                        <span className="text-xs font-mono text-white/20 uppercase tracking-widest">Collaborative Process</span>
-                    </div>
-                </div>
+                <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className="text-center mb-16"
+                >
+                    <h2 className="text-3xl md:text-5xl font-black mb-6">
+                        웹툰을 읽는 것부터, <br />
+                        <span className="text-emerald-500 italic">연출</span>은 시작됩니다
+                    </h2>
+                </motion.div>
 
-                <div className="grid grid-cols-1 md:grid-cols-5 gap-4">
+                <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-16">
                     {steps.map((step, idx) => (
                         <motion.div
                             key={idx}
@@ -65,6 +64,16 @@ export const Process = () => {
                         </motion.div>
                     ))}
                 </div>
+
+                {/* 하단 문장 */}
+                <motion.p
+                    initial={{ opacity: 0 }}
+                    whileInView={{ opacity: 1 }}
+                    viewport={{ once: true }}
+                    className="text-center text-white/50 text-base md:text-lg max-w-2xl mx-auto"
+                >
+                    이 방식으로, 작품의 흐름과 캐릭터 해석이 흔들리지 않게 음악을 설계합니다.
+                </motion.p>
             </div>
         </section>
     );

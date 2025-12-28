@@ -47,7 +47,7 @@ export const Navbar = () => {
                 />
             </a>
 
-            <div className="hidden md:flex items-center gap-8 text-sm font-medium text-white/60">
+            <div className="hidden md:flex items-center gap-8 text-sm font-medium text-white/60 absolute left-1/2 -translate-x-1/2">
                 <a href="#process" className="hover:text-white transition-colors">제작 프로세스</a>
                 <a href="#testimonials" className="hover:text-white transition-colors">독자 반응</a>
                 <a href="#contact" className="hover:text-white transition-colors">상담 신청</a>

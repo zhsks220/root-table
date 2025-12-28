@@ -2,7 +2,6 @@ import {
     Navbar,
     Hero,
     SocialProof,
-    Features,
     Process,
     WhyNotStock,
     ReaderReactions,
@@ -17,7 +16,6 @@ const LandingPage = () => {
             <Navbar />
             <Hero />
             <SocialProof />
-            <Features />
             <Process />
             <WhyNotStock />
             <ReaderReactions />

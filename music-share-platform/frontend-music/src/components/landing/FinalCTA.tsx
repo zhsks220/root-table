@@ -1,6 +1,5 @@
 import { motion } from 'framer-motion';
-import { Link } from 'react-router-dom';
-import { ArrowRight, Play } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 export const FinalCTA = () => {
     return (
@@ -22,36 +21,29 @@ export const FinalCTA = () => {
                     className="text-center"
                 >
                     <h2 className="text-4xl md:text-6xl font-black mb-8 leading-tight">
-                        작품의 소리를 <br />
-                        <span className="text-emerald-500 italic">함께 설계</span>할 준비가 되셨나요?
+                        웹툰의 음악 연출은, <br />
+                        곡이 아니라 <span className="text-emerald-500 italic">설계</span>입니다
                     </h2>
 
                     <p className="text-xl text-white/50 mb-12 max-w-2xl mx-auto leading-relaxed">
-                        레퍼런스가 없어도 괜찮습니다. <br />
-                        작품 링크만 보내주시면, 최적의 음악 설계안을 무료로 제안드립니다.
+                        우리는 곡을 전달하지 않습니다. <br />
+                        장면의 감정과 캐릭터의 흐름을 따라가는 <br className="sm:hidden" />
+                        음악 플롯을 함께 설계합니다.
                     </p>
 
-                    <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-                        <Link
-                            to="/login"
+                    <div className="flex flex-col items-center justify-center gap-4">
+                        <a
+                            href="#contact"
                             className="group bg-white hover:bg-gray-100 text-black px-10 py-5 rounded-full
                                      font-bold text-xl transition-all flex items-center gap-3"
                         >
-                            <Play className="w-6 h-6" />
-                            플랫폼 시작하기
-                        </Link>
-                        <a
-                            href="#contact"
-                            className="group border border-white/20 hover:border-white/40 text-white px-10 py-5 rounded-full
-                                     font-bold text-xl transition-all flex items-center gap-3"
-                        >
-                            무료 상담 신청하기
+                            프로젝트 의뢰 문의
                             <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
                         </a>
                     </div>
 
-                    <p className="mt-8 text-sm text-white/30">
-                        평균 응답 시간: 영업일 기준 24시간 이내
+                    <p className="mt-8 text-sm text-white/40">
+                        레퍼런스 없이 시작해도 괜찮습니다. 작품 링크만 보내주세요.
                     </p>
                 </motion.div>
             </div>

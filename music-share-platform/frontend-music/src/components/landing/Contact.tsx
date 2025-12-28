@@ -40,7 +40,7 @@ export const Contact = () => {
         } catch (error: any) {
             setStatus('error');
             setErrorMessage(
-                error.response?.data?.error || '상담 신청 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
+                error.response?.data?.error || '문의 전송 중 오류가 발생했습니다. 잠시 후 다시 시도해주세요.'
             );
         }
     };
@@ -64,11 +64,10 @@ export const Contact = () => {
                 >
                     <div className="text-center mb-12">
                         <h2 className="text-4xl md:text-5xl font-black mb-6 tracking-tight">
-                            음악 설계 <span className="text-emerald-500 italic">상담 신청</span>
+                            프로젝트 <span className="text-emerald-500 italic">의뢰 문의</span>
                         </h2>
                         <p className="text-white/50 text-lg">
-                            작품 링크만 보내주셔도 충분합니다. <br />
-                            최적의 음악 설계안을 무료로 제안드립니다.
+                            작품 링크만 보내주셔도 충분합니다.
                         </p>
                     </div>
 
@@ -81,7 +80,7 @@ export const Contact = () => {
                         >
                             <CheckCircle className="w-16 h-16 text-emerald-500 mx-auto mb-6" />
                             <h3 className="text-2xl font-bold text-white mb-4">
-                                상담 신청이 완료되었습니다!
+                                문의가 접수되었습니다!
                             </h3>
                             <p className="text-white/60 mb-8">
                                 빠른 시일 내에 입력하신 이메일로 연락드리겠습니다.<br />
@@ -204,7 +203,7 @@ export const Contact = () => {
                                         전송 중...
                                     </>
                                 ) : (
-                                    '상담 신청하기'
+                                    '의뢰 문의하기'
                                 )}
                             </button>
                         </form>
@@ -224,7 +223,7 @@ export const Contact = () => {
                 </motion.div>
 
                 <footer className="mt-20 text-center text-white/20 text-xs font-mono tracking-widest uppercase">
-                    © 2025 ROUTELABEL. Built for webtoon creators.
+                    © 2025 ROUTELABEL. All rights reserved.
                 </footer>
             </div>
         </section>

@@ -21,7 +21,6 @@ export const WhyNotStock = () => {
     const isInView = useInView(sectionRef, { once: false, amount: 0.5 });
 
     const [playingAudio, setPlayingAudio] = useState<'none' | 'left' | 'right'>('none');
-    const [isSequencePlaying, setIsSequencePlaying] = useState(false);
     const sequenceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
     // 섹션 벗어나면 정지
@@ -30,7 +29,6 @@ export const WhyNotStock = () => {
             leftAudioRef.current?.pause();
             rightAudioRef.current?.pause();
             setPlayingAudio('none');
-            setIsSequencePlaying(false);
             if (sequenceTimeoutRef.current) {
                 clearTimeout(sequenceTimeoutRef.current);
             }
@@ -53,14 +51,12 @@ export const WhyNotStock = () => {
                 // 재생 중이면 정지
                 leftAudio.pause();
                 setPlayingAudio('none');
-                setIsSequencePlaying(false);
             } else {
                 // 왼쪽 재생 시작 → 7초 후 오른쪽으로 자동 전환
                 rightAudio.pause();
                 leftAudio.currentTime = 0;
                 leftAudio.play().catch(() => {});
                 setPlayingAudio('left');
-                setIsSequencePlaying(true);
 
                 sequenceTimeoutRef.current = setTimeout(() => {
                     leftAudio.pause();
@@ -71,13 +67,11 @@ export const WhyNotStock = () => {
                     sequenceTimeoutRef.current = setTimeout(() => {
                         rightAudio.pause();
                         setPlayingAudio('none');
-                        setIsSequencePlaying(false);
                     }, 8000);
                 }, 7000);
             }
         } else {
             // 오른쪽 버튼은 개별 재생/정지
-            setIsSequencePlaying(false);
             if (playingAudio === 'right') {
                 rightAudio.pause();
                 setPlayingAudio('none');

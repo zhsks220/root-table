@@ -7,3 +7,4 @@ export { ReaderReactions } from './ReaderReactions';
 export { WhoWeWorkWith } from './WhoWeWorkWith';
 export { FinalCTA } from './FinalCTA';
 export { Contact } from './Contact';
+export { FloatingCTA } from './FloatingCTA';

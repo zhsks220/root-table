@@ -33,7 +33,7 @@ export const ReaderReactions = () => {
                     className="text-center mb-16"
                 >
                     <h2 className="text-3xl md:text-5xl font-black mb-6">
-                        독자는, <span className="text-emerald-500 italic">차이</span>를 먼저 느낍니다
+                        독자는, <span className="text-emerald-500">차이</span>를 먼저 느낍니다
                     </h2>
                 </motion.div>
 

@@ -7,7 +7,8 @@ import {
     ReaderReactions,
     WhoWeWorkWith,
     FinalCTA,
-    Contact
+    Contact,
+    FloatingCTA
 } from '../components/landing';
 
 const LandingPage = () => {
@@ -22,6 +23,7 @@ const LandingPage = () => {
             <WhoWeWorkWith />
             <FinalCTA />
             <Contact />
+            <FloatingCTA />
         </div>
     );
 };

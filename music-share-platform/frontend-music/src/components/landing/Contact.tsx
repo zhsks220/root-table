@@ -64,7 +64,7 @@ export const Contact = () => {
                 >
                     <div className="text-center mb-12">
                         <h2 className="text-4xl md:text-5xl font-black mb-6 tracking-tight">
-                            프로젝트 <span className="text-emerald-500 italic">의뢰 문의</span>
+                            프로젝트 <span className="text-emerald-500">의뢰 문의</span>
                         </h2>
                         <p className="text-white/50 text-lg">
                             작품 링크만 보내주셔도 충분합니다.

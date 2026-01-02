@@ -22,7 +22,7 @@ export const FinalCTA = () => {
                 >
                     <h2 className="text-4xl md:text-6xl font-black mb-8 leading-tight">
                         웹툰의 음악 연출은, <br />
-                        곡이 아니라 <span className="text-emerald-500 italic">설계</span>입니다
+                        곡이 아니라 <span className="text-emerald-500">설계</span>입니다
                     </h2>
 
                     <p className="text-xl text-white/50 mb-12 max-w-2xl mx-auto leading-relaxed">

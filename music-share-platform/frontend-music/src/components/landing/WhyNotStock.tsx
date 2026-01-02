@@ -21,7 +21,7 @@ export const WhyNotStock = () => {
     const isInView = useInView(sectionRef, { once: false, amount: 0.5 });
 
     const [playingAudio, setPlayingAudio] = useState<'none' | 'left' | 'right'>('none');
-    const sequenceTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+    const sequenceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     // 섹션 벗어나면 정지
     useEffect(() => {

@@ -7,14 +7,14 @@ export const Hero = () => {
 
     // Glow position calculated relative to the mouse
     const glowStyle = {
-        background: `radial-gradient(600px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(16, 185, 129, 0.15), transparent 80%)`,
+        background: `radial-gradient(400px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(16, 185, 129, 0.1), transparent 70%)`,
     };
 
     return (
         <section className="relative min-h-screen flex flex-col justify-center items-center px-6 pt-20 overflow-hidden bg-black text-white">
             {/* Background Interactive Glow */}
             <div
-                className="fixed inset-0 pointer-events-none transition-opacity duration-300"
+                className="fixed inset-0 z-40 pointer-events-none transition-opacity duration-300"
                 style={glowStyle}
             />
 

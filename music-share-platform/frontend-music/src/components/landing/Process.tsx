@@ -120,14 +120,17 @@ export const Process = () => {
                         {/* 좌측 버튼 - PC only, 바깥쪽 배치 */}
                         <button
                             onClick={goToPrevious}
-                            className="hidden md:flex flex-shrink-0 w-12 h-12 items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 hover:border-emerald-500/50 rounded-full transition-all duration-300 self-center"
+                            className="hidden md:flex flex-shrink-0 w-12 h-12 items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 hover:border-emerald-500/50 rounded-full transition-all duration-300 -mt-3"
                             aria-label="이전 단계"
                         >
                             <ChevronLeft className="w-6 h-6 text-white" />
                         </button>
 
                         {/* 슬라이드 영역 */}
-                        <div className="relative overflow-hidden" style={{ maxWidth: '800px', minHeight: '220px', flex: '1' }}>
+                        <div className="relative overflow-hidden" style={{ maxWidth: '900px', minHeight: '220px', flex: '1' }}>
+                            {/* 양쪽 그라데이션 오버레이 */}
+                            <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-black to-transparent z-10 pointer-events-none" />
+                            <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-black to-transparent z-10 pointer-events-none" />
                             <motion.div
                                 className="flex items-center"
                                 animate={{ x: `calc(50% - 280px - ${currentIndex * 560}px)` }}
@@ -144,7 +147,7 @@ export const Process = () => {
                                             className={`flex-shrink-0 w-[520px] mx-[20px] p-8 rounded-3xl transition-all duration-500 ${
                                                 isActive
                                                     ? 'bg-white/[0.03] border border-emerald-500/30 scale-100 opacity-100'
-                                                    : 'bg-white/[0.02] border border-white/10 scale-95 opacity-50 hover:border-emerald-500/30'
+                                                    : 'bg-white/[0.02] border border-white/20 scale-95 opacity-60 hover:border-emerald-500/30'
                                             }`}
                                             style={{ minHeight: '200px' }}
                                         >
@@ -169,7 +172,7 @@ export const Process = () => {
                         {/* 우측 버튼 - PC only, 바깥쪽 배치 */}
                         <button
                             onClick={goToNext}
-                            className="hidden md:flex flex-shrink-0 w-12 h-12 items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 hover:border-emerald-500/50 rounded-full transition-all duration-300 self-center"
+                            className="hidden md:flex flex-shrink-0 w-12 h-12 items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 hover:border-emerald-500/50 rounded-full transition-all duration-300 -mt-3"
                             aria-label="다음 단계"
                         >
                             <ChevronRight className="w-6 h-6 text-white" />

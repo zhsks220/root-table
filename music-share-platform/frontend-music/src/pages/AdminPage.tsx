@@ -1,20 +1,22 @@
 import { useState } from 'react';
-import { Music, Link as LinkIcon, Users, Upload, BarChart3, Settings } from 'lucide-react';
+import { Music, Link as LinkIcon, Users, Upload, BarChart3, Settings, Film } from 'lucide-react';
 import { TracksView } from '../components/admin/TracksView';
 import { InvitationsView } from '../components/admin/InvitationsView';
 import { UsersView } from '../components/admin/UsersView';
 import { UploadView } from '../components/admin/UploadView';
+import { WebToonProjectsView } from '../components/admin/WebToonProjectsView';
 import { MobileLayout, MenuItem, QuickLink } from '../components/layout/MobileLayout';
 import { useThemeStore } from '../store/themeStore';
 import { AnimatePresence } from 'framer-motion';
 
-type Tab = 'tracks' | 'invitations' | 'users' | 'upload';
+type Tab = 'tracks' | 'invitations' | 'users' | 'upload' | 'webtoon-projects';
 
 const menuItems: MenuItem[] = [
   { id: 'tracks', label: '트랙 목록', icon: Music },
   { id: 'invitations', label: '초대 링크', icon: LinkIcon },
   { id: 'users', label: '사용자 관리', icon: Users },
   { id: 'upload', label: '트랙 업로드', icon: Upload },
+  { id: 'webtoon-projects', label: '웹툰 프로젝트', icon: Film },
 ];
 
 const quickLinks: QuickLink[] = [
@@ -48,6 +50,7 @@ export default function AdminPage() {
           {activeTab === 'invitations' && <InvitationsView key="invitations" />}
           {activeTab === 'users' && <UsersView key="users" />}
           {activeTab === 'upload' && <UploadView key="upload" />}
+          {activeTab === 'webtoon-projects' && <WebToonProjectsView key="webtoon-projects" />}
         </AnimatePresence>
       </div>
     </MobileLayout>

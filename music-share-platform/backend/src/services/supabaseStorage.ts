@@ -132,4 +132,42 @@ export async function downloadFile(key: string): Promise<Buffer> {
   return Buffer.from(arrayBuffer);
 }
 
+// 웹툰 이미지 버킷 자동 생성
+export async function ensureWebtoonBucketExists(): Promise<void> {
+  if (!supabase) {
+    console.warn('⚠️ Supabase Storage not configured - skipping bucket creation');
+    return;
+  }
+
+  try {
+    const { data: buckets, error: listError } = await supabase.storage.listBuckets();
+
+    if (listError) {
+      console.error('Failed to list buckets:', listError);
+      return;
+    }
+
+    const webtoonBucketExists = buckets?.some(b => b.name === 'webtoon-images');
+
+    if (!webtoonBucketExists) {
+      console.log('📦 Creating webtoon-images bucket...');
+      const { error: createError } = await supabase.storage.createBucket('webtoon-images', {
+        public: false,
+        fileSizeLimit: 10485760, // 10MB
+        allowedMimeTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
+      });
+
+      if (createError) {
+        console.error('❌ Failed to create webtoon-images bucket:', createError);
+      } else {
+        console.log('✅ webtoon-images bucket created successfully');
+      }
+    } else {
+      console.log('✅ webtoon-images bucket already exists');
+    }
+  } catch (error) {
+    console.error('Error ensuring webtoon bucket exists:', error);
+  }
+}
+
 export { supabase, BUCKET_NAME };

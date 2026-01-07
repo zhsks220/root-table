@@ -11,7 +11,9 @@ import partnerAdminRoutes from './routes/partner-admin';
 import partnerRoutes from './routes/partner';
 import settingsRoutes from './routes/settings';
 import contactRoutes from './routes/contact';
+import webtoonRoutes from './routes/webtoon';
 import { pool } from './db';
+import { ensureWebtoonBucketExists } from './services/supabaseStorage';
 
 dotenv.config();
 
@@ -76,6 +78,9 @@ app.use('/api/settings', settingsRoutes);
 // 상담 문의 라우트 (공개 + 관리자)
 app.use('/api/contact', contactRoutes);
 
+// 웹툰 프로젝트 라우트 (관리자 + 파트너)
+app.use('/api/admin', webtoonRoutes);
+
 // 404 처리
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found' });
@@ -98,6 +103,9 @@ const server = app.listen(Number(PORT), '0.0.0.0', async () => {
     console.log('🎵 Music Share Platform Backend');
     console.log(`✅ Database connected`);
     console.log(`🌍 Environment: ${process.env.NODE_ENV || 'development'}`);
+
+    // 웹툰 이미지 버킷 확인 및 생성
+    await ensureWebtoonBucketExists();
   } catch (error) {
     console.error('❌ Failed to connect to database:', error);
     // Don't exit, just log the error - server is still running

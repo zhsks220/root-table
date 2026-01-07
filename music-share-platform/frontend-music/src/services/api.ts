@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { TrackSearchParams, Category, MoodOption, LanguageOption } from '../types';
+import { TrackSearchParams, Category, MoodOption, LanguageOption, WebToonProjectSearchParams, WebToonScene } from '../types';
 
 // Vercel 배포 시 환경변수에서 API URL 읽기, 로컬에서는 프록시 사용
 const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
@@ -124,4 +124,63 @@ export const adminAPI = {
     api.post('/admin/invitations', { trackIds, expiresInDays }),
   getInvitations: () => api.get('/admin/invitations'),
   getUsers: () => api.get('/admin/users'),
+};
+
+// WebToon Project API
+export const webToonProjectAPI = {
+  // Projects
+  createProject: (formData: FormData) =>
+    api.post('/admin/webtoon-projects', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+
+  getProjects: (params?: WebToonProjectSearchParams) => {
+    const queryParams = new URLSearchParams();
+    if (params?.q) queryParams.set('q', params.q);
+    if (params?.status) queryParams.set('status', params.status);
+    if (params?.page) queryParams.set('page', params.page.toString());
+    if (params?.limit) queryParams.set('limit', params.limit.toString());
+    const queryString = queryParams.toString();
+    return api.get(`/admin/webtoon-projects${queryString ? `?${queryString}` : ''}`);
+  },
+
+  getProject: (projectId: string) =>
+    api.get(`/admin/webtoon-projects/${projectId}`),
+
+  updateProject: (projectId: string, formData: FormData) =>
+    api.patch(`/admin/webtoon-projects/${projectId}`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+
+  deleteProject: (projectId: string) =>
+    api.delete(`/admin/webtoon-projects/${projectId}`),
+
+  // Scenes
+  uploadScene: (projectId: string, formData: FormData) =>
+    api.post(`/admin/webtoon-projects/${projectId}/scenes`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+
+  updateScene: (projectId: string, sceneId: string, data: Partial<WebToonScene> | FormData) => {
+    const config = data instanceof FormData
+      ? { headers: { 'Content-Type': 'multipart/form-data' } }
+      : {};
+    return api.patch(`/admin/webtoon-projects/${projectId}/scenes/${sceneId}`, data, config);
+  },
+
+  reorderScenes: (projectId: string, scenes: Array<{ id: string; display_order: number }>) =>
+    api.patch(`/admin/webtoon-projects/${projectId}/scenes/reorder`, { scenes }),
+
+  deleteScene: (projectId: string, sceneId: string) =>
+    api.delete(`/admin/webtoon-projects/${projectId}/scenes/${sceneId}`),
+
+  // Scene-Track associations
+  linkTrackToScene: (projectId: string, sceneId: string, trackId: string, displayOrder?: number) =>
+    api.post(`/admin/webtoon-projects/${projectId}/scenes/${sceneId}/tracks`, {
+      track_id: trackId,
+      display_order: displayOrder,
+    }),
+
+  unlinkTrackFromScene: (projectId: string, sceneId: string, trackId: string) =>
+    api.delete(`/admin/webtoon-projects/${projectId}/scenes/${sceneId}/tracks/${trackId}`),
 };

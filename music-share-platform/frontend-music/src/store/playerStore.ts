@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { trackAPI } from '../services/api';
+import { trackAPI, adminAPI } from '../services/api';
 
 interface Track {
   id: string;
@@ -69,9 +69,21 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     set({ isLoading: true });
 
     try {
-      // 스트리밍 URL 가져오기
+      // 스트리밍 URL 가져오기 - 관리자 권한 확인
       console.log('📡 Fetching stream URL for track:', track.id);
-      const response = await trackAPI.getStreamUrl(track.id);
+
+      // 로컬스토리지에서 사용자 정보 확인
+      const authStorage = localStorage.getItem('auth-storage');
+      let isAdmin = false;
+      if (authStorage) {
+        const { state: authState } = JSON.parse(authStorage);
+        isAdmin = authState?.user?.role === 'admin';
+      }
+
+      // 관리자면 adminAPI, 아니면 trackAPI 사용
+      const response = isAdmin
+        ? await adminAPI.getStreamUrl(track.id)
+        : await trackAPI.getStreamUrl(track.id);
       const { streamUrl } = response.data;
       console.log('✅ Stream URL received:', streamUrl?.substring(0, 100) + '...');
 

@@ -9,8 +9,8 @@ import { cn } from '../../lib/utils';
 import { useThemeStore } from '../../store/themeStore';
 import { usePlayerStore } from '../../store/playerStore';
 import {
-  ArrowLeft, Plus, Upload, Trash2, Music, FileText,
-  Loader2, Image as ImageIcon, Save, X, Smartphone, StickyNote
+  ArrowLeft, Plus, Upload, Trash2, Music,
+  Loader2, Image as ImageIcon, X, Smartphone, StickyNote
 } from 'lucide-react';
 
 interface TrackMarker {
@@ -22,7 +22,7 @@ interface TrackMarker {
 export function WebToonProjectsView() {
   const { theme } = useThemeStore();
   const isDark = theme === 'dark';
-  const { playTrack, pause, currentTrack } = usePlayerStore();
+  const { playTrack, currentTrack } = usePlayerStore();
 
   // 프로젝트 목록
   const [projects, setProjects] = useState<WebToonProject[]>([]);
@@ -44,9 +44,6 @@ export function WebToonProjectsView() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
-  // 메모 편집
-  const [editingMemo, setEditingMemo] = useState('');
-  const [savingMemo, setSavingMemo] = useState(false);
 
   // 음원 추가 모달
   const [showTrackModal, setShowTrackModal] = useState(false);
@@ -119,7 +116,6 @@ export function WebToonProjectsView() {
       setScenes(res.data.project.scenes || []);
       if (res.data.project.scenes?.length > 0 && !selectedScene) {
         setSelectedScene(res.data.project.scenes[0]);
-        setEditingMemo(res.data.project.scenes[0].memo || '');
       }
     } catch (error) {
       console.error('Failed to load project:', error);
@@ -137,7 +133,6 @@ export function WebToonProjectsView() {
   // 장면 선택
   const handleSelectScene = (scene: WebToonScene) => {
     setSelectedScene(scene);
-    setEditingMemo(scene.memo || '');
   };
 
   // 장면 업로드
@@ -177,7 +172,6 @@ export function WebToonProjectsView() {
       await loadProject();
       if (selectedScene?.id === sceneId) {
         setSelectedScene(scenes[0] || null);
-        setEditingMemo(scenes[0]?.memo || '');
       }
     } catch (error) {
       console.error('Failed to delete scene:', error);
@@ -185,27 +179,6 @@ export function WebToonProjectsView() {
     }
   };
 
-  // 메모 저장
-  const handleSaveMemo = async () => {
-    if (!selectedScene || !currentProject) return;
-
-    setSavingMemo(true);
-    try {
-      await webToonProjectAPI.updateScene(currentProject.id, selectedScene.id, {
-        memo: editingMemo,
-      });
-
-      setScenes(prev =>
-        prev.map(s => s.id === selectedScene.id ? { ...s, memo: editingMemo } : s)
-      );
-      setSelectedScene({ ...selectedScene, memo: editingMemo });
-    } catch (error) {
-      console.error('Failed to save memo:', error);
-      alert('메모 저장에 실패했습니다.');
-    } finally {
-      setSavingMemo(false);
-    }
-  };
 
   // 음원 마커 추가
   const handleAddTrack = (track: Track) => {
@@ -448,7 +421,7 @@ export function WebToonProjectsView() {
 
           {/* 프로젝트 목록 */}
           <div className="flex-1 overflow-y-auto p-6">
-            {loadingProjects ? (
+            {loadingProjects || loading ? (
               <div className="flex items-center justify-center h-64">
                 <Loader2 className={cn('w-8 h-8 animate-spin', isDark ? 'text-gray-400' : 'text-gray-500')} />
               </div>

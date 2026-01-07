@@ -4,8 +4,8 @@ import { WebToonProject, WebToonScene } from '../../types';
 import { cn } from '../../lib/utils';
 import { useThemeStore } from '../../store/themeStore';
 import {
-  ArrowLeft, Plus, Upload, Trash2, GripVertical, Music, FileText,
-  Loader2, Image as ImageIcon, Play, Pause, X, Save
+  ArrowLeft, Plus, Upload, Trash2, Music, FileText,
+  Loader2, Image as ImageIcon, X, Save
 } from 'lucide-react';
 
 interface WebToonEditorProps {

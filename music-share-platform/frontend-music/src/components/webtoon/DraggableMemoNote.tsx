@@ -50,7 +50,6 @@ export function DraggableMemoNote({ note, onUpdate, onDelete, containerRef }: Dr
 
       // 컨테이너 경계 체크
       const noteWidth = noteRef.current?.offsetWidth || 200;
-      const noteHeight = noteRef.current?.offsetHeight || 100;
 
       newX = Math.max(0, Math.min(newX, containerRect.width - noteWidth));
       newY = Math.max(0, newY);

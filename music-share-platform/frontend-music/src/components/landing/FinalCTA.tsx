@@ -1,7 +1,11 @@
 import { motion } from 'framer-motion';
 import { ArrowRight } from 'lucide-react';
 
-export const FinalCTA = () => {
+interface FinalCTAProps {
+    onCTAClick?: () => void;
+}
+
+export const FinalCTA = ({ onCTAClick }: FinalCTAProps) => {
     return (
         <section className="py-32 px-6 bg-gradient-to-b from-black to-[#0a0a0a] relative overflow-hidden">
             {/* Background Logo Watermark */}
@@ -32,14 +36,14 @@ export const FinalCTA = () => {
                     </p>
 
                     <div className="flex flex-col items-center justify-center gap-4">
-                        <a
-                            href="#contact"
+                        <button
+                            onClick={onCTAClick}
                             className="group bg-white hover:bg-gray-100 text-black px-10 py-5 rounded-full
-                                     font-bold text-xl transition-all flex items-center gap-3"
+                                     font-bold text-xl transition-all flex items-center gap-3 cursor-pointer"
                         >
                             프로젝트 의뢰 문의
                             <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
-                        </a>
+                        </button>
                     </div>
 
                     <p className="mt-8 text-sm text-white/40">

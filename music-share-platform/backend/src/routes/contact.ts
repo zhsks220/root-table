@@ -2,7 +2,7 @@ import { Router, Request, Response } from 'express';
 import { pool } from '../db';
 import { authenticateToken, requireAdmin } from '../middleware/auth';
 import { AuthRequest } from '../types';
-import { sendContactNotification } from '../services/emailService';
+import { sendContactNotification, sendChatbotNotification } from '../services/emailService';
 
 const router = Router();
 
@@ -66,6 +66,108 @@ router.post('/', async (req: Request, res: Response) => {
   } catch (error) {
     console.error('Contact submission error:', error);
     res.status(500).json({ error: '상담 신청 중 오류가 발생했습니다.' });
+  }
+});
+
+// POST /api/contact/chatbot - 챗봇 문의 접수
+router.post('/chatbot', async (req: Request, res: Response) => {
+  try {
+    const {
+      clientType,
+      workTitle,
+      workLink,
+      genres,
+      musicTypes,
+      estimatedTracks,
+      timeline,
+      budget,
+      additionalNotes,
+      name,
+      email,
+      organization,
+      sessionId,
+    } = req.body;
+
+    // 필수 필드 검증
+    if (!clientType || !workTitle || !name || !email) {
+      return res.status(400).json({
+        error: '필수 항목을 입력해주세요.',
+        required: ['clientType', 'workTitle', 'name', 'email']
+      });
+    }
+
+    // 이메일 형식 검증
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      return res.status(400).json({ error: '유효한 이메일 주소를 입력해주세요.' });
+    }
+
+    // URL 형식 검증 (제공된 경우)
+    if (workLink) {
+      try {
+        new URL(workLink);
+      } catch {
+        return res.status(400).json({ error: '유효한 작품 링크를 입력해주세요.' });
+      }
+    }
+
+    // 챗봇 문의 저장 (기존 contact_inquiries 테이블에 추가 정보와 함께 저장)
+    // message 필드에 챗봇 데이터를 JSON으로 저장
+    const chatbotData = {
+      clientType,
+      genres: genres || [],
+      musicTypes: musicTypes || [],
+      estimatedTracks,
+      timeline,
+      budget,
+      additionalNotes,
+      sessionId,
+      source: 'chatbot',
+    };
+
+    const result = await pool.query(`
+      INSERT INTO contact_inquiries (name, organization, email, work_link, message)
+      VALUES ($1, $2, $3, $4, $5)
+      RETURNING id, created_at
+    `, [
+      name,
+      organization || null,
+      email,
+      workLink || workTitle, // workLink가 없으면 workTitle을 저장
+      JSON.stringify(chatbotData)
+    ]);
+
+    const inquiry = result.rows[0];
+
+    // 이메일 알림 발송 (비동기)
+    sendChatbotNotification({
+      clientType,
+      workTitle,
+      workLink,
+      genres: genres || [],
+      musicTypes: musicTypes || [],
+      estimatedTracks,
+      timeline,
+      budget,
+      additionalNotes,
+      name,
+      email,
+      organization,
+      sessionId,
+      createdAt: inquiry.created_at,
+    }).catch(err => {
+      console.error('Failed to send chatbot notification email:', err);
+    });
+
+    res.status(201).json({
+      success: true,
+      message: '프로젝트 문의가 접수되었습니다. 빠른 시일 내에 연락드리겠습니다.',
+      inquiryId: inquiry.id,
+      createdAt: inquiry.created_at
+    });
+  } catch (error) {
+    console.error('Chatbot submission error:', error);
+    res.status(500).json({ error: '문의 접수 중 오류가 발생했습니다.' });
   }
 });
 

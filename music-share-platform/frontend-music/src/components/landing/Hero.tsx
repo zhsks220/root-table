@@ -2,7 +2,11 @@ import { motion } from 'framer-motion';
 import { useMousePosition } from '../../hooks/useMousePosition';
 import { ArrowRight } from 'lucide-react';
 
-export const Hero = () => {
+interface HeroProps {
+    onCTAClick?: () => void;
+}
+
+export const Hero = ({ onCTAClick }: HeroProps) => {
     const mousePosition = useMousePosition();
 
     // Glow position calculated relative to the mouse
@@ -41,13 +45,13 @@ export const Hero = () => {
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
-                    <a
-                        href="#contact"
-                        className="group bg-white hover:bg-gray-100 text-black px-6 py-3 sm:px-8 sm:py-4 rounded-full font-bold text-base sm:text-lg transition-all flex items-center gap-2"
+                    <button
+                        onClick={onCTAClick}
+                        className="group bg-white hover:bg-gray-100 text-black px-6 py-3 sm:px-8 sm:py-4 rounded-full font-bold text-base sm:text-lg transition-all flex items-center gap-2 cursor-pointer"
                     >
                         프로젝트 의뢰 문의
                         <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
-                    </a>
+                    </button>
                 </div>
 
                 <p className="mt-6 md:mt-8 text-xs sm:text-sm text-white/40 font-medium">

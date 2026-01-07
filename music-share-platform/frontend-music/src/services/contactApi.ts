@@ -19,6 +19,23 @@ export interface ContactFormData {
   message?: string;
 }
 
+// 챗봇 문의 데이터 타입
+export interface ChatbotSubmitData {
+  clientType: string;
+  workTitle: string;
+  workLink?: string;
+  genres: string[];
+  musicTypes: string[];
+  estimatedTracks: string;
+  timeline: string;
+  budget?: string;
+  additionalNotes?: string;
+  name: string;
+  email: string;
+  organization?: string;
+  sessionId: string;
+}
+
 // 상담 신청 응답 타입
 export interface ContactSubmitResponse {
   success: boolean;
@@ -32,6 +49,10 @@ export const contactAPI = {
   // 상담 신청 제출
   submit: (data: ContactFormData) =>
     contactApi.post<ContactSubmitResponse>('/contact', data),
+
+  // 챗봇 문의 제출
+  submitChatbot: (data: ChatbotSubmitData) =>
+    contactApi.post<ContactSubmitResponse>('/contact/chatbot', data),
 };
 
 export default contactAPI;

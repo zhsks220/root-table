@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const steps = [
     {
@@ -27,11 +28,16 @@ const steps = [
 export const Process = () => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isAutoPlay, setIsAutoPlay] = useState(true);
+    const [touchStart, setTouchStart] = useState<number | null>(null);
+    const [touchEnd, setTouchEnd] = useState<number | null>(null);
     const sectionRef = useRef<HTMLElement>(null);
     const isInView = useInView(sectionRef, { once: false, amount: 0.5 });
 
     // 첫 슬라이드는 2초 후, 그 다음부터는 3.5초 간격
     const [isFirstSlide, setIsFirstSlide] = useState(true);
+
+    // 최소 스와이프 거리
+    const minSwipeDistance = 50;
 
     useEffect(() => {
         if (!isInView || !isAutoPlay) return;
@@ -58,6 +64,41 @@ export const Process = () => {
         setTimeout(() => setIsAutoPlay(true), 5000);
     };
 
+    const goToPrevious = () => {
+        const newIndex = currentIndex === 0 ? steps.length - 1 : currentIndex - 1;
+        goToSlide(newIndex);
+    };
+
+    const goToNext = () => {
+        const newIndex = (currentIndex + 1) % steps.length;
+        goToSlide(newIndex);
+    };
+
+    // 터치 이벤트 핸들러
+    const onTouchStart = (e: React.TouchEvent) => {
+        setTouchEnd(null);
+        setTouchStart(e.targetTouches[0].clientX);
+    };
+
+    const onTouchMove = (e: React.TouchEvent) => {
+        setTouchEnd(e.targetTouches[0].clientX);
+    };
+
+    const onTouchEnd = () => {
+        if (!touchStart || !touchEnd) return;
+
+        const distance = touchStart - touchEnd;
+        const isLeftSwipe = distance > minSwipeDistance;
+        const isRightSwipe = distance < -minSwipeDistance;
+
+        if (isLeftSwipe) {
+            goToNext();
+        }
+        if (isRightSwipe) {
+            goToPrevious();
+        }
+    };
+
     return (
         <section ref={sectionRef} id="process" className="py-24 px-6 bg-black overflow-hidden">
             <div className="max-w-7xl mx-auto">
@@ -73,41 +114,67 @@ export const Process = () => {
                     </h2>
                 </motion.div>
 
-                {/* 카드 캐러셀 - 전체가 같이 움직임 */}
-                <div className="relative mb-12 mx-auto overflow-hidden" style={{ maxWidth: '800px', minHeight: '220px' }}>
-                    <motion.div
-                        className="flex items-center"
-                        animate={{ x: `calc(50% - 280px - ${currentIndex * 560}px)` }}
-                        transition={{ duration: 0.5, ease: "easeInOut" }}
-                    >
-                        {steps.map((step, idx) => {
-                            const isActive = idx === currentIndex;
-                            return (
-                                <div
-                                    key={idx}
-                                    className={`flex-shrink-0 w-[520px] mx-[20px] p-8 rounded-3xl transition-all duration-500 ${
-                                        isActive
-                                            ? 'bg-white/[0.03] border border-emerald-500/30 scale-100 opacity-100'
-                                            : 'bg-white/[0.02] border border-white/10 scale-95 opacity-50'
-                                    }`}
-                                    style={{ minHeight: '200px' }}
-                                >
-                                    <div className="text-center py-4">
-                                        <h3 className={`text-2xl md:text-3xl font-bold mb-4 transition-colors duration-500 ${
-                                            isActive ? 'text-white' : 'text-white/30'
-                                        }`}>
-                                            {step.title}
-                                        </h3>
-                                        {isActive && (
-                                            <p className="text-base md:text-lg leading-relaxed text-white/60">
-                                                {step.description}
-                                            </p>
-                                        )}
-                                    </div>
-                                </div>
-                            );
-                        })}
-                    </motion.div>
+                {/* 카드 캐러셀 컨테이너 - 버튼 포함 */}
+                <div className="relative mb-12 mx-auto" style={{ maxWidth: '1000px' }}>
+                    <div className="flex items-center justify-center gap-4">
+                        {/* 좌측 버튼 - PC only, 바깥쪽 배치 */}
+                        <button
+                            onClick={goToPrevious}
+                            className="hidden md:flex flex-shrink-0 w-12 h-12 items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 hover:border-emerald-500/50 rounded-full transition-all duration-300 self-center"
+                            aria-label="이전 단계"
+                        >
+                            <ChevronLeft className="w-6 h-6 text-white" />
+                        </button>
+
+                        {/* 슬라이드 영역 */}
+                        <div className="relative overflow-hidden" style={{ maxWidth: '800px', minHeight: '220px', flex: '1' }}>
+                            <motion.div
+                                className="flex items-center"
+                                animate={{ x: `calc(50% - 280px - ${currentIndex * 560}px)` }}
+                                transition={{ duration: 0.5, ease: "easeInOut" }}
+                                onTouchStart={onTouchStart}
+                                onTouchMove={onTouchMove}
+                                onTouchEnd={onTouchEnd}
+                            >
+                                {steps.map((step, idx) => {
+                                    const isActive = idx === currentIndex;
+                                    return (
+                                        <div
+                                            key={idx}
+                                            className={`flex-shrink-0 w-[520px] mx-[20px] p-8 rounded-3xl transition-all duration-500 ${
+                                                isActive
+                                                    ? 'bg-white/[0.03] border border-emerald-500/30 scale-100 opacity-100'
+                                                    : 'bg-white/[0.02] border border-white/10 scale-95 opacity-50 hover:border-emerald-500/30'
+                                            }`}
+                                            style={{ minHeight: '200px' }}
+                                        >
+                                            <div className="text-center py-4">
+                                                <h3 className={`text-2xl md:text-3xl font-bold mb-4 transition-colors duration-500 ${
+                                                    isActive ? 'text-white' : 'text-white/30'
+                                                }`}>
+                                                    {step.title}
+                                                </h3>
+                                                {isActive && (
+                                                    <p className="text-base md:text-lg leading-relaxed text-white/60">
+                                                        {step.description}
+                                                    </p>
+                                                )}
+                                            </div>
+                                        </div>
+                                    );
+                                })}
+                            </motion.div>
+                        </div>
+
+                        {/* 우측 버튼 - PC only, 바깥쪽 배치 */}
+                        <button
+                            onClick={goToNext}
+                            className="hidden md:flex flex-shrink-0 w-12 h-12 items-center justify-center bg-white/5 hover:bg-white/10 border border-white/10 hover:border-emerald-500/50 rounded-full transition-all duration-300 self-center"
+                            aria-label="다음 단계"
+                        >
+                            <ChevronRight className="w-6 h-6 text-white" />
+                        </button>
+                    </div>
                 </div>
 
                 {/* 페이지네이션 인디케이터 */}

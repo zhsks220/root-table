@@ -2,6 +2,30 @@ import { useState, useRef, useEffect } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Play, Pause, Volume2, SkipBack, SkipForward } from 'lucide-react';
 
+// 반응형 카드 사이즈 계산 훅
+const useCardSize = () => {
+    const [cardSize, setCardSize] = useState({ width: 380, margin: 20, offset: 200 });
+
+    useEffect(() => {
+        const updateSize = () => {
+            const w = window.innerWidth;
+            if (w < 640) {
+                // 모바일
+                setCardSize({ width: 280, margin: 10, offset: 150 });
+            } else {
+                // 태블릿/PC - 원래 값 유지
+                setCardSize({ width: 380, margin: 20, offset: 200 });
+            }
+        };
+
+        updateSize();
+        window.addEventListener('resize', updateSize);
+        return () => window.removeEventListener('resize', updateSize);
+    }, []);
+
+    return cardSize;
+};
+
 // 장르별 카드 데이터
 const genreCards = [
     {
@@ -64,6 +88,7 @@ export const WhyNotStock = () => {
     const sectionRef = useRef<HTMLElement>(null);
     const audioRef = useRef<HTMLAudioElement>(null);
     const isInView = useInView(sectionRef, { once: false, amount: 0.5 });
+    const cardSize = useCardSize();
 
     const minSwipeDistance = 50;
 
@@ -187,7 +212,7 @@ export const WhyNotStock = () => {
 
                         <motion.div
                             className="flex items-center"
-                            animate={{ x: `calc(50% - 200px - ${currentIndex * 420}px)` }}
+                            animate={{ x: `calc(50% - ${cardSize.offset}px - ${currentIndex * (cardSize.width + cardSize.margin * 2)}px)` }}
                             transition={{ duration: 0.5, ease: "easeInOut" }}
                             onTouchStart={onTouchStart}
                             onTouchMove={onTouchMove}
@@ -199,7 +224,7 @@ export const WhyNotStock = () => {
                                 return (
                                     <div
                                         key={idx}
-                                        className={`relative flex-shrink-0 w-[380px] mx-[20px] p-8 rounded-3xl transition-all duration-500 backdrop-blur-sm ${
+                                        className={`relative flex-shrink-0 w-[280px] sm:w-[380px] mx-[10px] sm:mx-[20px] p-6 sm:p-8 rounded-3xl transition-all duration-500 backdrop-blur-sm ${
                                             isActive
                                                 ? 'bg-white/[0.08] border border-emerald-500/40 scale-100 opacity-100'
                                                 : 'bg-white/[0.03] border border-white/10 scale-95 opacity-50'

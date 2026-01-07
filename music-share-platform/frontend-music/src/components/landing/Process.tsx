@@ -2,6 +2,33 @@ import { useState, useEffect, useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
+// 반응형 카드 사이즈 계산 훅
+const useCardSize = () => {
+    const [cardSize, setCardSize] = useState({ width: 520, margin: 20, offset: 280 });
+
+    useEffect(() => {
+        const updateSize = () => {
+            const w = window.innerWidth;
+            if (w < 640) {
+                // 모바일
+                setCardSize({ width: 280, margin: 10, offset: 150 });
+            } else if (w < 768) {
+                // 태블릿
+                setCardSize({ width: 420, margin: 20, offset: 210 });
+            } else {
+                // PC - 원래 값 유지
+                setCardSize({ width: 520, margin: 20, offset: 280 });
+            }
+        };
+
+        updateSize();
+        window.addEventListener('resize', updateSize);
+        return () => window.removeEventListener('resize', updateSize);
+    }, []);
+
+    return cardSize;
+};
+
 const steps = [
     {
         title: "원고·콘티 분석",
@@ -32,6 +59,7 @@ export const Process = () => {
     const [touchEnd, setTouchEnd] = useState<number | null>(null);
     const sectionRef = useRef<HTMLElement>(null);
     const isInView = useInView(sectionRef, { once: false, amount: 0.5 });
+    const cardSize = useCardSize();
 
     // 첫 슬라이드는 2초 후, 그 다음부터는 3.5초 간격
     const [isFirstSlide, setIsFirstSlide] = useState(true);
@@ -133,7 +161,7 @@ export const Process = () => {
                             <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-black to-transparent z-10 pointer-events-none" />
                             <motion.div
                                 className="flex items-center"
-                                animate={{ x: `calc(50% - 280px - ${currentIndex * 560}px)` }}
+                                animate={{ x: `calc(50% - ${cardSize.offset}px - ${currentIndex * (cardSize.width + cardSize.margin * 2)}px)` }}
                                 transition={{ duration: 0.5, ease: "easeInOut" }}
                                 onTouchStart={onTouchStart}
                                 onTouchMove={onTouchMove}
@@ -144,7 +172,7 @@ export const Process = () => {
                                     return (
                                         <div
                                             key={idx}
-                                            className={`flex-shrink-0 w-[520px] mx-[20px] p-8 rounded-3xl transition-all duration-500 ${
+                                            className={`flex-shrink-0 w-[280px] sm:w-[420px] md:w-[520px] mx-[10px] sm:mx-[20px] p-6 sm:p-8 rounded-3xl transition-all duration-500 ${
                                                 isActive
                                                     ? 'bg-white/[0.03] border border-emerald-500/30 scale-100 opacity-100'
                                                     : 'bg-white/[0.02] border border-white/20 scale-95 opacity-60 hover:border-emerald-500/30'

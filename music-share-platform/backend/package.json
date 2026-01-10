@@ -13,7 +13,9 @@
     "db:cms-migrate": "tsx src/db/cms-migrate.ts",
     "db:cms-seed": "tsx src/db/cms-seed.ts",
     "db:partner-migrate": "tsx src/db/partner-migrate.ts",
-    "db:fix-role": "tsx src/db/fix-role-migrate.ts"
+    "db:fix-role": "tsx src/db/fix-role-migrate.ts",
+    "db:library-migrate": "tsx src/db/library-migrate.ts",
+    "db:seed-library": "tsx src/db/seed-library.ts"
   },
   "keywords": [
     "music",

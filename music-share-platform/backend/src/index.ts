@@ -12,6 +12,7 @@ import partnerRoutes from './routes/partner';
 import settingsRoutes from './routes/settings';
 import contactRoutes from './routes/contact';
 import webtoonRoutes from './routes/webtoon';
+import libraryRoutes from './routes/library';
 import { pool } from './db';
 import { ensureWebtoonBucketExists } from './services/supabaseStorage';
 
@@ -80,6 +81,9 @@ app.use('/api/contact', contactRoutes);
 
 // 웹툰 프로젝트 라우트 (관리자 + 파트너)
 app.use('/api/admin', webtoonRoutes);
+
+// 라이브러리 관리 라우트 (관리자 전용)
+app.use('/api/library', libraryRoutes);
 
 // 404 처리
 app.use((req, res) => {

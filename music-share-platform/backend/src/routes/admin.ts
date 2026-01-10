@@ -161,6 +161,7 @@ router.get('/tracks', async (req: AuthRequest, res: Response) => {
       SELECT
         t.id, t.title, t.artist, t.album, t.duration, t.file_size, t.created_at,
         t.mood, t.language, t.bpm, t.release_year, t.is_explicit, t.description, t.tags,
+        t.genre, t.theme, t.energy_level, t.tempo, t.musical_key, t.track_code,
         (
           SELECT json_agg(json_build_object(
             'id', c.id,
@@ -408,6 +409,7 @@ router.get('/tracks/:trackId', async (req: AuthRequest, res: Response) => {
       SELECT
         t.id, t.title, t.artist, t.album, t.duration, t.file_size, t.created_at,
         t.mood, t.language, t.bpm, t.release_year, t.is_explicit, t.description, t.tags,
+        t.genre, t.theme, t.energy_level, t.tempo, t.musical_key, t.track_code,
         (
           SELECT json_agg(json_build_object(
             'id', c.id,

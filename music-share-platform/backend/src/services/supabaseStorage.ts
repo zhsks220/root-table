@@ -14,7 +14,7 @@ if (supabaseUrl && supabaseServiceKey) {
   console.warn('⚠️ Supabase Storage disabled - missing SUPABASE_URL or SUPABASE_SERVICE_KEY');
 }
 
-const BUCKET_NAME = 'tracks';
+const BUCKET_NAME = 'music-files';
 
 // Storage 사용 가능 여부 확인
 export function isStorageAvailable(): boolean {

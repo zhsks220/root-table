@@ -97,7 +97,8 @@ router.get('/:trackId/download', authenticateToken, async (req: AuthRequest, res
 
     if (isFlac) {
       console.log(`🔄 Converting FLAC to MP3...`);
-      outputBuffer = await transcodeToMp3(fileBuffer);
+      const result = await transcodeToMp3(fileBuffer);
+      outputBuffer = result.buffer;
     } else {
       outputBuffer = fileBuffer;
     }

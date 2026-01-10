@@ -6,7 +6,7 @@ import multer from 'multer';
 import xlsx from 'xlsx';
 import path from 'path';
 import { uploadFile } from '../services/supabaseStorage';
-import { transcodeToFlac, getAudioMetadata } from '../services/transcoder';
+import { transcodeToMp3, getAudioMetadata } from '../services/transcoder';
 
 const router = Router();
 
@@ -255,17 +255,17 @@ router.post('/upload-audio', authenticateToken, requireAdmin, upload.single('fil
 
     const track = matchResult.rows[0];
 
-    // MP3/WAV → FLAC 변환 (무손실 압축)
-    console.log(`🔄 FLAC 변환 중...`);
-    const transcodeResult = await transcodeToFlac(req.file.buffer, req.file.mimetype);
+    // 모든 오디오 → MP3 320kbps 변환
+    console.log(`🔄 MP3 변환 중...`);
+    const transcodeResult = await transcodeToMp3(req.file.buffer, req.file.mimetype);
 
     // 오디오 메타데이터 추출 (duration 등)
     const metadata = await getAudioMetadata(req.file.buffer);
 
-    // FLAC 파일로 저장
-    const flacFilename = originalFilename.replace(/\.(mp3|wav|flac)$/i, '.flac');
-    const fileKey = `tracks/${track.track_code || track.id}/${flacFilename}`;
-    await uploadFile(fileKey, transcodeResult.buffer, 'audio/flac');
+    // MP3 파일로 저장
+    const mp3Filename = originalFilename.replace(/\.(mp3|wav|flac)$/i, '.mp3');
+    const fileKey = `tracks/${track.track_code || track.id}/${mp3Filename}`;
+    await uploadFile(fileKey, transcodeResult.buffer, 'audio/mpeg');
 
     console.log(`✅ 변환 완료: ${transcodeResult.originalSize} → ${transcodeResult.compressedSize} (${Math.round(transcodeResult.compressionRatio * 100)}%)`);
 
@@ -342,15 +342,15 @@ router.post('/upload-audio-batch', authenticateToken, requireAdmin, upload.array
 
         const track = matchResult.rows[0];
 
-        // MP3/WAV → FLAC 변환 (무손실 압축)
-        console.log(`🔄 FLAC 변환 중: ${originalFilename}`);
-        const transcodeResult = await transcodeToFlac(file.buffer, file.mimetype);
+        // 모든 오디오 → MP3 320kbps 변환
+        console.log(`🔄 MP3 변환 중: ${originalFilename}`);
+        const transcodeResult = await transcodeToMp3(file.buffer, file.mimetype);
         const metadata = await getAudioMetadata(file.buffer);
 
-        // FLAC 파일로 저장
-        const flacFilename = originalFilename.replace(/\.(mp3|wav|flac)$/i, '.flac');
-        const fileKey = `tracks/${track.track_code || track.id}/${flacFilename}`;
-        await uploadFile(fileKey, transcodeResult.buffer, 'audio/flac');
+        // MP3 파일로 저장
+        const mp3Filename = originalFilename.replace(/\.(mp3|wav|flac)$/i, '.mp3');
+        const fileKey = `tracks/${track.track_code || track.id}/${mp3Filename}`;
+        await uploadFile(fileKey, transcodeResult.buffer, 'audio/mpeg');
 
         // DB의 file_key 및 메타데이터 업데이트
         await pool.query(

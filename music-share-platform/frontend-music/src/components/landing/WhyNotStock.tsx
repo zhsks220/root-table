@@ -4,7 +4,7 @@ import { Play, Pause, Volume2, SkipBack, SkipForward } from 'lucide-react';
 
 // 반응형 카드 사이즈 계산 훅
 const useCardSize = () => {
-    const [cardSize, setCardSize] = useState({ width: 380, margin: 20, offset: 200 });
+    const [cardSize, setCardSize] = useState({ width: 520, margin: 20, offset: 280 });
 
     useEffect(() => {
         const updateSize = () => {
@@ -12,9 +12,12 @@ const useCardSize = () => {
             if (w < 640) {
                 // 모바일
                 setCardSize({ width: 280, margin: 10, offset: 150 });
+            } else if (w < 768) {
+                // 태블릿
+                setCardSize({ width: 420, margin: 20, offset: 210 });
             } else {
-                // 태블릿/PC - 원래 값 유지
-                setCardSize({ width: 380, margin: 20, offset: 200 });
+                // PC - Process 카드와 동일
+                setCardSize({ width: 520, margin: 20, offset: 280 });
             }
         };
 
@@ -30,7 +33,7 @@ const useCardSize = () => {
 const genreCards = [
     {
         genre: "액션 / 배틀",
-        description: "긴장감 넘치는 전투 씬과 캐릭터의 각성 순간을 음악으로 극대화합니다.",
+        description: "전투와 각성의 순간을 음악으로 극대화합니다.",
         features: ["고조되는 텐션 설계", "캐릭터 각성 테마", "임팩트 있는 타이밍"],
         accent: "from-red-500/20 to-orange-500/20",
         accentText: "text-red-400",
@@ -224,7 +227,7 @@ export const WhyNotStock = () => {
                                 return (
                                     <div
                                         key={idx}
-                                        className={`relative flex-shrink-0 w-[280px] sm:w-[380px] mx-[10px] sm:mx-[20px] p-6 sm:p-8 rounded-3xl transition-all duration-500 backdrop-blur-sm ${
+                                        className={`relative flex-shrink-0 w-[280px] sm:w-[420px] md:w-[520px] mx-[10px] sm:mx-[20px] p-6 sm:p-8 rounded-3xl transition-all duration-500 backdrop-blur-sm ${
                                             isActive
                                                 ? 'bg-white/[0.08] border border-emerald-500/40 scale-100 opacity-100'
                                                 : 'bg-white/[0.03] border border-white/10 scale-95 opacity-50'

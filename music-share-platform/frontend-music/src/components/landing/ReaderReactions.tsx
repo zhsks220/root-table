@@ -494,6 +494,15 @@ export const ReaderReactions = () => {
                         0%, 100% { transform: translateY(0px) rotate(var(--rotation)); }
                         50% { transform: translateY(-16px) rotate(var(--rotation)); }
                     }
+                    .bg-comment-card {
+                        transition: filter 0.3s ease, transform 0.3s ease;
+                    }
+                    .bg-comment-card:hover {
+                        animation-play-state: paused !important;
+                        filter: blur(0px) brightness(0.9) !important;
+                        z-index: 50 !important;
+                        cursor: pointer;
+                    }
                 `}</style>
                 {backgroundComments.map((comment, idx) => {
                     const pos = backgroundPositions[idx];
@@ -512,7 +521,7 @@ export const ReaderReactions = () => {
                             initial={{ opacity: 0, y: 20 }}
                             animate={{ opacity: 1, y: 0 }}
                             transition={{ duration: 0.8, delay: pos.delay * 0.3 }}
-                            className="absolute"
+                            className="absolute bg-comment-card"
                             style={{
                                 left: pos.left,
                                 top: pos.top,

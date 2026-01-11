@@ -1,33 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Play, Pause, Volume2, SkipBack, SkipForward } from 'lucide-react';
-
-// 반응형 카드 사이즈 계산 훅
-const useCardSize = () => {
-    const [cardSize, setCardSize] = useState({ width: 520, margin: 20, offset: 280 });
-
-    useEffect(() => {
-        const updateSize = () => {
-            const w = window.innerWidth;
-            if (w < 640) {
-                // 모바일
-                setCardSize({ width: 280, margin: 10, offset: 150 });
-            } else if (w < 768) {
-                // 태블릿
-                setCardSize({ width: 420, margin: 20, offset: 210 });
-            } else {
-                // PC - Process 카드와 동일
-                setCardSize({ width: 520, margin: 20, offset: 280 });
-            }
-        };
-
-        updateSize();
-        window.addEventListener('resize', updateSize);
-        return () => window.removeEventListener('resize', updateSize);
-    }, []);
-
-    return cardSize;
-};
+import { useCardSize } from '../../hooks/useResponsive';
 
 // 장르별 카드 데이터
 const genreCards = [

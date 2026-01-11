@@ -3,7 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import { useAuthStore } from '../../store/authStore';
 
-export const Navbar = () => {
+interface NavbarProps {
+    onCTAClick?: () => void;
+}
+
+export const Navbar = ({ onCTAClick }: NavbarProps) => {
     const [isScrolled, setIsScrolled] = useState(false);
     const navigate = useNavigate();
     const { isAuthenticated, user } = useAuthStore();
@@ -50,7 +54,7 @@ export const Navbar = () => {
             <div className="hidden md:flex items-center gap-8 text-sm font-medium text-white/60 absolute left-1/2 -translate-x-1/2">
                 <a href="#process" className="hover:text-white transition-colors">제작 프로세스</a>
                 <a href="#testimonials" className="hover:text-white transition-colors">독자 반응</a>
-                <a href="#contact" className="hover:text-white transition-colors">상담 신청</a>
+                <button onClick={onCTAClick} className="hover:text-white transition-colors cursor-pointer">상담 신청</button>
             </div>
 
             <button

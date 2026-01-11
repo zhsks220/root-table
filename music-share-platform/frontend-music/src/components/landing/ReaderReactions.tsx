@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { useIsMobile } from '../../hooks/useResponsive';
 
 // 실제 독자 반응 데이터 (36개)
 const comments = [
@@ -447,24 +448,11 @@ const centerPositionSets = [
     ],
 ];
 
-// 모바일 감지 훅
-const useIsMobile = () => {
-    const [isMobile, setIsMobile] = useState(false);
+interface ReaderReactionsProps {
+    onCTAClick?: () => void;
+}
 
-    useEffect(() => {
-        const checkMobile = () => {
-            setIsMobile(window.innerWidth < 768);
-        };
-
-        checkMobile();
-        window.addEventListener('resize', checkMobile);
-        return () => window.removeEventListener('resize', checkMobile);
-    }, []);
-
-    return isMobile;
-};
-
-export const ReaderReactions = () => {
+export const ReaderReactions = ({ onCTAClick }: ReaderReactionsProps) => {
     // 모바일 여부 감지
     const isMobile = useIsMobile();
 
@@ -477,12 +465,14 @@ export const ReaderReactions = () => {
     // 모바일 터치 상태
     const [touchStart, setTouchStart] = useState<number | null>(null);
     const [touchEnd, setTouchEnd] = useState<number | null>(null);
+    const [isTouching, setIsTouching] = useState(false);
 
     const minSwipeDistance = 50;
 
-    // 3초마다 자동 순환 (hover 중에는 멈춤)
+    // 3초마다 자동 순환 (PC: hover 시 멈춤, 모바일: 터치 중 멈춤)
     useEffect(() => {
-        if (isHovering) return;
+        if (isMobile && isTouching) return;
+        if (!isMobile && isHovering) return;
 
         const interval = setInterval(() => {
             if (isMobile) {
@@ -494,10 +484,11 @@ export const ReaderReactions = () => {
             }
         }, 3000);
         return () => clearInterval(interval);
-    }, [isHovering, isMobile]);
+    }, [isHovering, isMobile, isTouching]);
 
     // 모바일 터치 핸들러
     const onTouchStart = (e: React.TouchEvent) => {
+        setIsTouching(true);
         setTouchEnd(null);
         setTouchStart(e.targetTouches[0].clientX);
     };
@@ -507,6 +498,7 @@ export const ReaderReactions = () => {
     };
 
     const onTouchEnd = () => {
+        setIsTouching(false);
         if (!touchStart || !touchEnd) return;
 
         const distance = touchStart - touchEnd;
@@ -560,27 +552,22 @@ export const ReaderReactions = () => {
                     const pos = backgroundPositions[idx];
                     if (!pos) return null;
 
-                    // 레이어별 설정
+                    // 레이어별 설정 (애니메이션 제거)
                     const layerConfig = {
-                        1: { blur: 3, brightness: 0.12, animation: 'floatSlow', duration: '8s' },
-                        2: { blur: 2, brightness: 0.18, animation: 'float', duration: '6s' },
-                        3: { blur: 1, brightness: 0.25, animation: 'floatFast', duration: '5s' },
-                    }[pos.layer] || { blur: 2, brightness: 0.15, animation: 'float', duration: '6s' };
+                        1: { blur: 3, brightness: 0.12 },
+                        2: { blur: 2, brightness: 0.18 },
+                        3: { blur: 1, brightness: 0.25 },
+                    }[pos.layer] || { blur: 2, brightness: 0.15 };
 
                     return (
-                        <motion.div
+                        <div
                             key={`bg-${comment.nickname}-${idx}`}
-                            initial={{ opacity: 0, y: 20 }}
-                            animate={{ opacity: 1, y: 0 }}
-                            transition={{ duration: 0.8, delay: pos.delay * 0.3 }}
-                            className="absolute bg-comment-card"
+                            className="absolute"
                             style={{
                                 left: pos.left,
                                 top: pos.top,
-                                '--rotation': `${pos.rotation}deg`,
+                                transform: `rotate(${pos.rotation}deg)`,
                                 filter: `blur(${layerConfig.blur}px) brightness(${layerConfig.brightness})`,
-                                animation: `${layerConfig.animation} ${layerConfig.duration} ease-in-out infinite`,
-                                animationDelay: `${pos.delay}s`,
                                 zIndex: pos.layer,
                                 width: `${324 * pos.scale}px`,
                             } as React.CSSProperties}
@@ -603,7 +590,7 @@ export const ReaderReactions = () => {
                                     </div>
                                 </div>
                             </div>
-                        </motion.div>
+                        </div>
                     );
                 })}
             </div>
@@ -632,25 +619,41 @@ export const ReaderReactions = () => {
                     onTouchMove={isMobile ? onTouchMove : undefined}
                     onTouchEnd={isMobile ? onTouchEnd : undefined}
                 >
-                    {/* 모바일 인디케이터 - 카드 밖에 고정 (5개 점 순환 + 남은 댓글 수) */}
+                    {/* 모바일 인디케이터 - Instagram 스타일 Dynamic Dots */}
                     {isMobile && (
-                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20">
-                            <div className="flex gap-1.5">
+                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center justify-center z-20">
+                            <div className="flex items-center gap-1.5 overflow-hidden">
                                 {Array.from({ length: 5 }).map((_, idx) => {
-                                    const isActive = idx === (mobileIndex % 5);
+                                    const offset = idx - 2; // -2, -1, 0, 1, 2 (중앙이 0)
+                                    const actualIndex = ((mobileIndex + offset) % comments.length + comments.length) % comments.length;
+                                    const distance = Math.abs(offset);
+
+                                    // 중앙에서 멀어질수록 작아짐
+                                    const sizes = [8, 6, 4]; // px 단위
+                                    const opacities = [1, 0.6, 0.3];
+                                    const isCenter = distance === 0;
+
                                     return (
-                                        <div
-                                            key={idx}
-                                            className={`h-2 rounded-full transition-all duration-300 ${
-                                                isActive ? 'bg-emerald-500 w-6' : 'bg-white/30 w-2'
-                                            }`}
+                                        <motion.div
+                                            key={actualIndex}
+                                            layoutId={`dot-${actualIndex}`}
+                                            initial={false}
+                                            animate={{
+                                                width: sizes[distance],
+                                                height: sizes[distance],
+                                                opacity: opacities[distance],
+                                                backgroundColor: isCenter ? '#10b981' : '#ffffff',
+                                            }}
+                                            transition={{
+                                                type: 'spring',
+                                                stiffness: 500,
+                                                damping: 30,
+                                            }}
+                                            className="rounded-full"
                                         />
                                     );
                                 })}
                             </div>
-                            <span className="text-white/50 text-xs font-medium">
-                                +{comments.length - 5}
-                            </span>
                         </div>
                     )}
 
@@ -701,9 +704,9 @@ export const ReaderReactions = () => {
                                     key={`main-${currentPage}-${index}`}
                                     initial={{
                                         opacity: 0,
-                                        scale: 0.8,
+                                        scale: centerCardPositions[index].scale,
                                         x: centerCardPositions[index].x,
-                                        y: centerCardPositions[index].y,
+                                        y: centerCardPositions[index].y + 20,
                                         rotate: centerCardPositions[index].rotation
                                     }}
                                     animate={{
@@ -715,14 +718,13 @@ export const ReaderReactions = () => {
                                     }}
                                     exit={{
                                         opacity: 0,
-                                        scale: 0.8,
-                                        transition: { duration: 0.3 }
+                                        y: centerCardPositions[index].y - 10,
+                                        transition: { duration: 0.25, ease: "easeIn" }
                                     }}
                                     transition={{
-                                        delay: index * 0.1,
-                                        duration: 0.5,
-                                        type: "spring",
-                                        stiffness: 100
+                                        delay: index * 0.08,
+                                        duration: 0.4,
+                                        ease: "easeOut"
                                     }}
                                     whileHover={{
                                         scale: 1.08,
@@ -782,13 +784,13 @@ export const ReaderReactions = () => {
                     </p>
 
                     {/* CTA */}
-                    <a
-                        href="#contact"
-                        className="inline-flex items-center gap-3 bg-white hover:bg-gray-100 text-black px-8 py-4 rounded-full font-bold text-lg transition-all group"
+                    <button
+                        onClick={onCTAClick}
+                        className="inline-flex items-center gap-3 bg-white hover:bg-gray-100 text-black px-8 py-4 rounded-full font-bold text-lg transition-all group cursor-pointer"
                     >
                         프로젝트 의뢰 문의
                         <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                    </a>
+                    </button>
                     <p className="mt-4 text-sm text-white/40">
                         레퍼런스 없이 시작하셔도 됩니다.
                     </p>

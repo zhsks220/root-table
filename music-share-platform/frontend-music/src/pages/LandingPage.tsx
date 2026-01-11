@@ -20,12 +20,12 @@ const LandingPage = () => {
 
     return (
         <div className="bg-black text-white min-h-screen">
-            <Navbar />
+            <Navbar onCTAClick={openChatbot} />
             <Hero onCTAClick={openChatbot} />
             <SocialProof />
             <Process />
             <WhyNotStock />
-            <ReaderReactions />
+            <ReaderReactions onCTAClick={openChatbot} />
             <WhoWeWorkWith />
             <FinalCTA onCTAClick={openChatbot} />
             <FloatingCTA onClick={openChatbot} />

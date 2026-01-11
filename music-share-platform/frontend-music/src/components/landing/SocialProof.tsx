@@ -150,6 +150,7 @@ export const SocialProof = () => {
                                     src={imageUrl}
                                     alt="webtoon thumbnail"
                                     className="w-full h-full object-cover"
+                                    loading="lazy"
                                 />
                             </div>
                         ))}
@@ -184,6 +185,7 @@ export const SocialProof = () => {
                                     src={imageUrl}
                                     alt="webtoon thumbnail"
                                     className="w-full h-full object-cover"
+                                    loading="lazy"
                                 />
                             </div>
                         ))}

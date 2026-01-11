@@ -450,14 +450,18 @@ const centerPositionSets = [
 export const ReaderReactions = () => {
     // 메인 댓글 페이지 상태 (0-5, 6페이지 = 36개/6개씩)
     const [currentPage, setCurrentPage] = useState(0);
+    // 메인 카드 hover 시 자동 순환 멈춤
+    const [isHovering, setIsHovering] = useState(false);
 
-    // 3초마다 메인 댓글 페이지 전환
+    // 3초마다 메인 댓글 페이지 전환 (hover 중에는 멈춤)
     useEffect(() => {
+        if (isHovering) return; // hover 중이면 순환 멈춤
+
         const interval = setInterval(() => {
             setCurrentPage((prev) => (prev + 1) % 6);
         }, 3000);
         return () => clearInterval(interval);
-    }, []);
+    }, [isHovering]);
 
     // 현재 페이지 기반으로 셔플된 댓글 인덱스
     const shuffledIndices = shuffleArray(
@@ -493,15 +497,6 @@ export const ReaderReactions = () => {
                     @keyframes floatFast {
                         0%, 100% { transform: translateY(0px) rotate(var(--rotation)); }
                         50% { transform: translateY(-16px) rotate(var(--rotation)); }
-                    }
-                    .bg-comment-card {
-                        transition: filter 0.3s ease, transform 0.3s ease;
-                    }
-                    .bg-comment-card:hover {
-                        animation-play-state: paused !important;
-                        filter: blur(0px) brightness(0.9) !important;
-                        z-index: 50 !important;
-                        cursor: pointer;
                     }
                 `}</style>
                 {backgroundComments.map((comment, idx) => {
@@ -571,8 +566,12 @@ export const ReaderReactions = () => {
                     </p>
                 </motion.div>
 
-                {/* 중앙 댓글 카드 6개 - 3초마다 순환하며 교체 */}
-                <div className="relative h-[500px] md:h-[450px] flex items-center justify-center mb-12">
+                {/* 중앙 댓글 카드 6개 - 3초마다 순환하며 교체 (hover 시 멈춤) */}
+                <div
+                    className="relative h-[500px] md:h-[450px] flex items-center justify-center mb-12"
+                    onMouseEnter={() => setIsHovering(true)}
+                    onMouseLeave={() => setIsHovering(false)}
+                >
                     <AnimatePresence mode="wait">
                         {mainComments.map((comment, index) => (
                             <motion.div

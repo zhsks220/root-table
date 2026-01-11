@@ -51,7 +51,7 @@ export const Contact = () => {
     };
 
     return (
-        <section id="contact" className="py-32 px-6 bg-[#0a0a0a] relative overflow-hidden">
+        <section id="contact" className="py-24 px-6 bg-[#0a0a0a] relative overflow-hidden">
             {/* Decorative background element */}
             <div className="absolute bottom-0 left-1/2 -translate-x-1/2 w-full max-w-4xl h-px bg-gradient-to-r from-transparent via-emerald-500/50 to-transparent opacity-50" />
 

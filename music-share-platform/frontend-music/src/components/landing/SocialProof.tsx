@@ -119,7 +119,7 @@ export const SocialProof = () => {
     };
 
     return (
-        <section ref={sectionRef} className="relative py-20 px-6 bg-[#0a0a0a] overflow-hidden">
+        <section ref={sectionRef} className="relative py-24 px-6 bg-[#0a0a0a] overflow-hidden">
             {/* 슬라이딩 웹툰 썸네일 배경 - 두 줄 */}
             <div className="absolute inset-0 z-0 flex flex-col justify-center gap-4">
                 {/* 첫 번째 줄 - 왼쪽으로 이동 */}

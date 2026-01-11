@@ -7,7 +7,7 @@ interface FinalCTAProps {
 
 export const FinalCTA = ({ onCTAClick }: FinalCTAProps) => {
     return (
-        <section className="py-32 px-6 bg-gradient-to-b from-black to-[#0a0a0a] relative overflow-hidden">
+        <section className="py-24 px-6 bg-gradient-to-b from-black to-[#0a0a0a] relative overflow-hidden">
             {/* Background Logo Watermark */}
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03]">
                 <img

@@ -11,7 +11,7 @@ export const Hero = ({ onCTAClick }: HeroProps) => {
 
     // Glow position calculated relative to the mouse
     const glowStyle = {
-        background: `radial-gradient(400px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(16, 185, 129, 0.1), transparent 70%)`,
+        background: `radial-gradient(400px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(16, 185, 129, 0.12), transparent 70%)`,
     };
 
     return (

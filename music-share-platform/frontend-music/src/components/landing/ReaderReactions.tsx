@@ -447,21 +447,78 @@ const centerPositionSets = [
     ],
 ];
 
+// 모바일 감지 훅
+const useIsMobile = () => {
+    const [isMobile, setIsMobile] = useState(false);
+
+    useEffect(() => {
+        const checkMobile = () => {
+            setIsMobile(window.innerWidth < 768);
+        };
+
+        checkMobile();
+        window.addEventListener('resize', checkMobile);
+        return () => window.removeEventListener('resize', checkMobile);
+    }, []);
+
+    return isMobile;
+};
+
 export const ReaderReactions = () => {
-    // 메인 댓글 페이지 상태 (0-5, 6페이지 = 36개/6개씩)
+    // 모바일 여부 감지
+    const isMobile = useIsMobile();
+
+    // PC: 메인 댓글 페이지 상태 (0-5, 6페이지 = 36개/6개씩)
     const [currentPage, setCurrentPage] = useState(0);
+    // 모바일: 개별 카드 인덱스 (0-35)
+    const [mobileIndex, setMobileIndex] = useState(0);
     // 메인 카드 hover 시 자동 순환 멈춤
     const [isHovering, setIsHovering] = useState(false);
+    // 모바일 터치 상태
+    const [touchStart, setTouchStart] = useState<number | null>(null);
+    const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
-    // 3초마다 메인 댓글 페이지 전환 (hover 중에는 멈춤)
+    const minSwipeDistance = 50;
+
+    // 3초마다 자동 순환 (hover 중에는 멈춤)
     useEffect(() => {
-        if (isHovering) return; // hover 중이면 순환 멈춤
+        if (isHovering) return;
 
         const interval = setInterval(() => {
-            setCurrentPage((prev) => (prev + 1) % 6);
+            if (isMobile) {
+                // 모바일: 개별 카드 순환
+                setMobileIndex((prev) => (prev + 1) % comments.length);
+            } else {
+                // PC: 페이지 단위 순환
+                setCurrentPage((prev) => (prev + 1) % 6);
+            }
         }, 3000);
         return () => clearInterval(interval);
-    }, [isHovering]);
+    }, [isHovering, isMobile]);
+
+    // 모바일 터치 핸들러
+    const onTouchStart = (e: React.TouchEvent) => {
+        setTouchEnd(null);
+        setTouchStart(e.targetTouches[0].clientX);
+    };
+
+    const onTouchMove = (e: React.TouchEvent) => {
+        setTouchEnd(e.targetTouches[0].clientX);
+    };
+
+    const onTouchEnd = () => {
+        if (!touchStart || !touchEnd) return;
+
+        const distance = touchStart - touchEnd;
+        if (distance > minSwipeDistance) {
+            // 왼쪽으로 스와이프 → 다음 카드
+            setMobileIndex((prev) => (prev + 1) % comments.length);
+        }
+        if (distance < -minSwipeDistance) {
+            // 오른쪽으로 스와이프 → 이전 카드
+            setMobileIndex((prev) => (prev - 1 + comments.length) % comments.length);
+        }
+    };
 
     // 현재 페이지 기반으로 셔플된 댓글 인덱스
     const shuffledIndices = shuffleArray(
@@ -566,73 +623,69 @@ export const ReaderReactions = () => {
                     </p>
                 </motion.div>
 
-                {/* 중앙 댓글 카드 6개 - 3초마다 순환하며 교체 (hover 시 멈춤) */}
+                {/* 중앙 댓글 카드 - 모바일: 1개 카드 + 스와이프 / PC: 6개 카드 산개 배치 */}
                 <div
-                    className="relative h-[500px] md:h-[450px] flex items-center justify-center mb-12"
+                    className="relative h-[300px] md:h-[450px] flex items-center justify-center mb-12"
                     onMouseEnter={() => setIsHovering(true)}
                     onMouseLeave={() => setIsHovering(false)}
+                    onTouchStart={isMobile ? onTouchStart : undefined}
+                    onTouchMove={isMobile ? onTouchMove : undefined}
+                    onTouchEnd={isMobile ? onTouchEnd : undefined}
                 >
+                    {/* 모바일 인디케이터 - 카드 밖에 고정 (5개 점 순환 + 남은 댓글 수) */}
+                    {isMobile && (
+                        <div className="absolute bottom-4 left-1/2 -translate-x-1/2 flex items-center gap-2 z-20">
+                            <div className="flex gap-1.5">
+                                {Array.from({ length: 5 }).map((_, idx) => {
+                                    const isActive = idx === (mobileIndex % 5);
+                                    return (
+                                        <div
+                                            key={idx}
+                                            className={`h-2 rounded-full transition-all duration-300 ${
+                                                isActive ? 'bg-emerald-500 w-6' : 'bg-white/30 w-2'
+                                            }`}
+                                        />
+                                    );
+                                })}
+                            </div>
+                            <span className="text-white/50 text-xs font-medium">
+                                +{comments.length - 5}
+                            </span>
+                        </div>
+                    )}
+
                     <AnimatePresence mode="wait">
-                        {mainComments.map((comment, index) => (
+                        {isMobile ? (
+                            /* 모바일: 1개 카드 중앙 배치 */
                             <motion.div
-                                key={`main-${currentPage}-${index}`}
-                                initial={{
-                                    opacity: 0,
-                                    scale: 0.8,
-                                    x: centerCardPositions[index].x,
-                                    y: centerCardPositions[index].y,
-                                    rotate: centerCardPositions[index].rotation
-                                }}
-                                animate={{
-                                    opacity: 1,
-                                    scale: centerCardPositions[index].scale,
-                                    x: centerCardPositions[index].x,
-                                    y: centerCardPositions[index].y,
-                                    rotate: centerCardPositions[index].rotation
-                                }}
-                                exit={{
-                                    opacity: 0,
-                                    scale: 0.8,
-                                    transition: { duration: 0.3 }
-                                }}
-                                transition={{
-                                    delay: index * 0.1,
-                                    duration: 0.5,
-                                    type: "spring",
-                                    stiffness: 100
-                                }}
-                                whileHover={{
-                                    scale: 1.08,
-                                    zIndex: 50,
-                                    rotate: 0,
-                                    transition: { duration: 0.2 }
-                                }}
-                                className="absolute w-[260px] md:w-[300px] cursor-pointer"
-                                style={{
-                                    zIndex: 10 + index,
-                                }}
+                                key={`mobile-${mobileIndex}`}
+                                initial={{ opacity: 0, x: 100, scale: 0.9 }}
+                                animate={{ opacity: 1, x: 0, scale: 1 }}
+                                exit={{ opacity: 0, x: -100, scale: 0.9 }}
+                                transition={{ duration: 0.3, ease: "easeInOut" }}
+                                className="w-[280px] cursor-pointer"
                             >
                                 <div className="bg-white rounded-xl shadow-2xl p-4 border border-gray-100">
                                     <div className="flex gap-3">
-                                        <div className={`flex-shrink-0 w-10 h-10 rounded-full ${comment.avatarColor} flex items-center justify-center text-white font-bold text-sm`}>
-                                            {comment.avatar}
+                                        <div className={`flex-shrink-0 w-10 h-10 rounded-full ${comments[mobileIndex].avatarColor} flex items-center justify-center text-white font-bold text-sm`}>
+                                            {comments[mobileIndex].avatar}
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-1">
                                                 <span className="text-gray-900 font-medium text-[13px] truncate">
-                                                    {comment.nickname}
+                                                    {comments[mobileIndex].nickname}
                                                 </span>
                                                 <span className="text-gray-400 text-xs flex-shrink-0">
-                                                    {comment.time}
+                                                    {comments[mobileIndex].time}
                                                 </span>
                                             </div>
                                             <p className="text-gray-800 text-[14px] leading-relaxed mb-3 line-clamp-3">
-                                                {comment.text}
+                                                {comments[mobileIndex].text}
                                             </p>
                                             <div className="flex items-center gap-4">
                                                 <div className="flex items-center gap-1">
                                                     <ThumbsUp className="w-4 h-4 text-gray-500" />
-                                                    <span className="text-gray-500 text-xs">{comment.likes}</span>
+                                                    <span className="text-gray-500 text-xs">{comments[mobileIndex].likes}</span>
                                                 </div>
                                                 <ThumbsDown className="w-4 h-4 text-gray-500" />
                                                 <span className="text-gray-500 text-xs font-medium">답글</span>
@@ -641,7 +694,78 @@ export const ReaderReactions = () => {
                                     </div>
                                 </div>
                             </motion.div>
-                        ))}
+                        ) : (
+                            /* PC: 6개 카드 산개 배치 */
+                            mainComments.map((comment, index) => (
+                                <motion.div
+                                    key={`main-${currentPage}-${index}`}
+                                    initial={{
+                                        opacity: 0,
+                                        scale: 0.8,
+                                        x: centerCardPositions[index].x,
+                                        y: centerCardPositions[index].y,
+                                        rotate: centerCardPositions[index].rotation
+                                    }}
+                                    animate={{
+                                        opacity: 1,
+                                        scale: centerCardPositions[index].scale,
+                                        x: centerCardPositions[index].x,
+                                        y: centerCardPositions[index].y,
+                                        rotate: centerCardPositions[index].rotation
+                                    }}
+                                    exit={{
+                                        opacity: 0,
+                                        scale: 0.8,
+                                        transition: { duration: 0.3 }
+                                    }}
+                                    transition={{
+                                        delay: index * 0.1,
+                                        duration: 0.5,
+                                        type: "spring",
+                                        stiffness: 100
+                                    }}
+                                    whileHover={{
+                                        scale: 1.08,
+                                        zIndex: 50,
+                                        rotate: 0,
+                                        transition: { duration: 0.2 }
+                                    }}
+                                    className="absolute w-[300px] cursor-pointer"
+                                    style={{
+                                        zIndex: 10 + index,
+                                    }}
+                                >
+                                    <div className="bg-white rounded-xl shadow-2xl p-4 border border-gray-100">
+                                        <div className="flex gap-3">
+                                            <div className={`flex-shrink-0 w-10 h-10 rounded-full ${comment.avatarColor} flex items-center justify-center text-white font-bold text-sm`}>
+                                                {comment.avatar}
+                                            </div>
+                                            <div className="flex-1 min-w-0">
+                                                <div className="flex items-center gap-2 mb-1">
+                                                    <span className="text-gray-900 font-medium text-[13px] truncate">
+                                                        {comment.nickname}
+                                                    </span>
+                                                    <span className="text-gray-400 text-xs flex-shrink-0">
+                                                        {comment.time}
+                                                    </span>
+                                                </div>
+                                                <p className="text-gray-800 text-[14px] leading-relaxed mb-3 line-clamp-3">
+                                                    {comment.text}
+                                                </p>
+                                                <div className="flex items-center gap-4">
+                                                    <div className="flex items-center gap-1">
+                                                        <ThumbsUp className="w-4 h-4 text-gray-500" />
+                                                        <span className="text-gray-500 text-xs">{comment.likes}</span>
+                                                    </div>
+                                                    <ThumbsDown className="w-4 h-4 text-gray-500" />
+                                                    <span className="text-gray-500 text-xs font-medium">답글</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </motion.div>
+                            ))
+                        )}
                     </AnimatePresence>
                 </div>
 

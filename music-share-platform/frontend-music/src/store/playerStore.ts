@@ -26,6 +26,9 @@ interface PlayerState {
   // Audio 엘리먼트 참조
   audio: HTMLAudioElement | null;
 
+  // 라이브러리 모드 (트랙 탭에서만 하단 바 표시)
+  isLibraryMode: boolean;
+
   // 액션
   setAudio: (audio: HTMLAudioElement) => void;
   playTrack: (track: Track, playlist?: Track[]) => Promise<void>;
@@ -41,6 +44,7 @@ interface PlayerState {
   updateTime: (time: number) => void;
   updateDuration: (duration: number) => void;
   setLoading: (loading: boolean) => void;
+  setLibraryMode: (mode: boolean) => void;
 }
 
 export const usePlayerStore = create<PlayerState>((set, get) => ({
@@ -54,6 +58,7 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   volume: 1,
   isMuted: false,
   audio: null,
+  isLibraryMode: false,
 
   setAudio: (audio) => {
     console.log('🔊 Audio element registered in store');
@@ -212,4 +217,15 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   updateTime: (time) => set({ currentTime: time }),
   updateDuration: (duration) => set({ duration }),
   setLoading: (loading) => set({ isLoading: loading }),
+  setLibraryMode: (mode) => {
+    const state = get();
+    // 라이브러리 모드 해제 시 재생 중지
+    if (!mode && state.currentTrack) {
+      state.audio?.pause();
+      state.audio && (state.audio.currentTime = 0);
+      set({ isLibraryMode: mode, isPlaying: false, currentTime: 0, currentTrack: null });
+    } else {
+      set({ isLibraryMode: mode });
+    }
+  },
 }));

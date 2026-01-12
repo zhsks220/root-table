@@ -24,6 +24,7 @@ export default function AudioPlayer() {
     isMuted,
     playlist,
     currentIndex,
+    isLibraryMode,
     setAudio,
     togglePlay,
     stop,
@@ -88,8 +89,8 @@ export default function AudioPlayer() {
       {/* 숨겨진 오디오 엘리먼트 - 항상 렌더링 */}
       <audio ref={audioRef} preload="metadata" />
 
-      {/* 하단 고정 플레이어 - 트랙이 있을 때만 표시 */}
-      {currentTrack && (
+      {/* 하단 고정 플레이어 - 트랙 라이브러리 탭에서만 표시 */}
+      {currentTrack && isLibraryMode && (
       <div className="fixed bottom-0 left-0 right-0 bg-gradient-to-r from-gray-900 to-gray-800 text-white shadow-2xl border-t border-gray-700 z-50">
         {/* 진행 바 (상단) */}
         <div

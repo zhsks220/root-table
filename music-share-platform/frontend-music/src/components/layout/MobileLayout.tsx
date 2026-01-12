@@ -486,7 +486,7 @@ export function MobileLayout({
 
         {/* 메인 콘텐츠 */}
         <main className={cn(
-          "flex-1 min-h-screen overflow-x-hidden pt-14 md:pt-0",
+          "flex-1 min-h-screen overflow-x-hidden pt-14 md:pt-0 md:pb-20",
           isDark ? "bg-black" : "bg-gray-50"
         )}>
           {children}

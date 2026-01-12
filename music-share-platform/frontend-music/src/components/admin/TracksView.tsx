@@ -17,7 +17,15 @@ export function TracksView() {
   const [loading, setLoading] = useState(false);
 
   // 글로벌 플레이어 상태
-  const { currentTrack, isPlaying, isLoading: playerLoading, togglePlay } = usePlayerStore();
+  const { currentTrack, isPlaying, isLoading: playerLoading, togglePlay, setLibraryMode } = usePlayerStore();
+
+  // 트랙 탭 진입 시 라이브러리 모드 활성화, 떠날 때 비활성화
+  useEffect(() => {
+    setLibraryMode(true);
+    return () => {
+      setLibraryMode(false);
+    };
+  }, [setLibraryMode]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [moods, setMoods] = useState<MoodOption[]>([]);
   const [languages, setLanguages] = useState<LanguageOption[]>([]);
@@ -305,7 +313,7 @@ export function TracksView() {
   ]);
 
   return (
-    <PageTransition className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto">
+    <PageTransition className="p-4 sm:p-6 lg:p-8 max-w-7xl mx-auto pb-24">
       {/* 헤더 */}
       <div className="flex items-center justify-between mb-4 sm:mb-6">
         <div>

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Search, X, Loader2, Music, Plus, Upload } from 'lucide-react';
+import { Search, X, Loader2, Music, Plus } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useThemeStore } from '../../store/themeStore';
 import { Track } from '../../types';
@@ -20,8 +20,6 @@ export function TrackSearchModal({ isOpen, onClose, onSelectTrack, excludeTrackI
   const [tracks, setTracks] = useState<Track[]>([]);
   const [loading, setLoading] = useState(false);
   const [searching, setSearching] = useState(false);
-  const [uploading, setUploading] = useState(false);
-  const [uploadProgress, setUploadProgress] = useState(0);
 
   // 초기 음원 목록 로드
   useEffect(() => {
@@ -63,37 +61,6 @@ export function TrackSearchModal({ isOpen, onClose, onSelectTrack, excludeTrackI
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleSearch();
-    }
-  };
-
-  const handleUploadTrack = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files || files.length === 0) return;
-
-    setUploading(true);
-    setUploadProgress(0);
-
-    try {
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
-        const formData = new FormData();
-        formData.append('audio', file);
-
-        await adminAPI.uploadTrack(formData);
-
-        setUploadProgress(((i + 1) / files.length) * 100);
-      }
-
-      // 업로드 완료 후 목록 새로고침
-      await loadTracks();
-      alert('음원 업로드 완료!');
-    } catch (error) {
-      console.error('Failed to upload track:', error);
-      alert('음원 업로드에 실패했습니다.');
-    } finally {
-      setUploading(false);
-      setUploadProgress(0);
-      e.target.value = '';
     }
   };
 
@@ -160,46 +127,6 @@ export function TrackSearchModal({ isOpen, onClose, onSelectTrack, excludeTrackI
               검색
             </button>
           </div>
-
-          {/* 직접 업로드 버튼 */}
-          <div>
-            <label className={cn(
-              'flex items-center justify-center gap-2 px-4 py-2 rounded-lg border-2 border-dashed cursor-pointer transition-colors',
-              uploading && 'opacity-50 pointer-events-none',
-              isDark
-                ? 'border-gray-600 hover:border-emerald-500 hover:bg-gray-700'
-                : 'border-gray-300 hover:border-emerald-500 hover:bg-gray-50'
-            )}>
-              <Upload className="w-4 h-4" />
-              <span className="text-sm font-medium">직접 음원 업로드</span>
-              <input
-                type="file"
-                accept="audio/*"
-                multiple
-                onChange={handleUploadTrack}
-                className="hidden"
-                disabled={uploading}
-              />
-            </label>
-          </div>
-
-          {/* 업로드 진행 표시 */}
-          {uploading && (
-            <div className="flex items-center gap-3">
-              <Loader2 className="w-4 h-4 animate-spin text-emerald-500" />
-              <div className="flex-1">
-                <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-emerald-500 transition-all duration-300"
-                    style={{ width: `${uploadProgress}%` }}
-                  />
-                </div>
-              </div>
-              <span className={cn('text-sm', isDark ? 'text-gray-400' : 'text-gray-600')}>
-                {Math.round(uploadProgress)}%
-              </span>
-            </div>
-          )}
         </div>
 
         {/* 음원 목록 */}

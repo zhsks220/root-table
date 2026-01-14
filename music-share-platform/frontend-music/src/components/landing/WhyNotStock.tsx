@@ -9,7 +9,7 @@ const genreCards = [
         genre: "액션 / 배틀",
         description: "전투와 각성의 순간을 음악으로 극대화합니다.",
         features: ["고조되는 텐션 설계", "캐릭터 각성 테마", "임팩트 있는 타이밍"],
-        accent: "from-red-500/20 to-orange-500/20",
+        accent: "from-red-600/30 via-orange-500/20 to-red-900/40",
         accentText: "text-red-400",
         audioSrc: "/audio/액션 테마.mp3",
         youtubeLink: "https://www.youtube.com/@routelabel",
@@ -18,7 +18,7 @@ const genreCards = [
         genre: "로맨스",
         description: "설렘과 애틋함, 그리고 이별의 감정선을 섬세하게 담아냅니다.",
         features: ["감정선 따라가는 멜로디", "캐릭터 케미 표현", "클라이맥스 연출"],
-        accent: "from-pink-500/20 to-rose-500/20",
+        accent: "from-pink-600/30 via-rose-400/20 to-fuchsia-900/40",
         accentText: "text-pink-400",
         audioSrc: "/audio/발라드 테마.mp3",
         youtubeLink: "https://www.youtube.com/@routelabel",
@@ -27,7 +27,7 @@ const genreCards = [
         genre: "공포 / 호러",
         description: "반전과 긴장, 공포의 순간을 청각적으로 완성합니다.",
         features: ["불안감 조성", "반전 포인트 강조", "심리적 압박감"],
-        accent: "from-purple-500/20 to-violet-500/20",
+        accent: "from-purple-700/35 via-violet-500/20 to-slate-900/50",
         accentText: "text-purple-400",
         audioSrc: "/audio/공포 호러 테마.mp3",
         youtubeLink: "https://www.youtube.com/@routelabel",
@@ -36,7 +36,7 @@ const genreCards = [
         genre: "판타지 / 이세계",
         description: "웅장한 세계관과 마법의 순간을 음악으로 구현합니다.",
         features: ["세계관 몰입도 강화", "마법/스킬 효과음", "에픽한 스케일"],
-        accent: "from-blue-500/20 to-cyan-500/20",
+        accent: "from-blue-600/30 via-cyan-400/20 to-indigo-900/40",
         accentText: "text-blue-400",
         audioSrc: "/audio/판타지 테마.mp3",
         youtubeLink: "https://www.youtube.com/@routelabel",
@@ -45,8 +45,8 @@ const genreCards = [
         genre: "스포츠",
         description: "승리를 향한 열정과 도전의 순간을 음악으로 담아냅니다.",
         features: ["긴장감 고조", "승리의 순간 강조", "팀워크와 열정 표현"],
-        accent: "from-green-500/20 to-teal-500/20",
-        accentText: "text-green-400",
+        accent: "from-lime-500/30 via-green-400/20 to-emerald-900/40",
+        accentText: "text-lime-400",
         audioSrc: "/audio/스포츠 테마.mp3",
         youtubeLink: "https://www.youtube.com/@routelabel",
     },
@@ -54,8 +54,8 @@ const genreCards = [
         genre: "일상 / 코믹",
         description: "유쾌하고 편안한 분위기로 독자에게 휴식을 선사합니다.",
         features: ["개그 타이밍 강조", "편안한 배경 음악", "상황별 효과음"],
-        accent: "from-yellow-500/20 to-amber-500/20",
-        accentText: "text-yellow-400",
+        accent: "from-amber-500/30 via-yellow-400/20 to-orange-800/40",
+        accentText: "text-amber-400",
         audioSrc: "/audio/일상:코믹 테마.mp3",
         youtubeLink: "https://www.youtube.com/@routelabel",
     },
@@ -63,8 +63,8 @@ const genreCards = [
         genre: "국악 / 동양",
         description: "동양적 정서와 전통의 멋을 현대적으로 재해석합니다.",
         features: ["전통악기 활용", "동양적 선율", "역사/무협 장르 특화"],
-        accent: "from-emerald-500/20 to-emerald-500/20",
-        accentText: "text-emerald-400",
+        accent: "from-amber-700/35 via-red-800/25 to-stone-900/50",
+        accentText: "text-amber-500",
         audioSrc: "/audio/국악:동양 테마.mp3",
         youtubeLink: "https://www.youtube.com/@routelabel",
     },
@@ -306,7 +306,7 @@ export const WhyNotStock = () => {
                                                     rel="noopener noreferrer"
                                                     className={`absolute -bottom-5 -right-3 sm:-bottom-5 sm:-right-4 inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${card.accentText} bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20`}
                                                 >
-                                                    더보기
+                                                    더 많은 작품 보기
                                                     <ExternalLink className="w-3.5 h-3.5" />
                                                 </motion.a>
                                             )}

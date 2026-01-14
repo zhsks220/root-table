@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { GripVertical, X, Music, Play, Pause } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useThemeStore } from '../../store/themeStore';
@@ -6,14 +6,17 @@ import { usePlayerStore } from '../../store/playerStore';
 import { Track } from '../../types';
 
 interface DraggableTrackMarkerProps {
+  markerId: string;
   track: Track;
   position: { x: number; y: number };
   onUpdate: (position: { x: number; y: number }) => void;
   onDelete: () => void;
   containerRef: React.RefObject<HTMLDivElement>;
+  onRegister?: (markerId: string, element: HTMLElement | null) => void;
 }
 
-export function DraggableTrackMarker({ track, position, onUpdate, onDelete, containerRef }: DraggableTrackMarkerProps) {
+export const DraggableTrackMarker = forwardRef<HTMLDivElement, DraggableTrackMarkerProps>(
+  function DraggableTrackMarker({ markerId, track, position, onUpdate, onDelete, containerRef, onRegister }, ref) {
   const { theme } = useThemeStore();
   const isDark = theme === 'dark';
   const { playTrack, togglePlay, currentTrack, isPlaying } = usePlayerStore();
@@ -23,10 +26,25 @@ export function DraggableTrackMarker({ track, position, onUpdate, onDelete, cont
   const dragStartPos = useRef({ x: 0, y: 0 });
   const markerRef = useRef<HTMLDivElement>(null);
 
+  // forwardRef와 내부 ref 연결
+  useImperativeHandle(ref, () => markerRef.current as HTMLDivElement);
+
   // position prop이 변경되면 currentPos 동기화
   useEffect(() => {
     setCurrentPos(position);
   }, [position]);
+
+  // 마커 엘리먼트 등록 (Intersection Observer용)
+  useEffect(() => {
+    if (onRegister && markerRef.current) {
+      onRegister(markerId, markerRef.current);
+    }
+    return () => {
+      if (onRegister) {
+        onRegister(markerId, null);
+      }
+    };
+  }, [markerId, onRegister]);
 
   // 현재 이 트랙이 재생 중인지 확인
   const isCurrentTrack = currentTrack?.id === track.id;
@@ -80,7 +98,6 @@ export function DraggableTrackMarker({ track, position, onUpdate, onDelete, cont
 
     const handleMouseUp = () => {
       setIsDragging(false);
-      console.log('🎯 Marker dragged to final position:', finalPos.y);
       onUpdate(finalPos);
     };
 
@@ -145,4 +162,4 @@ export function DraggableTrackMarker({ track, position, onUpdate, onDelete, cont
       </div>
     </div>
   );
-}
+});

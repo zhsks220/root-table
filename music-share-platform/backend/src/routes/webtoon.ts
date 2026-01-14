@@ -855,4 +855,149 @@ router.delete('/webtoon-projects/:projectId/scenes/:sceneId/tracks/:trackId', as
   }
 });
 
+// ===== 프로젝트 데이터 (마커, 메모) =====
+
+// 프로젝트 데이터 저장
+router.put('/webtoon-projects/:projectId/data', async (req: AuthRequest, res: Response) => {
+  try {
+    const { projectId } = req.params;
+    const { trackMarkers, memoNotes } = req.body;
+
+    // 프로젝트 권한 확인
+    const projectResult = await pool.query(
+      'SELECT * FROM webtoon_projects WHERE id = $1',
+      [projectId]
+    );
+
+    if (projectResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (req.user?.role === 'partner' && projectResult.rows[0].created_by !== req.user.id) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      // 기존 마커 삭제
+      await client.query(
+        'DELETE FROM webtoon_track_markers WHERE project_id = $1',
+        [projectId]
+      );
+
+      // 새 마커 저장
+      if (trackMarkers && trackMarkers.length > 0) {
+        for (const marker of trackMarkers) {
+          await client.query(
+            `INSERT INTO webtoon_track_markers (id, project_id, track_id, position_y)
+             VALUES ($1, $2, $3, $4)`,
+            [marker.id, projectId, marker.trackId, marker.positionY]
+          );
+        }
+      }
+
+      // 기존 메모 삭제
+      await client.query(
+        'DELETE FROM webtoon_memo_notes WHERE project_id = $1',
+        [projectId]
+      );
+
+      // 새 메모 저장
+      if (memoNotes && memoNotes.length > 0) {
+        for (const note of memoNotes) {
+          await client.query(
+            `INSERT INTO webtoon_memo_notes (id, project_id, content, position_x, position_y, width, height)
+             VALUES ($1, $2, $3, $4, $5, $6, $7)`,
+            [note.id, projectId, note.content, note.positionX, note.positionY, note.width, note.height]
+          );
+        }
+      }
+
+      await client.query('COMMIT');
+
+      res.json({
+        success: true,
+        message: 'Project data saved successfully',
+      });
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error('Error saving project data:', error);
+    res.status(500).json({ error: 'Failed to save project data' });
+  }
+});
+
+// 프로젝트 데이터 조회
+router.get('/webtoon-projects/:projectId/data', async (req: AuthRequest, res: Response) => {
+  try {
+    const { projectId } = req.params;
+
+    // 프로젝트 권한 확인
+    const projectResult = await pool.query(
+      'SELECT * FROM webtoon_projects WHERE id = $1',
+      [projectId]
+    );
+
+    if (projectResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (req.user?.role === 'partner' && projectResult.rows[0].created_by !== req.user.id) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    // 트랙 마커 조회 (트랙 정보 포함)
+    const markersResult = await pool.query(
+      `SELECT wtm.id, wtm.track_id, wtm.position_y,
+              t.title, t.artist, t.duration, t.file_key
+       FROM webtoon_track_markers wtm
+       JOIN tracks t ON wtm.track_id = t.id
+       WHERE wtm.project_id = $1
+       ORDER BY wtm.position_y ASC`,
+      [projectId]
+    );
+
+    // 메모 노트 조회
+    const memosResult = await pool.query(
+      `SELECT id, content, position_x, position_y, width, height
+       FROM webtoon_memo_notes
+       WHERE project_id = $1
+       ORDER BY position_y ASC`,
+      [projectId]
+    );
+
+    res.json({
+      trackMarkers: markersResult.rows.map(row => ({
+        id: row.id,
+        track: {
+          id: row.track_id,
+          title: row.title,
+          artist: row.artist,
+          duration: row.duration,
+          file_key: row.file_key,
+        },
+        position: { x: 0, y: row.position_y },
+      })),
+      memoNotes: memosResult.rows.map(row => ({
+        id: row.id,
+        scene_id: '',
+        content: row.content,
+        position_x: row.position_x,
+        position_y: row.position_y,
+        width: row.width,
+        height: row.height,
+      })),
+    });
+  } catch (error) {
+    console.error('Error loading project data:', error);
+    res.status(500).json({ error: 'Failed to load project data' });
+  }
+});
+
 export default router;

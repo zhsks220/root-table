@@ -8,9 +8,11 @@ import { DraggableTrackMarker } from '../webtoon/DraggableTrackMarker';
 import { cn } from '../../lib/utils';
 import { useThemeStore } from '../../store/themeStore';
 import { usePlayerStore } from '../../store/playerStore';
+import { useScrollBasedPlayback } from '../../hooks/useScrollBasedPlayback';
 import {
   ArrowLeft, Plus, Upload, Trash2, Music,
-  Loader2, Image as ImageIcon, X, Smartphone, StickyNote
+  Loader2, Image as ImageIcon, X, Smartphone, StickyNote,
+  Save, Volume2, VolumeX, Play, Pause
 } from 'lucide-react';
 
 interface TrackMarker {
@@ -22,7 +24,7 @@ interface TrackMarker {
 export function WebToonProjectsView() {
   const { theme } = useThemeStore();
   const isDark = theme === 'dark';
-  const { playTrack, currentTrack } = usePlayerStore();
+  const { playTrack, currentTrack, stop, volume, isMuted, setVolume, toggleMute, isPlaying, togglePlay } = usePlayerStore();
 
   // 프로젝트 목록
   const [projects, setProjects] = useState<WebToonProject[]>([]);
@@ -44,6 +46,9 @@ export function WebToonProjectsView() {
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
 
+  // 저장 상태
+  const [saving, setSaving] = useState(false);
+
 
   // 음원 추가 모달
   const [showTrackModal, setShowTrackModal] = useState(false);
@@ -54,8 +59,16 @@ export function WebToonProjectsView() {
 
   // 음원 마커 관리
   const [trackMarkers, setTrackMarkers] = useState<TrackMarker[]>([]);
-  const lastScrollTop = useRef<number>(0);
-  const passedMarkers = useRef<Set<string>>(new Set());
+
+  // Intersection Observer 기반 스크롤 재생 훅
+  const { registerMarkerElement, resetPassedMarkers } = useScrollBasedPlayback(
+    previewContainerRef,
+    trackMarkers,
+    currentTrack?.id,
+    isPlaying,
+    playTrack,
+    { enabled: trackMarkers.length > 0 }
+  );
 
   // 프로젝트 생성
   const handleCreateProject = async () => {
@@ -111,11 +124,26 @@ export function WebToonProjectsView() {
 
     setLoading(true);
     try {
+      // 프로젝트 기본 정보 로드
       const res = await webToonProjectAPI.getProject(currentProject.id);
       setCurrentProject(res.data.project);
       setScenes(res.data.project.scenes || []);
       if (res.data.project.scenes?.length > 0 && !selectedScene) {
         setSelectedScene(res.data.project.scenes[0]);
+      }
+
+      // 마커/메모 데이터 로드
+      try {
+        const dataRes = await webToonProjectAPI.loadProjectData(currentProject.id);
+        if (dataRes.data.trackMarkers) {
+          setTrackMarkers(dataRes.data.trackMarkers);
+        }
+        if (dataRes.data.memoNotes) {
+          setMemoNotes(dataRes.data.memoNotes);
+        }
+      } catch (dataError) {
+        // 데이터가 없을 수 있으므로 에러 무시
+        console.log('No saved project data found');
       }
     } catch (error) {
       console.error('Failed to load project:', error);
@@ -200,7 +228,6 @@ export function WebToonProjectsView() {
       }
     };
 
-    console.log('📍 Adding track marker at Y position:', centerPosition, '(scrollTop:', scrollTop, ')');
     setTrackMarkers(prev => [...prev, newMarker]);
   };
 
@@ -214,8 +241,12 @@ export function WebToonProjectsView() {
 
   // 음원 마커 삭제
   const handleDeleteTrackMarker = (markerId: string) => {
+    const markerToDelete = trackMarkers.find(m => m.id === markerId);
+    // 삭제하는 마커의 트랙이 현재 재생 중이면 정지
+    if (markerToDelete && currentTrack?.id === markerToDelete.track.id) {
+      stop();
+    }
     setTrackMarkers(prev => prev.filter(marker => marker.id !== markerId));
-    // TODO: 서버에서 삭제
   };
 
   // 메모 노트 추가
@@ -275,117 +306,43 @@ export function WebToonProjectsView() {
     }
   };
 
-  // 스크롤 기반 자동 재생 - 네이버 웹툰 방식
-  useEffect(() => {
-    if (!previewContainerRef.current || trackMarkers.length === 0) return;
-
-    const container = previewContainerRef.current;
-
-    // 초기 로드 시 현재 화면에 보이는 마커 체크
-    const checkInitialMarkers = () => {
-      const currentScrollTop = container.scrollTop;
-      const containerHeight = container.clientHeight;
-      const viewportBottom = currentScrollTop + containerHeight;
-
-      const sortedMarkers = [...trackMarkers].sort((a, b) => a.position.y - b.position.y);
-
-      // 현재 화면에 보이는 마커 중 가장 아래에 있는 것 찾기
-      let lastVisibleMarker = null;
-      for (const marker of sortedMarkers) {
-        if (marker.position.y <= viewportBottom) {
-          lastVisibleMarker = marker;
-          passedMarkers.current.add(marker.id);
-        } else {
-          break;
-        }
-      }
-
-      // 초기 로드 시 가장 아래 마커 재생
-      if (lastVisibleMarker && currentTrack?.id !== lastVisibleMarker.track.id) {
-        console.log('▶️ Initial auto-play:', lastVisibleMarker.track.title, 'at Y:', lastVisibleMarker.position.y);
-        playTrack(lastVisibleMarker.track).catch(err => {
-          console.error('Failed to play track:', err);
-        });
-      }
-
-      lastScrollTop.current = currentScrollTop;
-    };
-
-    const handleScroll = () => {
-      if (!previewContainerRef.current) return;
-
-      const currentScrollTop = container.scrollTop;
-      const containerHeight = container.clientHeight;
-      const previousScrollTop = lastScrollTop.current;
-
-      // 스크롤 방향 감지
-      const isScrollingDown = currentScrollTop > previousScrollTop;
-
-      // Y축 정렬된 마커 리스트
-      const sortedMarkers = [...trackMarkers].sort((a, b) => a.position.y - b.position.y);
-
-      // 각 마커를 확인하여 방금 지나쳤는지 체크
-      sortedMarkers.forEach(marker => {
-        const markerTop = marker.position.y;
-        const viewportTop = currentScrollTop;
-        const viewportBottom = currentScrollTop + containerHeight;
-
-        // 네이버 웹툰 방식: 마커가 화면에 보이기 시작할 때 재생
-        if (isScrollingDown) {
-          // 아래로 스크롤: 마커가 화면 하단에 들어올 때
-          const previousViewportBottom = previousScrollTop + containerHeight;
-
-          if (previousViewportBottom < markerTop && viewportBottom >= markerTop) {
-            // 이 마커가 화면에 막 들어옴
-            if (!passedMarkers.current.has(marker.id)) {
-              passedMarkers.current.add(marker.id);
-
-              if (currentTrack?.id !== marker.track.id) {
-                console.log('▶️ Auto-play triggered (scroll down):', marker.track.title, 'at marker Y:', markerTop, 'viewport bottom:', viewportBottom);
-                playTrack(marker.track).catch(err => {
-                  console.error('Failed to play track:', err);
-                });
-              }
-            }
-          }
-        } else {
-          // 위로 스크롤: 마커가 화면 상단에 들어올 때
-          if (previousScrollTop > markerTop && viewportTop <= markerTop) {
-            // 이 마커를 역방향으로 지나침
-            if (passedMarkers.current.has(marker.id)) {
-              passedMarkers.current.delete(marker.id);
-            }
-
-            // 위로 스크롤할 때 이전 마커 찾기
-            const currentIndex = sortedMarkers.findIndex(m => m.id === marker.id);
-            if (currentIndex > 0) {
-              const previousMarker = sortedMarkers[currentIndex - 1];
-
-              if (currentTrack?.id !== previousMarker.track.id) {
-                console.log('▶️ Auto-play triggered (scroll up):', previousMarker.track.title, 'at marker Y:', previousMarker.position.y, 'viewport top:', viewportTop);
-                playTrack(previousMarker.track).catch(err => {
-                  console.error('Failed to play track:', err);
-                });
-                passedMarkers.current.add(previousMarker.id);
-              }
-            }
-          }
-        }
+  // 프로젝트 데이터 저장 (마커, 메모)
+  const handleSaveProject = async () => {
+    if (!currentProject) return;
+    setSaving(true);
+    try {
+      await webToonProjectAPI.saveProjectData(currentProject.id, {
+        trackMarkers: trackMarkers.map(m => ({
+          id: m.id,
+          trackId: m.track.id,
+          positionY: m.position.y,
+        })),
+        memoNotes: memoNotes.map(n => ({
+          id: n.id,
+          content: n.content,
+          positionX: n.position_x,
+          positionY: n.position_y,
+          width: n.width,
+          height: n.height,
+        })),
       });
+      alert('저장되었습니다.');
+    } catch (error) {
+      console.error('Failed to save project data:', error);
+      alert('저장에 실패했습니다.');
+    } finally {
+      setSaving(false);
+    }
+  };
 
-      // 마지막 스크롤 위치 저장
-      lastScrollTop.current = currentScrollTop;
-    };
-
-    container.addEventListener('scroll', handleScroll, { passive: true });
-
-    // 초기 마커 체크
-    checkInitialMarkers();
-
-    return () => {
-      container.removeEventListener('scroll', handleScroll);
-    };
-  }, [trackMarkers, playTrack, currentTrack]);
+  // 프로젝트 변경 시 마커 상태 리셋 및 음악 정지
+  useEffect(() => {
+    resetPassedMarkers();
+    // 프로젝트를 나가면 (null이 되면) 음악 정지
+    if (!currentProject) {
+      stop();
+    }
+  }, [currentProject?.id, resetPassedMarkers, stop]);
 
   // 프로젝트가 선택되지 않은 경우 - 프로젝트 목록 화면
   if (!currentProject) {
@@ -649,6 +606,24 @@ export function WebToonProjectsView() {
               />
             </label>
             <button
+              onClick={handleSaveProject}
+              disabled={saving}
+              className={cn(
+                'flex items-center gap-2 px-4 py-2 rounded-lg transition-colors',
+                saving && 'opacity-50 cursor-not-allowed',
+                isDark
+                  ? 'bg-gray-700 hover:bg-gray-600 text-white border border-gray-600'
+                  : 'bg-white hover:bg-gray-100 text-gray-800 border border-gray-300'
+              )}
+            >
+              {saving ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Save className="w-4 h-4" />
+              )}
+              <span>{saving ? '저장 중...' : '저장'}</span>
+            </button>
+            <button
               onClick={() => handleDeleteProject(currentProject.id, currentProject.title)}
               className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white transition-colors"
             >
@@ -848,11 +823,13 @@ export function WebToonProjectsView() {
                     {trackMarkers.map(marker => (
                       <DraggableTrackMarker
                         key={marker.id}
+                        markerId={marker.id}
                         track={marker.track}
                         position={marker.position}
                         onUpdate={(pos) => handleUpdateTrackMarker(marker.id, pos)}
                         onDelete={() => handleDeleteTrackMarker(marker.id)}
                         containerRef={previewContainerRef}
+                        onRegister={registerMarkerElement}
                       />
                     ))}
                   </>
@@ -866,6 +843,78 @@ export function WebToonProjectsView() {
               )} />
             </div>
           </main>
+
+          {/* 오른쪽: 재생 및 볼륨 컨트롤 */}
+          <aside className={cn(
+            'w-20 flex flex-col items-center justify-center gap-4 border-l',
+            isDark ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200'
+          )}>
+            {/* 재생/일시정지 버튼 */}
+            <button
+              onClick={togglePlay}
+              disabled={!currentTrack}
+              className={cn(
+                'p-3 rounded-full transition-colors',
+                currentTrack
+                  ? isDark
+                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                    : 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                  : isDark
+                    ? 'bg-gray-800 text-gray-600 cursor-not-allowed'
+                    : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+              )}
+            >
+              {isPlaying ? (
+                <Pause className="w-5 h-5" />
+              ) : (
+                <Play className="w-5 h-5 ml-0.5" />
+              )}
+            </button>
+
+            {/* 음소거 버튼 */}
+            <button
+              onClick={toggleMute}
+              className={cn(
+                'p-2 rounded-lg transition-colors',
+                isDark ? 'hover:bg-gray-800 text-gray-300' : 'hover:bg-gray-100 text-gray-700'
+              )}
+            >
+              {isMuted ? (
+                <VolumeX className="w-5 h-5" />
+              ) : (
+                <Volume2 className="w-5 h-5" />
+              )}
+            </button>
+
+            <div className="relative h-32 flex items-center justify-center">
+              <input
+                type="range"
+                min="0"
+                max="1"
+                step="0.01"
+                value={isMuted ? 0 : volume}
+                onChange={(e) => setVolume(parseFloat(e.target.value))}
+                className={cn(
+                  'w-32 h-2 rounded-lg appearance-none cursor-pointer',
+                  'origin-center -rotate-90',
+                  isDark ? 'bg-gray-700' : 'bg-gray-300',
+                  '[&::-webkit-slider-thumb]:appearance-none',
+                  '[&::-webkit-slider-thumb]:w-4',
+                  '[&::-webkit-slider-thumb]:h-4',
+                  '[&::-webkit-slider-thumb]:rounded-full',
+                  '[&::-webkit-slider-thumb]:bg-emerald-500',
+                  '[&::-webkit-slider-thumb]:cursor-pointer'
+                )}
+              />
+            </div>
+
+            <span className={cn(
+              'text-xs font-medium',
+              isDark ? 'text-gray-400' : 'text-gray-600'
+            )}>
+              {Math.round((isMuted ? 0 : volume) * 100)}%
+            </span>
+          </aside>
         </div>
       </div>
 

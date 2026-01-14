@@ -183,4 +183,13 @@ export const webToonProjectAPI = {
 
   unlinkTrackFromScene: (projectId: string, sceneId: string, trackId: string) =>
     api.delete(`/admin/webtoon-projects/${projectId}/scenes/${sceneId}/tracks/${trackId}`),
+
+  // Project Data (markers, memos)
+  saveProjectData: (projectId: string, data: {
+    trackMarkers: Array<{ id: string; trackId: string; positionY: number }>;
+    memoNotes: Array<{ id: string; content: string; positionX: number; positionY: number; width: number; height: number }>;
+  }) => api.put(`/admin/webtoon-projects/${projectId}/data`, data),
+
+  loadProjectData: (projectId: string) =>
+    api.get(`/admin/webtoon-projects/${projectId}/data`),
 };

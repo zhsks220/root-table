@@ -239,17 +239,17 @@ export const WhyNotStock = () => {
                 onEnded={handleAudioEnded}
             />
 
-            <div className="max-w-7xl mx-auto">
+            <div className="max-w-7xl mx-auto mt-16">
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true }}
                     className="text-center mb-16"
                 >
-                    <h2 className="text-3xl md:text-5xl 2xl:text-6xl 3xl:text-7xl font-black mb-6">
+                    <h2 className="text-3xl md:text-5xl 3xl:text-7xl font-black mb-6">
                         어떤 <span className="text-emerald-500">음악</span>이 필요하신가요?
                     </h2>
-                    <p className="text-white/50 text-base md:text-lg 2xl:text-xl 3xl:text-2xl">
+                    <p className="text-white/50 text-base md:text-lg 3xl:text-2xl">
                         작품의 감동을 극대화 시킬 수 있는 음악을 만듭니다.
                     </p>
                 </motion.div>
@@ -291,14 +291,14 @@ export const WhyNotStock = () => {
 
                                         <div className="relative z-10">
                                             {/* 장르 타이틀 */}
-                                            <h3 className={`text-2xl md:text-3xl 2xl:text-4xl 3xl:text-5xl font-bold mb-3 ${
+                                            <h3 className={`text-2xl md:text-3xl 3xl:text-5xl font-bold mb-3 ${
                                                 isActive ? card.accentText : 'text-white/40'
                                             }`}>
                                                 {card.genre}
                                             </h3>
 
                                             {/* 설명 */}
-                                            <p className={`text-sm md:text-base 2xl:text-lg 3xl:text-xl mb-5 leading-relaxed transition-colors duration-500 ${
+                                            <p className={`text-sm md:text-base 3xl:text-xl mb-5 leading-relaxed transition-colors duration-500 ${
                                                 isActive ? 'text-white/70' : 'text-white/30'
                                             }`}>
                                                 {card.description}
@@ -446,7 +446,7 @@ export const WhyNotStock = () => {
                     initial={{ opacity: 0 }}
                     whileInView={{ opacity: 1 }}
                     viewport={{ once: true }}
-                    className="text-center text-white/50 text-base md:text-lg 2xl:text-xl 3xl:text-2xl max-w-2xl 3xl:max-w-4xl mx-auto leading-relaxed"
+                    className="text-center text-white/50 text-base md:text-lg 3xl:text-2xl max-w-2xl 3xl:max-w-4xl mx-auto leading-relaxed"
                 >
                     우리는 음악을 만드는 팀이 아니라, <br className="hidden sm:block" />
                     웹툰의 흐름을 함께 설계하는 팀입니다.

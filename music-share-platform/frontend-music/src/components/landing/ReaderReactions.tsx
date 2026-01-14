@@ -761,10 +761,10 @@ export const ReaderReactions = () => {
                     viewport={{ once: true }}
                     className="text-center mb-12"
                 >
-                    <h2 className="text-3xl md:text-5xl 2xl:text-6xl 3xl:text-7xl font-black mb-6">
+                    <h2 className="text-3xl md:text-5xl 3xl:text-7xl font-black mb-6">
                         독자는, <span className="text-emerald-500">차이</span>를 먼저 느낍니다
                     </h2>
-                    <p className="text-white/50 text-base md:text-lg 2xl:text-xl 3xl:text-2xl">
+                    <p className="text-white/50 text-base md:text-lg 3xl:text-2xl">
                         실제 독자들의 반응입니다
                     </p>
                 </motion.div>
@@ -937,7 +937,7 @@ export const ReaderReactions = () => {
                     viewport={{ once: true }}
                     className="text-center"
                 >
-                    <p className="text-white/50 text-base md:text-lg 2xl:text-xl 3xl:text-2xl leading-relaxed">
+                    <p className="text-white/50 text-base md:text-lg 3xl:text-2xl leading-relaxed">
                         이런 반응은, <br className="hidden sm:block" />
                         음악을 '곡'이 아니라 연출로 설계했을 때 나옵니다.
                     </p>

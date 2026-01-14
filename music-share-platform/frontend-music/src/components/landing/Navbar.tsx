@@ -51,7 +51,7 @@ export const Navbar = ({ onCTAClick }: NavbarProps) => {
                 />
             </a>
 
-            <div className="hidden md:flex items-center gap-8 text-sm font-medium text-white/60 absolute left-1/2 -translate-x-1/2">
+            <div className="hidden md:flex items-center gap-8 text-sm lg:text-base font-medium text-white/60 absolute left-1/2 -translate-x-1/2">
                 <a href="#process" className="hover:text-white transition-colors">제작 프로세스</a>
                 <a href="#testimonials" className="hover:text-white transition-colors">독자 반응</a>
                 <button onClick={onCTAClick} className="hover:text-white transition-colors cursor-pointer">상담 신청</button>
@@ -59,7 +59,7 @@ export const Navbar = ({ onCTAClick }: NavbarProps) => {
 
             <button
                 onClick={handleStart}
-                className="bg-white hover:bg-gray-100 text-black px-4 py-2 rounded-full text-sm font-bold transition-all"
+                className="bg-white hover:bg-gray-100 text-black px-4 py-2 lg:px-5 lg:py-2.5 rounded-full text-sm lg:text-base font-bold transition-all"
             >
                 {isAuthenticated ? '워크스페이스' : '시작하기'}
             </button>

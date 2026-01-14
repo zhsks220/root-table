@@ -18,18 +18,18 @@ const bubblePositions = [
     { x: -10, rotate: -1.5, tailDir: 'left' },
 ];
 
-// 결론 텍스트 컴포넌트 - 말풍선 다 나온 후 표시
+// 결론 텍스트 컴포넌트 - 말풍선 사라진 후 화면 중앙에 표시
 const ConclusionText = ({ progress }: { progress: any }) => {
-    // 마지막 말풍선 이후에 나타남 (0.15 + 4*0.14 + 0.10 = 0.81 이후)
-    const opacity = useTransform(progress, [0.82, 0.92], [0, 1]);
-    const y = useTransform(progress, [0.82, 0.92], [30, 0]);
+    // 말풍선이 사라진 후 나타남 (0.9 이후)
+    const opacity = useTransform(progress, [0.88, 0.98], [0, 1]);
+    const scale = useTransform(progress, [0.88, 0.98], [0.9, 1]);
 
     return (
         <motion.div
-            className="text-center mt-12"
-            style={{ opacity, y }}
+            className="absolute inset-0 flex items-center justify-center"
+            style={{ opacity, scale }}
         >
-            <h3 className="text-2xl md:text-4xl 2xl:text-5xl 3xl:text-6xl font-black leading-tight">
+            <h3 className="text-4xl md:text-6xl 3xl:text-8xl font-black leading-tight text-center">
                 이런 고민들, <br className="hidden sm:block" />
                 <span className="text-emerald-500">우리가 해결합니다.</span>
             </h3>
@@ -53,7 +53,8 @@ const ThoughtBubble = ({
     const start = 0.15 + index * 0.14;
     const end = start + 0.10;
 
-    const opacity = useTransform(progress, [start, end], [0, 1]);
+    // 나타남 + 사라짐 (0.85 이후 사라짐) - 위치는 유지
+    const opacity = useTransform(progress, [start, end, 0.85, 0.95], [0, 1, 1, 0]);
     const scale = useTransform(progress, [start, end], [0.85, 1]);
     const y = useTransform(progress, [start, end], [30, 0]);
 
@@ -81,7 +82,7 @@ const ThoughtBubble = ({
                     boxShadow: '4px 4px 0 #fff',
                 }}
             >
-                <span className="text-base md:text-lg 2xl:text-xl 3xl:text-2xl text-white font-bold leading-snug whitespace-pre-line text-center block">
+                <span className="text-base md:text-lg 3xl:text-2xl text-white font-bold leading-snug whitespace-pre-line text-center block">
                     {children}
                 </span>
             </div>
@@ -163,7 +164,7 @@ export const WhoWeWorkWith = () => {
                 <div className="sticky top-0 h-screen flex flex-col items-center justify-center px-6 overflow-hidden">
                     {/* 헤드라인 - 항상 표시 */}
                     <div className="text-center mb-8">
-                        <h2 className="text-3xl md:text-5xl 2xl:text-6xl 3xl:text-7xl font-black mb-4">
+                        <h2 className="text-3xl md:text-5xl 3xl:text-7xl font-black mb-4">
                             <span className="whitespace-nowrap">잘 맞는 <span className="text-emerald-500">프로젝트</span>가</span> <br className="hidden sm:block" />
                             있습니다
                         </h2>
@@ -187,7 +188,7 @@ export const WhoWeWorkWith = () => {
                         ))}
                     </div>
 
-                    {/* 결론 - 말풍선 다 나온 후 표시 */}
+                    {/* 결론 - 말풍선 사라진 후 중앙에 표시 */}
                     <ConclusionText progress={scrollYProgress} />
 
                 </div>

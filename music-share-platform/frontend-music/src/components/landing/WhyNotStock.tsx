@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Play, Pause, Volume2, SkipBack, SkipForward } from 'lucide-react';
+import { Play, Pause, Volume2, SkipBack, SkipForward, ExternalLink } from 'lucide-react';
 import { useCardSize } from '../../hooks/useResponsive';
 
 // 장르별 카드 데이터
@@ -11,6 +11,8 @@ const genreCards = [
         features: ["고조되는 텐션 설계", "캐릭터 각성 테마", "임팩트 있는 타이밍"],
         accent: "from-red-500/20 to-orange-500/20",
         accentText: "text-red-400",
+        audioSrc: "/audio/액션 테마.mp3",
+        youtubeLink: "https://www.youtube.com/@routelabel",
     },
     {
         genre: "로맨스",
@@ -18,13 +20,17 @@ const genreCards = [
         features: ["감정선 따라가는 멜로디", "캐릭터 케미 표현", "클라이맥스 연출"],
         accent: "from-pink-500/20 to-rose-500/20",
         accentText: "text-pink-400",
+        audioSrc: "/audio/발라드 테마.mp3",
+        youtubeLink: "https://www.youtube.com/@routelabel",
     },
     {
-        genre: "스릴러 / 서스펜스",
+        genre: "공포 / 호러",
         description: "반전과 긴장, 공포의 순간을 청각적으로 완성합니다.",
         features: ["불안감 조성", "반전 포인트 강조", "심리적 압박감"],
         accent: "from-purple-500/20 to-violet-500/20",
         accentText: "text-purple-400",
+        audioSrc: "/audio/공포 호러 테마.mp3",
+        youtubeLink: "https://www.youtube.com/@routelabel",
     },
     {
         genre: "판타지 / 이세계",
@@ -32,27 +38,35 @@ const genreCards = [
         features: ["세계관 몰입도 강화", "마법/스킬 효과음", "에픽한 스케일"],
         accent: "from-blue-500/20 to-cyan-500/20",
         accentText: "text-blue-400",
+        audioSrc: "/audio/판타지 테마.mp3",
+        youtubeLink: "https://www.youtube.com/@routelabel",
     },
     {
-        genre: "일상 / 힐링",
-        description: "따뜻하고 편안한 분위기로 독자에게 휴식을 선사합니다.",
-        features: ["편안한 배경 음악", "감성적인 멜로디", "자연스러운 전환"],
+        genre: "스포츠",
+        description: "승리를 향한 열정과 도전의 순간을 음악으로 담아냅니다.",
+        features: ["긴장감 고조", "승리의 순간 강조", "팀워크와 열정 표현"],
         accent: "from-green-500/20 to-teal-500/20",
         accentText: "text-green-400",
+        audioSrc: "/audio/스포츠 테마.mp3",
+        youtubeLink: "https://www.youtube.com/@routelabel",
     },
     {
-        genre: "코미디 / 개그",
-        description: "유쾌한 타이밍과 리듬으로 웃음을 배가시킵니다.",
-        features: ["개그 타이밍 강조", "상황별 효과음", "긴장-이완 리듬"],
+        genre: "일상 / 코믹",
+        description: "유쾌하고 편안한 분위기로 독자에게 휴식을 선사합니다.",
+        features: ["개그 타이밍 강조", "편안한 배경 음악", "상황별 효과음"],
         accent: "from-yellow-500/20 to-amber-500/20",
         accentText: "text-yellow-400",
+        audioSrc: "/audio/일상:코믹 테마.mp3",
+        youtubeLink: "https://www.youtube.com/@routelabel",
     },
     {
-        genre: "드라마 / 감동",
-        description: "깊은 서사와 캐릭터의 성장을 음악으로 완성합니다.",
-        features: ["서사적 깊이 표현", "감정 폭발 연출", "여운 있는 마무리"],
+        genre: "국악 / 동양",
+        description: "동양적 정서와 전통의 멋을 현대적으로 재해석합니다.",
+        features: ["전통악기 활용", "동양적 선율", "역사/무협 장르 특화"],
         accent: "from-emerald-500/20 to-emerald-500/20",
         accentText: "text-emerald-400",
+        audioSrc: "/audio/국악:동양 테마.mp3",
+        youtubeLink: "https://www.youtube.com/@routelabel",
     },
 ];
 
@@ -66,6 +80,7 @@ export const WhyNotStock = () => {
     const audioRef = useRef<HTMLAudioElement>(null);
     const isInView = useInView(sectionRef, { once: false, amount: 0.5 });
     const cardSize = useCardSize();
+    const pendingPlayRef = useRef(false);
 
     const minSwipeDistance = 50;
 
@@ -77,6 +92,17 @@ export const WhyNotStock = () => {
         }
     }, [isInView]);
 
+    // 오디오 재생 함수
+    const playCurrentTrack = () => {
+        const audio = audioRef.current;
+        if (!audio) return;
+
+        audio.currentTime = 0;
+        audio.play()
+            .then(() => setIsPlaying(true))
+            .catch((err) => console.error('Play failed:', err));
+    };
+
     // 오디오 재생/일시정지
     const togglePlay = () => {
         const audio = audioRef.current;
@@ -86,38 +112,66 @@ export const WhyNotStock = () => {
             audio.pause();
             setIsPlaying(false);
         } else {
-            audio.currentTime = 0;
-            audio.play().catch(() => {});
-            setIsPlaying(true);
+            playCurrentTrack();
         }
     };
+
+    // 트랙 변경 함수
+    const changeTrack = (newIndex: number, autoPlay: boolean) => {
+        const audio = audioRef.current;
+        if (!audio) return;
+
+        // 현재 재생 중지
+        audio.pause();
+
+        // 인덱스 변경
+        setCurrentIndex(newIndex);
+
+        // 자동 재생 플래그 설정
+        if (autoPlay) {
+            pendingPlayRef.current = true;
+        }
+    };
+
+    // currentIndex가 변경되면 오디오 소스 업데이트 및 재생
+    useEffect(() => {
+        const audio = audioRef.current;
+        if (!audio) return;
+
+        // 소스 변경
+        audio.src = genreCards[currentIndex].audioSrc;
+        audio.load();
+
+        // 자동 재생이 필요한 경우
+        if (pendingPlayRef.current) {
+            const handleCanPlay = () => {
+                audio.play()
+                    .then(() => setIsPlaying(true))
+                    .catch((err) => console.error('Auto play failed:', err));
+                audio.removeEventListener('canplay', handleCanPlay);
+            };
+
+            audio.addEventListener('canplay', handleCanPlay);
+            pendingPlayRef.current = false;
+
+            return () => {
+                audio.removeEventListener('canplay', handleCanPlay);
+            };
+        } else {
+            setIsPlaying(false);
+        }
+    }, [currentIndex]);
 
     // 이전 트랙으로 이동 + 재생
     const goToPrevious = () => {
         const newIndex = currentIndex === 0 ? genreCards.length - 1 : currentIndex - 1;
-        setCurrentIndex(newIndex);
-
-        // 오디오 재생
-        const audio = audioRef.current;
-        if (audio) {
-            audio.currentTime = 0;
-            audio.play().catch(() => {});
-            setIsPlaying(true);
-        }
+        changeTrack(newIndex, true);
     };
 
     // 다음 트랙으로 이동 + 재생
     const goToNext = () => {
         const newIndex = (currentIndex + 1) % genreCards.length;
-        setCurrentIndex(newIndex);
-
-        // 오디오 재생
-        const audio = audioRef.current;
-        if (audio) {
-            audio.currentTime = 0;
-            audio.play().catch(() => {});
-            setIsPlaying(true);
-        }
+        changeTrack(newIndex, true);
     };
 
     // 특정 슬라이드로 이동 (페이지네이션)
@@ -143,19 +197,18 @@ export const WhyNotStock = () => {
         if (distance < -minSwipeDistance) goToPrevious();
     };
 
-    // 오디오 끝났을 때
+    // 오디오 끝났을 때 - 다음 곡 자동 재생
     const handleAudioEnded = () => {
-        setIsPlaying(false);
+        goToNext();
     };
 
     const currentCard = genreCards[currentIndex];
 
     return (
         <section ref={sectionRef} className="py-24 px-6 bg-black overflow-hidden">
-            {/* 오디오 요소 - 기존 샘플 음악 사용 */}
+            {/* 오디오 요소 - 장르별 샘플 음악 */}
             <audio
                 ref={audioRef}
-                src="/audio/routelabel-music.mp3"
                 preload="auto"
                 onEnded={handleAudioEnded}
             />
@@ -240,6 +293,22 @@ export const WhyNotStock = () => {
                                                         </li>
                                                     ))}
                                                 </motion.ul>
+                                            )}
+
+                                            {/* 더보기 버튼 - 오른쪽 하단 */}
+                                            {isActive && (
+                                                <motion.a
+                                                    initial={{ opacity: 0 }}
+                                                    animate={{ opacity: 1 }}
+                                                    transition={{ delay: 0.1 }}
+                                                    href={card.youtubeLink}
+                                                    target="_blank"
+                                                    rel="noopener noreferrer"
+                                                    className={`absolute -bottom-5 -right-3 sm:-bottom-5 sm:-right-4 inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${card.accentText} bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20`}
+                                                >
+                                                    더보기
+                                                    <ExternalLink className="w-3.5 h-3.5" />
+                                                </motion.a>
                                             )}
                                         </div>
                                     </div>

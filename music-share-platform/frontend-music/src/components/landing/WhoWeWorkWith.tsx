@@ -3,13 +3,13 @@ import { useRef } from 'react';
 
 // 애니메이션 타이밍 상수
 const ANIMATION = {
-    BUBBLE_START: 0.15,
-    BUBBLE_INTERVAL: 0.14,
-    BUBBLE_DURATION: 0.10,
-    FADE_OUT_START: 0.85,
-    FADE_OUT_END: 0.95,
-    CONCLUSION_START: 0.88,
-    CONCLUSION_END: 0.98,
+    BUBBLE_START: 0.25,      // 더 늦게 시작 (0.15 → 0.25)
+    BUBBLE_INTERVAL: 0.10,   // 간격 조절 (0.14 → 0.10)
+    BUBBLE_DURATION: 0.08,   // 나타나는 시간 (0.10 → 0.08)
+    FADE_OUT_START: 0.80,    // 사라지기 시작 (0.85 → 0.80)
+    FADE_OUT_END: 0.90,      // 사라지기 완료 (0.95 → 0.90)
+    CONCLUSION_START: 0.85,  // 결론 시작 (0.88 → 0.85)
+    CONCLUSION_END: 0.95,    // 결론 완료 (0.98 → 0.95)
 } as const;
 
 const thoughts = [
@@ -37,7 +37,11 @@ const ConclusionText = ({ progress }: { progress: MotionValue<number> }) => {
     return (
         <motion.div
             className="absolute inset-0 flex items-center justify-center"
-            style={{ opacity, scale }}
+            style={{
+                opacity,
+                scale,
+                willChange: 'transform, opacity',
+            }}
         >
             <h3 className="text-4xl md:text-6xl 3xl:text-8xl font-black leading-tight text-center">
                 이런 고민들, <br className="hidden sm:block" />
@@ -63,8 +67,9 @@ const ThoughtBubble = ({
     const start = ANIMATION.BUBBLE_START + index * ANIMATION.BUBBLE_INTERVAL;
     const end = start + ANIMATION.BUBBLE_DURATION;
 
+    // 나타날 때: 0.85→1, 사라질 때: 1→1.15 (확대되면서 사라짐)
     const opacity = useTransform(progress, [start, end, ANIMATION.FADE_OUT_START, ANIMATION.FADE_OUT_END], [0, 1, 1, 0]);
-    const scale = useTransform(progress, [start, end], [0.85, 1]);
+    const scale = useTransform(progress, [start, end, ANIMATION.FADE_OUT_START, ANIMATION.FADE_OUT_END], [0.85, 1, 1, 1.15]);
     const y = useTransform(progress, [start, end], [30, 0]);
 
     const isLeft = position.tailDir === 'left';
@@ -76,8 +81,8 @@ const ThoughtBubble = ({
                 opacity,
                 scale,
                 y,
-                marginLeft: position.x > 0 ? `${position.x}%` : '0',
-                marginRight: position.x < 0 ? `${Math.abs(position.x)}%` : '0',
+                x: `${position.x}%`,
+                willChange: 'transform, opacity',
             }}
         >
             {/* 메인 말풍선 - 코믹북 스타일 */}

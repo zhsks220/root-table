@@ -62,7 +62,7 @@ const ThoughtBubble = ({
                     boxShadow: '4px 4px 0 #fff',
                 }}
             >
-                <span className="text-base md:text-lg text-white font-bold leading-snug whitespace-pre-line text-center block">
+                <span className="text-base md:text-lg 2xl:text-xl 3xl:text-2xl text-white font-bold leading-snug whitespace-pre-line text-center block">
                     {children}
                 </span>
             </div>
@@ -144,8 +144,8 @@ export const WhoWeWorkWith = () => {
                 <div className="sticky top-0 h-screen flex flex-col items-center justify-center px-6 overflow-hidden">
                     {/* 헤드라인 - 항상 표시 */}
                     <div className="text-center mb-8">
-                        <h2 className="text-3xl md:text-5xl font-black mb-4">
-                            잘 맞는 <span className="text-emerald-500">프로젝트</span>가 <br />
+                        <h2 className="text-3xl md:text-5xl 2xl:text-6xl 3xl:text-7xl font-black mb-4">
+                            <span className="whitespace-nowrap">잘 맞는 <span className="text-emerald-500">프로젝트</span>가</span> <br className="hidden sm:block" />
                             있습니다
                         </h2>
                     </div>
@@ -167,6 +167,7 @@ export const WhoWeWorkWith = () => {
                             </div>
                         ))}
                     </div>
+
                 </div>
             </div>
         </section>

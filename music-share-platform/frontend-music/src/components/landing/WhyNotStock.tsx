@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, useInView } from 'framer-motion';
-import { Play, Pause, Volume2, SkipBack, SkipForward, ExternalLink } from 'lucide-react';
+import { Play, Pause, Volume2, VolumeX, SkipBack, SkipForward, ExternalLink } from 'lucide-react';
 import { useCardSize } from '../../hooks/useResponsive';
 
 // 장르별 카드 데이터
@@ -73,6 +73,8 @@ const genreCards = [
 export const WhyNotStock = () => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [volume, setVolume] = useState(0.7);
+    const [isMuted, setIsMuted] = useState(false);
     const [touchStart, setTouchStart] = useState<number | null>(null);
     const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
@@ -113,6 +115,30 @@ export const WhyNotStock = () => {
             setIsPlaying(false);
         } else {
             playCurrentTrack();
+        }
+    };
+
+    // 음량 변경
+    const handleVolumeChange = (newVolume: number) => {
+        setVolume(newVolume);
+        if (audioRef.current) {
+            audioRef.current.volume = newVolume;
+        }
+        if (newVolume > 0 && isMuted) {
+            setIsMuted(false);
+        }
+    };
+
+    // 음소거 토글
+    const toggleMute = () => {
+        if (audioRef.current) {
+            if (isMuted) {
+                audioRef.current.volume = volume;
+                setIsMuted(false);
+            } else {
+                audioRef.current.volume = 0;
+                setIsMuted(true);
+            }
         }
     };
 
@@ -220,12 +246,11 @@ export const WhyNotStock = () => {
                     viewport={{ once: true }}
                     className="text-center mb-16"
                 >
-                    <h2 className="text-3xl md:text-5xl font-black mb-6">
-                        지금, 작품에 <span className="text-emerald-500">음악 연출</span>을 <br />
-                        고민하고 계신가요?
+                    <h2 className="text-3xl md:text-5xl 2xl:text-6xl 3xl:text-7xl font-black mb-6">
+                        어떤 <span className="text-emerald-500">음악</span>이 필요하신가요?
                     </h2>
-                    <p className="text-white/50 text-base md:text-lg">
-                        장르마다 다른 접근, 작품마다 다른 설계
+                    <p className="text-white/50 text-base md:text-lg 2xl:text-xl 3xl:text-2xl">
+                        작품의 감동을 극대화 시킬 수 있는 음악을 만듭니다.
                     </p>
                 </motion.div>
 
@@ -266,14 +291,14 @@ export const WhyNotStock = () => {
 
                                         <div className="relative z-10">
                                             {/* 장르 타이틀 */}
-                                            <h3 className={`text-xl md:text-2xl font-bold mb-3 ${
+                                            <h3 className={`text-2xl md:text-3xl 2xl:text-4xl 3xl:text-5xl font-bold mb-3 ${
                                                 isActive ? card.accentText : 'text-white/40'
                                             }`}>
                                                 {card.genre}
                                             </h3>
 
                                             {/* 설명 */}
-                                            <p className={`text-sm md:text-base mb-5 leading-relaxed transition-colors duration-500 ${
+                                            <p className={`text-sm md:text-base 2xl:text-lg 3xl:text-xl mb-5 leading-relaxed transition-colors duration-500 ${
                                                 isActive ? 'text-white/70' : 'text-white/30'
                                             }`}>
                                                 {card.description}
@@ -319,7 +344,7 @@ export const WhyNotStock = () => {
                 </div>
 
                 {/* 유튜브 뮤직 스타일 컨트롤 */}
-                <div className="relative flex items-center justify-center gap-6 mb-8">
+                <div className="relative flex items-center justify-center gap-6 mb-4">
                     {/* 이전 트랙 */}
                     <button
                         onClick={goToPrevious}
@@ -356,6 +381,42 @@ export const WhyNotStock = () => {
                     </button>
                 </div>
 
+                {/* 음량 조절 */}
+                <div className="flex items-center justify-center gap-3 mb-6">
+                    <button
+                        onClick={toggleMute}
+                        className="p-2 rounded-full hover:bg-white/10 transition-colors"
+                        aria-label={isMuted ? '음소거 해제' : '음소거'}
+                    >
+                        {isMuted || volume === 0 ? (
+                            <VolumeX className="w-5 h-5 text-white/50" />
+                        ) : (
+                            <Volume2 className="w-5 h-5 text-white/50" />
+                        )}
+                    </button>
+                    <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value={isMuted ? 0 : volume}
+                        onChange={(e) => handleVolumeChange(parseFloat(e.target.value))}
+                        className="w-24 h-1 bg-white/20 rounded-full appearance-none cursor-pointer
+                            [&::-webkit-slider-thumb]:appearance-none
+                            [&::-webkit-slider-thumb]:w-3
+                            [&::-webkit-slider-thumb]:h-3
+                            [&::-webkit-slider-thumb]:bg-white
+                            [&::-webkit-slider-thumb]:rounded-full
+                            [&::-webkit-slider-thumb]:cursor-pointer
+                            [&::-webkit-slider-thumb]:hover:bg-emerald-400
+                            [&::-webkit-slider-thumb]:transition-colors"
+                        aria-label="음량 조절"
+                    />
+                    <span className="text-xs text-white/40 w-8">
+                        {Math.round((isMuted ? 0 : volume) * 100)}%
+                    </span>
+                </div>
+
                 {/* 재생 중 표시 */}
                 {isPlaying && (
                     <div className="flex items-center justify-center gap-2 text-emerald-400 mb-6">
@@ -385,9 +446,9 @@ export const WhyNotStock = () => {
                     initial={{ opacity: 0 }}
                     whileInView={{ opacity: 1 }}
                     viewport={{ once: true }}
-                    className="text-center text-white/50 text-base md:text-lg max-w-2xl mx-auto leading-relaxed"
+                    className="text-center text-white/50 text-base md:text-lg 2xl:text-xl 3xl:text-2xl max-w-2xl 3xl:max-w-4xl mx-auto leading-relaxed"
                 >
-                    우리는 음악을 만드는 팀이 아니라, <br />
+                    우리는 음악을 만드는 팀이 아니라, <br className="hidden sm:block" />
                     웹툰의 흐름을 함께 설계하는 팀입니다.
                 </motion.p>
             </div>

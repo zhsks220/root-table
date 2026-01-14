@@ -21,13 +21,13 @@ const LandingPage = () => {
     return (
         <div className="bg-black text-white min-h-screen">
             <Navbar onCTAClick={openChatbot} />
-            <Hero onCTAClick={openChatbot} />
+            <Hero />
             <SocialProof />
             <Process />
             <WhyNotStock />
-            <ReaderReactions onCTAClick={openChatbot} />
+            <ReaderReactions />
             <WhoWeWorkWith />
-            <FinalCTA onCTAClick={openChatbot} />
+            <FinalCTA />
             <FloatingCTA onClick={openChatbot} />
 
             {/* 챗봇 문의 모달 */}

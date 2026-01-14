@@ -1,12 +1,7 @@
 import { motion } from 'framer-motion';
 import { useMousePosition } from '../../hooks/useMousePosition';
-import { ArrowRight } from 'lucide-react';
 
-interface HeroProps {
-    onCTAClick?: () => void;
-}
-
-export const Hero = ({ onCTAClick }: HeroProps) => {
+export const Hero = () => {
     const mousePosition = useMousePosition();
 
     // Glow position calculated relative to the mouse
@@ -28,35 +23,16 @@ export const Hero = ({ onCTAClick }: HeroProps) => {
                 transition={{ duration: 0.8, ease: "easeOut" }}
                 className="text-center z-10 max-w-4xl"
             >
-                <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-white/5 border border-white/10 text-xs font-medium text-white/50 mb-8 backdrop-blur-sm">
-                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-                    The next generation of webtoon music
-                </div>
-
-                <h1 className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-6 md:mb-8 leading-[1.1]">
-                    우리는 <span className="text-emerald-500">웹툰 음악</span>을 <br />
+                <h1 className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl 2xl:text-9xl 3xl:text-[10rem] font-black tracking-tight mb-6 md:mb-8 leading-[1.1]">
+                    <span className="whitespace-nowrap">우리는 <span className="text-emerald-500">웹툰 음악</span>을</span> <br className="hidden sm:block" />
                     만듭니다.
                 </h1>
 
-                <p className="text-base sm:text-lg md:text-xl text-white/50 max-w-2xl mx-auto mb-8 md:mb-10 leading-relaxed">
-                    단순히 곡을 만들어 낼뿐 아니라, <br />
-                    음악으로 회차, 장면, 캐릭터를 <br className="sm:hidden" />
-                    더 돋보이게 합니다.
+                <p className="text-base sm:text-lg md:text-xl 2xl:text-2xl 3xl:text-3xl text-white/50 max-w-2xl 3xl:max-w-4xl mx-auto mb-8 md:mb-10 leading-relaxed">
+                    단순히 곡을 만들어 낼뿐 아니라, <br className="hidden sm:block" />
+                    음악으로 회차, 장면, 캐릭터를 더 돋보이게 합니다.
                 </p>
 
-                <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
-                    <button
-                        onClick={onCTAClick}
-                        className="group bg-white hover:bg-gray-100 text-black px-6 py-3 sm:px-8 sm:py-4 rounded-full font-bold text-base sm:text-lg transition-all flex items-center gap-2 cursor-pointer"
-                    >
-                        상담하기
-                        <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
-                    </button>
-                </div>
-
-                <p className="mt-6 md:mt-8 text-xs sm:text-sm text-white/40 font-medium">
-                    레퍼런스가 없어도 괜찮습니다.
-                </p>
             </motion.div>
 
             {/* Background Logo Watermark */}

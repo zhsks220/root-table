@@ -1,6 +1,6 @@
 import { useState, useEffect, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { ThumbsUp, ThumbsDown } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useResponsive';
 
 // 욕설 패턴 목록 (blur 처리할 단어들)
@@ -611,11 +611,7 @@ const centerPositionSets = [
     ],
 ];
 
-interface ReaderReactionsProps {
-    onCTAClick?: () => void;
-}
-
-export const ReaderReactions = ({ onCTAClick }: ReaderReactionsProps) => {
+export const ReaderReactions = () => {
     // 모바일 여부 감지
     const isMobile = useIsMobile();
 
@@ -765,10 +761,10 @@ export const ReaderReactions = ({ onCTAClick }: ReaderReactionsProps) => {
                     viewport={{ once: true }}
                     className="text-center mb-12"
                 >
-                    <h2 className="text-3xl md:text-5xl font-black mb-6">
+                    <h2 className="text-3xl md:text-5xl 2xl:text-6xl 3xl:text-7xl font-black mb-6">
                         독자는, <span className="text-emerald-500">차이</span>를 먼저 느낍니다
                     </h2>
-                    <p className="text-white/50 text-base md:text-lg">
+                    <p className="text-white/50 text-base md:text-lg 2xl:text-xl 3xl:text-2xl">
                         실제 독자들의 반응입니다
                     </p>
                 </motion.div>
@@ -941,21 +937,9 @@ export const ReaderReactions = ({ onCTAClick }: ReaderReactionsProps) => {
                     viewport={{ once: true }}
                     className="text-center"
                 >
-                    <p className="text-white/50 text-base md:text-lg mb-10 leading-relaxed">
-                        이런 반응은, <br />
+                    <p className="text-white/50 text-base md:text-lg 2xl:text-xl 3xl:text-2xl leading-relaxed">
+                        이런 반응은, <br className="hidden sm:block" />
                         음악을 '곡'이 아니라 연출로 설계했을 때 나옵니다.
-                    </p>
-
-                    {/* CTA */}
-                    <button
-                        onClick={onCTAClick}
-                        className="inline-flex items-center gap-3 bg-white hover:bg-gray-100 text-black px-8 py-4 rounded-full font-bold text-lg transition-all group cursor-pointer"
-                    >
-                        상담하기
-                        <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                    </button>
-                    <p className="mt-4 text-sm text-white/40">
-                        레퍼런스 없이 시작하셔도 됩니다.
                     </p>
                 </motion.div>
             </div>

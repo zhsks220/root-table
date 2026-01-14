@@ -56,7 +56,7 @@ const genreCards = [
         features: ["개그 타이밍 강조", "편안한 배경 음악", "상황별 효과음"],
         accent: "from-amber-500/30 via-yellow-400/20 to-orange-800/40",
         accentText: "text-amber-400",
-        audioSrc: "/audio/일상:코믹 테마.mp3",
+        audioSrc: "/audio/일상-코믹 테마.mp3",
         youtubeLink: "https://www.youtube.com/@routelabel",
     },
     {
@@ -65,7 +65,7 @@ const genreCards = [
         features: ["전통악기 활용", "동양적 선율", "역사/무협 장르 특화"],
         accent: "from-amber-700/35 via-red-800/25 to-stone-900/50",
         accentText: "text-amber-500",
-        audioSrc: "/audio/국악:동양 테마.mp3",
+        audioSrc: "/audio/국악-동양 테마.mp3",
         youtubeLink: "https://www.youtube.com/@routelabel",
     },
 ];

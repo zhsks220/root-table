@@ -34,14 +34,14 @@ export const Hero = ({ onCTAClick }: HeroProps) => {
                 </div>
 
                 <h1 className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl font-black tracking-tight mb-6 md:mb-8 leading-[1.1]">
-                    웹툰 음악, <br />
-                    외주가 아니라 <span className="whitespace-nowrap"><span className="text-emerald-500">'연출'</span>입니다.</span>
+                    우리는 <span className="text-emerald-500">웹툰 음악</span>을 <br />
+                    만듭니다.
                 </h1>
 
                 <p className="text-base sm:text-lg md:text-xl text-white/50 max-w-2xl mx-auto mb-8 md:mb-10 leading-relaxed">
-                    루트레이블은 곡을 납품하지 않습니다. <br />
-                    회차·장면·캐릭터를 따라가는 <br className="sm:hidden" />
-                    웹툰을 위한 음악 플롯을 설계합니다.
+                    단순히 곡을 만들어 낼뿐 아니라, <br />
+                    음악으로 회차, 장면, 캐릭터를 <br className="sm:hidden" />
+                    더 돋보이게 합니다.
                 </p>
 
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-4">
@@ -49,7 +49,7 @@ export const Hero = ({ onCTAClick }: HeroProps) => {
                         onClick={onCTAClick}
                         className="group bg-white hover:bg-gray-100 text-black px-6 py-3 sm:px-8 sm:py-4 rounded-full font-bold text-base sm:text-lg transition-all flex items-center gap-2 cursor-pointer"
                     >
-                        프로젝트 의뢰 문의
+                        상담하기
                         <ArrowRight className="w-4 h-4 sm:w-5 sm:h-5 group-hover:translate-x-1 transition-transform" />
                     </button>
                 </div>

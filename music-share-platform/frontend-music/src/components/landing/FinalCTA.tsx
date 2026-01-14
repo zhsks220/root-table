@@ -24,16 +24,15 @@ export const FinalCTA = ({ onCTAClick }: FinalCTAProps) => {
                     viewport={{ once: true }}
                     className="text-center"
                 >
-                    <h2 className="text-4xl md:text-6xl font-black mb-8 leading-tight">
-                        웹툰의 음악 연출은, <br />
-                        곡이 아니라 <span className="text-emerald-500">설계</span>입니다
-                    </h2>
-
-                    <p className="text-xl text-white/50 mb-12 max-w-2xl mx-auto leading-relaxed">
-                        우리는 곡을 전달하지 않습니다. <br />
-                        장면의 감정과 캐릭터의 흐름을 따라가는 <br className="sm:hidden" />
-                        음악 플롯을 함께 설계합니다.
+                    <p className="text-xl text-white/50 mb-8 max-w-2xl mx-auto leading-relaxed">
+                        우리는 콘티를 읽고, 작품을 보며 <br />
+                        웹툰과 딱 맞는 곡을 설계합니다.
                     </p>
+
+                    <h2 className="text-3xl md:text-5xl font-black mb-12 leading-tight">
+                        지금, <span className="text-emerald-500">작품</span>에 대해서 <br />
+                        우리와 이야기 나눠보면 어떨까요?
+                    </h2>
 
                     <div className="flex flex-col items-center justify-center gap-4">
                         <button
@@ -41,7 +40,7 @@ export const FinalCTA = ({ onCTAClick }: FinalCTAProps) => {
                             className="group bg-white hover:bg-gray-100 text-black px-10 py-5 rounded-full
                                      font-bold text-xl transition-all flex items-center gap-3 cursor-pointer"
                         >
-                            프로젝트 의뢰 문의
+                            상담하기
                             <ArrowRight className="w-6 h-6 group-hover:translate-x-1 transition-transform" />
                         </button>
                     </div>

@@ -17,7 +17,7 @@ export const FloatingCTA = ({ onClick }: FloatingCTAProps) => {
             className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-white hover:bg-gray-100 text-black font-bold px-5 py-3 rounded-full shadow-lg shadow-white/30 transition-colors cursor-pointer"
         >
             <MessageCircle className="w-5 h-5" />
-            <span className="hidden sm:inline">프로젝트 의뢰 문의</span>
+            <span className="hidden sm:inline">상담하기</span>
         </motion.button>
     );
 };

@@ -1,11 +1,12 @@
 import { motion } from 'framer-motion';
-import { Check } from 'lucide-react';
+import { MessageCircle } from 'lucide-react';
 
-const projectFilters = [
-    "연출과 감정 흐름이 중요한 웹툰",
-    "회차가 이어지는 서사 중심 작품",
-    "캐릭터 해석이 중요한 IP",
-    "음악 레퍼런스 선정에 부담을 느끼는 경우"
+const thoughts = [
+    "이번 회차에 BGM 연출하면 좋을것 같은데..",
+    "너무 바빠서 마감일에 겨우 완성될것 같은데, 음악 제작 의뢰를 맡길 시간이 없네..",
+    "뭔가 머릿속에 떠오르는건 있는데.. 이걸 어떻게 만들어 달라고 해야 하지?",
+    "우리 작품 IP도 OST 앨범 만들어 볼까?",
+    "이 캐릭터의 서사를 음악으로 표현 할순 없을까?"
 ];
 
 const containerVariants = {
@@ -20,10 +21,10 @@ const containerVariants = {
 };
 
 const itemVariants = {
-    hidden: { opacity: 0, x: -20 },
+    hidden: { opacity: 0, y: 20 },
     visible: {
         opacity: 1,
-        x: 0,
+        y: 0,
         transition: { duration: 0.4 }
     }
 };
@@ -33,49 +34,28 @@ export const WhoWeWorkWith = () => {
         <section className="py-24 px-6 bg-black">
             <div className="max-w-7xl mx-auto">
                 <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    className="text-center mb-16"
-                >
-                    <h2 className="text-3xl md:text-5xl font-black mb-6">
-                        잘 맞는 <span className="text-emerald-500">프로젝트</span>가 있습니다
-                    </h2>
-                </motion.div>
-
-                <motion.div
-                    className="max-w-2xl mx-auto mb-16"
+                    className="max-w-3xl mx-auto"
                     variants={containerVariants}
                     initial="hidden"
                     whileInView="visible"
                     viewport={{ once: true, amount: 0.3 }}
                 >
                     <div className="space-y-4">
-                        {projectFilters.map((filter, idx) => (
+                        {thoughts.map((thought, idx) => (
                             <motion.div
                                 key={idx}
                                 variants={itemVariants}
-                                className="flex items-center gap-4 p-6 rounded-2xl bg-white/[0.02] border border-white/5
+                                className="flex items-start gap-4 p-5 md:p-6 rounded-2xl bg-white/[0.02] border border-white/5
                                            hover:border-emerald-500/30 transition-all"
                             >
-                                <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0">
-                                    <Check className="w-4 h-4 text-emerald-500" />
+                                <div className="w-8 h-8 rounded-full bg-emerald-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                    <MessageCircle className="w-4 h-4 text-emerald-500" />
                                 </div>
-                                <span className="text-lg text-white/80">{filter}</span>
+                                <span className="text-base md:text-lg text-white/80 leading-relaxed">{thought}</span>
                             </motion.div>
                         ))}
                     </div>
                 </motion.div>
-
-                {/* 하단 문장 */}
-                <motion.p
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    viewport={{ once: true }}
-                    className="text-center text-white/50 text-base md:text-lg"
-                >
-                    스케일보다, 작품에 대한 이해가 기준입니다.
-                </motion.p>
             </div>
         </section>
     );

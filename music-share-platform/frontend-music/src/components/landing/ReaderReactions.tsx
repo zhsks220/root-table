@@ -951,7 +951,7 @@ export const ReaderReactions = ({ onCTAClick }: ReaderReactionsProps) => {
                         onClick={onCTAClick}
                         className="inline-flex items-center gap-3 bg-white hover:bg-gray-100 text-black px-8 py-4 rounded-full font-bold text-lg transition-all group cursor-pointer"
                     >
-                        프로젝트 의뢰 문의
+                        상담하기
                         <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </button>
                     <p className="mt-4 text-sm text-white/40">

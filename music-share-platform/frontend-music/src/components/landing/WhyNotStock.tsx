@@ -221,8 +221,8 @@ export const WhyNotStock = () => {
                     className="text-center mb-16"
                 >
                     <h2 className="text-3xl md:text-5xl font-black mb-6">
-                        음악은 많지만, <br />
-                        <span className="text-emerald-500">연출</span>은 다릅니다
+                        지금, 작품에 <span className="text-emerald-500">음악 연출</span>을 <br />
+                        고민하고 계신가요?
                     </h2>
                     <p className="text-white/50 text-base md:text-lg">
                         장르마다 다른 접근, 작품마다 다른 설계

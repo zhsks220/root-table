@@ -111,8 +111,8 @@ export const Process = () => {
                     className="text-center mb-16"
                 >
                     <h2 className="text-3xl md:text-5xl font-black mb-6">
-                        웹툰을 읽는 것부터, <br />
-                        <span className="text-emerald-500">연출</span>은 시작됩니다
+                        어떤 장면이던 <br />
+                        <span className="text-emerald-500">문제 없습니다</span>
                     </h2>
                 </motion.div>
 

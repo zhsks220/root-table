@@ -34,6 +34,18 @@ export const WhoWeWorkWith = () => {
         <section className="py-24 px-6 bg-black">
             <div className="max-w-7xl mx-auto">
                 <motion.div
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    className="text-center mb-16"
+                >
+                    <h2 className="text-3xl md:text-5xl font-black mb-6">
+                        잘 맞는 <span className="text-emerald-500">프로젝트</span>가 <br />
+                        있습니다
+                    </h2>
+                </motion.div>
+
+                <motion.div
                     className="max-w-3xl mx-auto"
                     variants={containerVariants}
                     initial="hidden"

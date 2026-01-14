@@ -39,9 +39,10 @@ export const FinalCTA = ({ onCTAClick }: FinalCTAProps) => {
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         className="inline-flex items-center gap-2 bg-white hover:bg-gray-100 text-black font-bold px-8 py-4 rounded-full text-lg transition-colors"
+                        aria-label="웹툰 음악 제작 상담하기"
                     >
                         상담하기
-                        <ArrowRight className="w-5 h-5" />
+                        <ArrowRight className="w-5 h-5" aria-hidden="true" />
                     </motion.button>
 
                     <p className="text-white/30 text-sm mt-6">

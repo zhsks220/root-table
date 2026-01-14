@@ -1,5 +1,16 @@
-import { motion, useScroll, useTransform } from 'framer-motion';
+import { motion, useScroll, useTransform, MotionValue } from 'framer-motion';
 import { useRef } from 'react';
+
+// 애니메이션 타이밍 상수
+const ANIMATION = {
+    BUBBLE_START: 0.15,
+    BUBBLE_INTERVAL: 0.14,
+    BUBBLE_DURATION: 0.10,
+    FADE_OUT_START: 0.85,
+    FADE_OUT_END: 0.95,
+    CONCLUSION_START: 0.88,
+    CONCLUSION_END: 0.98,
+} as const;
 
 const thoughts = [
     "이번 회차에\nBGM 연출하면 좋을것 같은데..",
@@ -19,10 +30,9 @@ const bubblePositions = [
 ];
 
 // 결론 텍스트 컴포넌트 - 말풍선 사라진 후 화면 중앙에 표시
-const ConclusionText = ({ progress }: { progress: any }) => {
-    // 말풍선이 사라진 후 나타남 (0.9 이후)
-    const opacity = useTransform(progress, [0.88, 0.98], [0, 1]);
-    const scale = useTransform(progress, [0.88, 0.98], [0.9, 1]);
+const ConclusionText = ({ progress }: { progress: MotionValue<number> }) => {
+    const opacity = useTransform(progress, [ANIMATION.CONCLUSION_START, ANIMATION.CONCLUSION_END], [0, 1]);
+    const scale = useTransform(progress, [ANIMATION.CONCLUSION_START, ANIMATION.CONCLUSION_END], [0.9, 1]);
 
     return (
         <motion.div
@@ -47,14 +57,13 @@ const ThoughtBubble = ({
     children: React.ReactNode;
     position: typeof bubblePositions[0];
     index: number;
-    progress: any;
+    progress: MotionValue<number>;
 }) => {
     // 각 말풍선이 스크롤 진행에 따라 순차적으로 나타남
-    const start = 0.15 + index * 0.14;
-    const end = start + 0.10;
+    const start = ANIMATION.BUBBLE_START + index * ANIMATION.BUBBLE_INTERVAL;
+    const end = start + ANIMATION.BUBBLE_DURATION;
 
-    // 나타남 + 사라짐 (0.85 이후 사라짐) - 위치는 유지
-    const opacity = useTransform(progress, [start, end, 0.85, 0.95], [0, 1, 1, 0]);
+    const opacity = useTransform(progress, [start, end, ANIMATION.FADE_OUT_START, ANIMATION.FADE_OUT_END], [0, 1, 1, 0]);
     const scale = useTransform(progress, [start, end], [0.85, 1]);
     const y = useTransform(progress, [start, end], [30, 0]);
 

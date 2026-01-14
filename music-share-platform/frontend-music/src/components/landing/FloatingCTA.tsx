@@ -15,8 +15,9 @@ export const FloatingCTA = ({ onClick }: FloatingCTAProps) => {
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-white hover:bg-gray-100 text-black font-bold px-5 py-3 lg:px-6 lg:py-4 text-base lg:text-lg rounded-full shadow-lg shadow-white/30 transition-colors cursor-pointer"
+            aria-label="웹툰 음악 제작 상담하기"
         >
-            <MessageCircle className="w-5 h-5" />
+            <MessageCircle className="w-5 h-5" aria-hidden="true" />
             <span className="hidden sm:inline">상담하기</span>
         </motion.button>
     );

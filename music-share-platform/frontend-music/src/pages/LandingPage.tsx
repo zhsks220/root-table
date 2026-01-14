@@ -27,7 +27,7 @@ const LandingPage = () => {
             <WhyNotStock />
             <ReaderReactions />
             <WhoWeWorkWith />
-            <FinalCTA />
+            <FinalCTA onCTAClick={openChatbot} />
             <FloatingCTA onClick={openChatbot} />
 
             {/* 챗봇 문의 모달 */}

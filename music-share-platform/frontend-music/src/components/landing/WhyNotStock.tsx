@@ -329,10 +329,10 @@ export const WhyNotStock = () => {
                                                     href={card.youtubeLink}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
-                                                    className={`absolute -bottom-5 -right-3 sm:-bottom-5 sm:-right-4 inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium transition-all duration-300 ${card.accentText} bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20`}
+                                                    className={`absolute -bottom-3 -right-2 sm:-bottom-5 sm:-right-4 inline-flex items-center gap-1 sm:gap-2 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 ${card.accentText} bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20`}
                                                 >
-                                                    더 많은 작품 보기
-                                                    <ExternalLink className="w-3.5 h-3.5" />
+                                                    다른 작품 보기
+                                                    <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                                                 </motion.a>
                                             )}
                                         </div>
@@ -381,8 +381,8 @@ export const WhyNotStock = () => {
                     </button>
                 </div>
 
-                {/* 음량 조절 */}
-                <div className="flex items-center justify-center gap-3 mb-6">
+                {/* 음량 조절 - PC에서만 표시 */}
+                <div className="hidden md:flex items-center justify-center gap-3 mb-6">
                     <button
                         onClick={toggleMute}
                         className="p-2 rounded-full hover:bg-white/10 transition-colors"

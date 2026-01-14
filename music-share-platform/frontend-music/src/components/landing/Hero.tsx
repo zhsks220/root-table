@@ -21,9 +21,9 @@ export const Hero = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.8, ease: "easeOut" }}
-                className="text-center z-10 max-w-4xl"
+                className="text-center z-10 max-w-4xl 3xl:max-w-7xl"
             >
-                <h1 className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl 2xl:text-9xl 3xl:text-[10rem] font-black tracking-tight mb-6 md:mb-8 leading-[1.1]">
+                <h1 className="text-3xl sm:text-5xl md:text-7xl lg:text-8xl 2xl:text-9xl 3xl:text-[10rem] font-black tracking-tight mb-6 md:mb-8 leading-[1.1] mx-auto">
                     <span className="whitespace-nowrap">우리는 <span className="text-emerald-500">웹툰 음악</span>을</span> <br className="hidden sm:block" />
                     만듭니다.
                 </h1>

@@ -18,6 +18,25 @@ const bubblePositions = [
     { x: -10, rotate: -1.5, tailDir: 'left' },
 ];
 
+// 결론 텍스트 컴포넌트 - 말풍선 다 나온 후 표시
+const ConclusionText = ({ progress }: { progress: any }) => {
+    // 마지막 말풍선 이후에 나타남 (0.15 + 4*0.14 + 0.10 = 0.81 이후)
+    const opacity = useTransform(progress, [0.82, 0.92], [0, 1]);
+    const y = useTransform(progress, [0.82, 0.92], [30, 0]);
+
+    return (
+        <motion.div
+            className="text-center mt-12"
+            style={{ opacity, y }}
+        >
+            <h3 className="text-2xl md:text-4xl 2xl:text-5xl 3xl:text-6xl font-black leading-tight">
+                이런 고민들, <br className="hidden sm:block" />
+                <span className="text-emerald-500">우리가 해결합니다.</span>
+            </h3>
+        </motion.div>
+    );
+};
+
 // 생각 말풍선 컴포넌트 (구름 꼬리)
 const ThoughtBubble = ({
     children,
@@ -167,6 +186,9 @@ export const WhoWeWorkWith = () => {
                             </div>
                         ))}
                     </div>
+
+                    {/* 결론 - 말풍선 다 나온 후 표시 */}
+                    <ConclusionText progress={scrollYProgress} />
 
                 </div>
             </div>

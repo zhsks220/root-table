@@ -1,297 +1,430 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ArrowRight, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useResponsive';
 
-// 실제 독자 반응 데이터 (36개)
+// 욕설 패턴 목록 (blur 처리할 단어들)
+const profanityPatterns = [
+    'ㅅㅂ', 'ㅆㅂ', 'ㅈㄴ', 'ㅂㅅ', 'ㅄ', 'ㅁㅊ', 'ㄲㅈ',
+    '시발', '씨발', '존나', '병신', '미친', '꺼져',
+    '지랄', '새끼', 'ㅅㅋ', 'ㄱㅅㄲ',
+    '좆', '씹', 'ㅈ같', '개새끼', 'ㄱㅅㅋ',
+];
+
+// 텍스트에서 욕설을 blur 처리된 span으로 변환
+const renderTextWithBlur = (text: string): ReactNode => {
+    // 욕설 패턴을 정규식으로 변환 (대소문자 무시, 전역 검색)
+    const pattern = new RegExp(`(${profanityPatterns.map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})`, 'gi');
+
+    const parts = text.split(pattern);
+
+    return parts.map((part, index) => {
+        const isProfanity = profanityPatterns.some(p => p.toLowerCase() === part.toLowerCase());
+        if (isProfanity) {
+            return (
+                <span
+                    key={index}
+                    className="blur-[3px] select-none pointer-events-none"
+                    style={{ userSelect: 'none' }}
+                >
+                    {part}
+                </span>
+            );
+        }
+        return part;
+    });
+};
+
+// 실제 독자 반응 데이터 - 랜덤 닉네임 적용, 원문 기반
+// 출처: DC인사이드 박태준 유니버스 갤러리, 네이버 카페, YouTube
 const comments = [
+    // === DC인사이드 반응들 (1-29번) ===
     {
-        nickname: "@webtoon_lover724",
-        avatar: "W",
+        nickname: "@밤하늘_독자",
+        avatar: "밤",
         avatarColor: "bg-purple-500",
-        text: "루트레이블의 음악은 배경음이 아니라 캐릭터 해석을 완성시키는 연출이었다.",
-        likes: 847,
+        text: "브금이 캐릭터의 정체성 중 하나가 되는 거라 의미가 크다. wolf, 주마등, 데칼코마니 같은 브금은 비교 자체가 안 됨",
+        likes: 234,
+        time: "1개월 전",
+    },
+    {
+        nickname: "@webtoon_fan92",
+        avatar: "W",
+        avatarColor: "bg-blue-500",
+        text: "종건을 생각하면 자연스럽게 백귀와 캐치미, 준구를 생각하면 칼의 춤. 브금 자체가 캐릭터를 완성시킴",
+        likes: 189,
+        time: "2주 전",
+    },
+    {
+        nickname: "@헌신과_애정",
+        avatar: "헌",
+        avatarColor: "bg-rose-500",
+        text: "박만사 이상으로 작품에 대한 헌신과 애정이 컸음. 유튜브에 브금 올라오는 걸 그 날 웹툰 올라오는 거 마냥 기대함",
+        likes: 267,
+        time: "3주 전",
+    },
+    {
+        nickname: "@영화음악급",
+        avatar: "영",
+        avatarColor: "bg-emerald-500",
+        text: "영화에서 음악의 중요성을 뺄 수 없듯이 웹툰도 마찬가지. 적절한 음악이 있으면 몰입감이 비교할 수가 없음",
+        likes: 312,
+        time: "1개월 전",
+    },
+    // 네이버 카페 반응 (3번)
+    {
+        nickname: "@정주행러",
+        avatar: "정",
+        avatarColor: "bg-orange-500",
+        text: "진짜 루트레이블이 브금 기깔나게 잘 만드는 듯 ㅇㅇ. 이 브금 회사 아니면 감질맛 떨어져서 웹툰 못 봄 ㅋㅋ",
+        likes: 156,
+        time: "3주 전",
+    },
+    // DC인사이드 반응들 계속
+    {
+        nickname: "@캐릭터_해석가",
+        avatar: "캐",
+        avatarColor: "bg-indigo-500",
+        text: "루트레이블 브금은 캐릭이해도가 그냥 미쳤음",
+        likes: 278,
+        time: "2주 전",
+    },
+    {
+        nickname: "@몰입감_마스터",
+        avatar: "몰",
+        avatarColor: "bg-red-500",
+        text: "콘티 미리보는지 독자들 읽는속도 계산해서 장면장면 딱 적당하게 브금 녹여냄. 이 컨트롤이 ㅈㄴ 정교함",
+        likes: 198,
+        time: "1주 전",
+    },
+    {
+        nickname: "@진랑_기태",
+        avatar: "진",
+        avatarColor: "bg-cyan-500",
+        text: "하운드스로 진랑 풀각성 밀어붙이다가 기태 맨손으로 도끼 막으면서 킹슬레이어로 바뀌는 거 ㅈㄴ 소름",
+        likes: 423,
+        time: "2주 전",
+    },
+    {
+        nickname: "@브금_감상러",
+        avatar: "브",
+        avatarColor: "bg-pink-500",
+        text: "캐릭터 하나하나에 알맞고 어울리게 브금을 만드는 능력이 쌔오짐. 다른 업체가 이만큼 할 수 있을까",
+        likes: 356,
+        time: "1주 전",
+    },
+    {
+        nickname: "@전율파",
+        avatar: "전",
+        avatarColor: "bg-violet-500",
+        text: "첫컷이랑 타이밍과 브금의 타이밍이 절묘할때 전율이 흘렀음",
+        likes: 289,
         time: "3일 전",
     },
     {
-        nickname: "@midnight_reader",
-        avatar: "M",
-        avatarColor: "bg-blue-500",
-        text: "캐릭터를 떠올리면 음악이 함께 떠오를 정도로 테마가 각인되어 있었다.",
-        likes: 623,
-        time: "1주 전",
-    },
-    {
-        nickname: "@감성충전소",
+        nickname: "@감성_충전소",
         avatar: "감",
-        avatarColor: "bg-rose-500",
-        text: "아쉬운 장면에서도 음악이 감정을 설득하며 연출의 완성도를 끌어올렸다.",
-        likes: 512,
-        time: "2주 전",
-    },
-    {
-        nickname: "@정주행마스터",
-        avatar: "정",
-        avatarColor: "bg-emerald-500",
-        text: "작품 이해도가 높아 장면의 의도와 감정을 정확히 짚어냈다.",
-        likes: 389,
-        time: "3주 전",
-    },
-    {
-        nickname: "@webtoon_critic",
-        avatar: "C",
-        avatarColor: "bg-orange-500",
-        text: "다른 웹툰 음악과 비교해도 캐릭터 중심 설계라는 차이가 분명했다.",
-        likes: 456,
-        time: "1개월 전",
-    },
-    {
-        nickname: "@밤샘독서",
-        avatar: "밤",
-        avatarColor: "bg-indigo-500",
-        text: "장면 전환마다 음악이 정확히 맞물려 연출 컨트롤이 정교했다.",
-        likes: 278,
-        time: "1개월 전",
-    },
-    {
-        nickname: "@박태준유니버스",
-        avatar: "박",
-        avatarColor: "bg-red-500",
-        text: "Ground 음악 들으면서 보니까 진짜 몰입감이 다르더라.",
-        likes: 534,
-        time: "2주 전",
-    },
-    {
-        nickname: "@웹툰정주행러",
-        avatar: "웹",
-        avatarColor: "bg-cyan-500",
-        text: "이거 진짜 웹툰 BGM 중에 최고임. 작품 이해도가 남다름.",
-        likes: 421,
-        time: "1주 전",
-    },
-    {
-        nickname: "@브실러",
-        avatar: "브",
-        avatarColor: "bg-pink-500",
-        text: "브실에서 그림체의 무게감을 살려주는 음악 연출이 대단했음.",
-        likes: 367,
-        time: "3주 전",
-    },
-    {
-        nickname: "@Hounds팬",
-        avatar: "H",
-        avatarColor: "bg-violet-500",
-        text: "Hounds 읽으면서 음악 틀면 진짜 전투씬 몰입감 미쳤음.",
-        likes: 298,
-        time: "2주 전",
-    },
-    {
-        nickname: "@음악감상러",
-        avatar: "음",
         avatarColor: "bg-amber-500",
-        text: "와 근데 이번에 쓰신 음악이 분위기랑 완전히 잘 맞아서 소름돋음.",
-        likes: 445,
-        time: "1주 전",
-    },
-    {
-        nickname: "@감동이",
-        avatar: "감",
-        avatarColor: "bg-teal-500",
-        text: "침묵하는 장면에서도 음악이 감정을 살려주는 연출이 좋았어요.",
-        likes: 312,
-        time: "4일 전",
-    },
-    {
-        nickname: "@ㅇㅇ",
-        avatar: "ㅇ",
-        avatarColor: "bg-slate-500",
-        text: "박태준 유니버스 갤러리에서 루트레이블 이야기 많이 나오더라.",
-        likes: 189,
-        time: "5일 전",
-    },
-    {
-        nickname: "@전설의독자",
-        avatar: "전",
-        avatarColor: "bg-lime-500",
-        text: "키지감이 작업 이후로 거의 2년 만에 다시 들었는데 여전히 좋다.",
-        likes: 523,
+        text: "만화에 대한 이해도가 대단했음. 병맛 내용도 슬픈 선율이 잘 구슬려서 평타 이상으로 만듦",
+        likes: 178,
         time: "1개월 전",
     },
     {
-        nickname: "@외모지상주의팬",
-        avatar: "외",
-        avatarColor: "bg-fuchsia-500",
-        text: "외지 보면서 BGM 틀으니까 감정이입 미쳤음 ㄹㅇ",
-        likes: 267,
+        nickname: "@테마곡_분석가",
+        avatar: "테",
+        avatarColor: "bg-teal-500",
+        text: "백귀 종건, 디에고 이지훈, 칼의춤 김준구, 킹슬2 김기태, war4 성요한, 울프 진랑. 전용 테마곡이란게 확실히 느껴짐",
+        likes: 234,
         time: "2주 전",
     },
     {
-        nickname: "@킹슬레이어",
-        avatar: "킹",
+        nickname: "@브금빨_체감",
+        avatar: "빨",
+        avatarColor: "bg-slate-500",
+        text: "브금빨이 ㅈㄴ크긴하네. 브금키고봤을땐 호감될뻔했는데 브금끄고보니까 다시 별로임",
+        likes: 312,
+        time: "1개월 전",
+    },
+    {
+        nickname: "@hounds_fan",
+        avatar: "H",
+        avatarColor: "bg-lime-500",
+        text: "hounds 이건 걍 영화 엔딩곡같네. 웹툰 브금 퀄이 아닌데 ㄹㅇ",
+        likes: 198,
+        time: "2주 전",
+    },
+    {
+        nickname: "@소름파",
+        avatar: "소",
+        avatarColor: "bg-fuchsia-500",
+        text: "Hounds 처음 나왔을때 사이렌 울리면서 이목 집중시키더니 코러스 개 쩔게 잡고 진랑 회상장면으로 브금 시작. 소름",
+        likes: 267,
+        time: "1주 전",
+    },
+    {
+        nickname: "@도파민_분비",
+        avatar: "도",
         avatarColor: "bg-sky-500",
-        text: "킹슬레이어 곡 터닝포인트에서 나올 때 소름 쫙",
+        text: "Now he's glowing in the color of the wolves 하면서 진랑 극경 펀치 날릴때 도파민 분비",
         likes: 345,
         time: "3주 전",
     },
     {
-        nickname: "@뮤직러버",
-        avatar: "뮤",
+        nickname: "@킹슬레이어_러버",
+        avatar: "킹",
         avatarColor: "bg-rose-400",
-        text: "전투씬 음악 타이밍 진짜 나이스하게 맞췄더라.",
-        likes: 412,
-        time: "1주 전",
-    },
-    {
-        nickname: "@웹툰매니아",
-        avatar: "매",
-        avatarColor: "bg-blue-400",
-        text: "스토리 읽으면서 음악 들으니 몰입감이 완전 다름.",
+        text: "킹슬2로 넘어갈 때 진랑 브금이랑 섞어서 어레인지한게 미친놈같음. 진랑의 처절함까지 같이 보여줌",
         likes: 289,
-        time: "4일 전",
-    },
-    {
-        nickname: "@일상독자",
-        avatar: "일",
-        avatarColor: "bg-green-500",
-        text: "이번 앨범의 콘셉트가 작품 세계관이랑 너무 잘 맞아서 좋았음.",
-        likes: 378,
         time: "2주 전",
     },
     {
-        nickname: "@음악덕후",
-        avatar: "덕",
-        avatarColor: "bg-orange-400",
-        text: "진짜 연출의 완성은 음악이라는 걸 느끼게 해준 팀.",
-        likes: 467,
+        nickname: "@명곡_수집가",
+        avatar: "명",
+        avatarColor: "bg-blue-400",
+        text: "브금 5개가 하나같이 미쳐돌아감. 하운즈가 브금중 제일 좋은듯. 울프랑 바로크도 잘뽑혔고",
+        likes: 178,
         time: "1주 전",
     },
     {
-        nickname: "@hound_fan",
-        avatar: "H",
-        avatarColor: "bg-purple-400",
-        text: "지인한테 추천받았는데 듣자마자 바로 팬 됐습니다.",
+        nickname: "@느와르_팬",
+        avatar: "느",
+        avatarColor: "bg-green-500",
+        text: "진짜 완벽한 느와르 브금. 훈태가 진짜 악역이라고 느끼게 해준 최고의 브금. Diego 2년만에 재탕나와서 전율",
         likes: 234,
-        time: "5일 전",
+        time: "2주 전",
     },
     {
-        nickname: "@해외에서",
-        avatar: "해",
-        avatarColor: "bg-indigo-400",
-        text: "해외에서도 웹툰 음악 찾아 듣는데 퀄리티가 진짜 다르네요.",
-        likes: 567,
+        nickname: "@몰입_중독자",
+        avatar: "몰",
+        avatarColor: "bg-orange-400",
+        text: "외지주는 브금빨이 ㅈㄴ 큰듯. 브금틀고 보는지 그냥 보는지에 따라 차이 은근 큼",
+        likes: 156,
         time: "3일 전",
     },
     {
-        nickname: "@전율팬",
-        avatar: "전",
+        nickname: "@탑5_선정단",
+        avatar: "탑",
+        avatarColor: "bg-purple-400",
+        text: "브금이 ㄹㅇ 조오오오오온나 잘뽑힘. 개인적으로 외지주 브금 탑 5안에 들어갈듯",
+        likes: 423,
+        time: "1주 전",
+    },
+    {
+        nickname: "@절반은_브금",
+        avatar: "절",
+        avatarColor: "bg-indigo-400",
+        text: "외지주는 브금이 절반은 하는거 같다. 브금 있고 없고 차이가 진짜 심해",
+        likes: 289,
+        time: "2주 전",
+    },
+    {
+        nickname: "@유일한_구원",
+        avatar: "유",
         avatarColor: "bg-red-400",
-        text: "마지막 전투씬에서 곡이 딱 맞았을 때의 전율 ㄷㄷ",
-        likes: 623,
-        time: "1주 전",
-    },
-    {
-        nickname: "@비교감상",
-        avatar: "비",
-        avatarColor: "bg-cyan-400",
-        text: "음악 없이 봤다가 다시 음악과 함께 보니까 완전 다름.",
-        likes: 445,
-        time: "2주 전",
-    },
-    {
-        nickname: "@Little_Wolf",
-        avatar: "L",
-        avatarColor: "bg-emerald-400",
-        text: "Little Wolf 곡 진짜 좋아서 계속 반복재생 중.",
-        likes: 334,
-        time: "4주 전",
-    },
-    {
-        nickname: "@노래신청",
-        avatar: "노",
-        avatarColor: "bg-pink-400",
-        text: "이거 BGM으로 들으면서 정주행하니까 몰입감 최고.",
-        likes: 289,
-        time: "1주 전",
-    },
-    {
-        nickname: "@작품이해",
-        avatar: "작",
-        avatarColor: "bg-violet-400",
-        text: "이건 진짜 음악감독이 작품을 제대로 봤다는 증거.",
-        likes: 512,
-        time: "3주 전",
-    },
-    {
-        nickname: "@아기사자",
-        avatar: "아",
-        avatarColor: "bg-amber-400",
-        text: "브실이 미디어믹스의 완성형이 된 건 음악 덕분.",
-        likes: 378,
-        time: "2주 전",
-    },
-    {
-        nickname: "@연출팬",
-        avatar: "연",
-        avatarColor: "bg-teal-400",
-        text: "그냥 진짜 음악 넣으니까 캐릭터 해석이 다르더라고요.",
-        likes: 445,
-        time: "1주 전",
-    },
-    {
-        nickname: "@소울뮤직",
-        avatar: "소",
-        avatarColor: "bg-slate-400",
-        text: "아 근데 이번 앨범은 진짜 MASTERPIECE급임.",
-        likes: 534,
-        time: "4일 전",
-    },
-    {
-        nickname: "@취향저격",
-        avatar: "취",
-        avatarColor: "bg-lime-400",
-        text: "루트레이블 덕분에 웹툰 보는 게 더 즐거워졌어요.",
-        likes: 412,
-        time: "2주 전",
-    },
-    {
-        nickname: "@눈물샘",
-        avatar: "눈",
-        avatarColor: "bg-fuchsia-400",
-        text: "감동적인 장면에서 음악 나오니까 눈물이 막 나왔어요ㅜㅜ",
-        likes: 367,
-        time: "1주 전",
-    },
-    {
-        nickname: "@개인취향",
-        avatar: "개",
-        avatarColor: "bg-sky-400",
-        text: "개인적으로 Wolf랑 Hounds 앨범이 제일 좋았음.",
-        likes: 289,
-        time: "3주 전",
-    },
-    {
-        nickname: "@캐릭터팬",
-        avatar: "캐",
-        avatarColor: "bg-rose-300",
-        text: "캐릭터 이해도가 음악에 녹아있음.",
-        likes: 445,
-        time: "2주 전",
-    },
-    {
-        nickname: "@음악완성",
-        avatar: "완",
-        avatarColor: "bg-blue-300",
-        text: "음악이 웹툰의 감정을 완성시킴.",
-        likes: 534,
-        time: "1주 전",
-    },
-    {
-        nickname: "@정주행중",
-        avatar: "정",
-        avatarColor: "bg-green-400",
-        text: "작가님이 직접 추천하신 음악이라 더 의미있게 들림.",
+        text: "유일하게 외지주 살리는 장본인인데. 역대급 천량편도 덕분에 그나마 재밌게 봄",
         likes: 312,
-        time: "4일 전",
+        time: "3주 전",
+    },
+    {
+        nickname: "@쿠키값",
+        avatar: "쿠",
+        avatarColor: "bg-cyan-400",
+        text: "토끼로 불법 안보고 쿠키로 돈내고 보는 가장 큰 이유가 브금 때문",
+        likes: 198,
+        time: "1주 전",
+    },
+    {
+        nickname: "@먹여살림",
+        avatar: "먹",
+        avatarColor: "bg-emerald-400",
+        text: "진짜 루트레이블이 먹여살리는구나. 추모브금 어레인지 깔리니까 죽는 장면 생각나면서 대가리 깨질뻔함",
+        likes: 134,
+        time: "2주 전",
+    },
+    {
+        nickname: "@브금_GOAT",
+        avatar: "G",
+        avatarColor: "bg-pink-400",
+        text: "브금이 진짜 GOAT인 이유. 오랜만에 육성지 + 주마등 브금 나오니까 뭔가 아련하면서 슬픔",
+        likes: 267,
+        time: "1개월 전",
+    },
+    {
+        nickname: "@안틀면_노잼",
+        avatar: "안",
+        avatarColor: "bg-violet-400",
+        text: "이번화 브금 안틀고 보니까 개씹노잼이노. 루트레이블은 언제나 신이다",
+        likes: 189,
+        time: "3주 전",
+    },
+    {
+        nickname: "@캐릭터_브금",
+        avatar: "캐",
+        avatarColor: "bg-amber-400",
+        text: "캐릭터들 전용브금은 진짜 기깔나게 잘 뽑는듯. 백귀 칼의춤 war4 seize 토라오니 빌런 다 ㅅㅌㅊ고 킹슬레이어2는 역대급",
+        likes: 356,
+        time: "2주 전",
+    },
+    {
+        nickname: "@역대급",
+        avatar: "역",
+        avatarColor: "bg-teal-400",
+        text: "이번주 킹슬레이어2 브금 역대급으로 좋지않냐? 10번 넘게 들음",
+        likes: 423,
+        time: "1주 전",
+    },
+    {
+        nickname: "@절망감",
+        avatar: "절",
+        avatarColor: "bg-slate-400",
+        text: "오늘 기태임팩트에 브금도 크게 한몫한듯. 중간에 브금 바뀌는데 ㄹㅇ 절망적이라는 느낌",
+        likes: 289,
+        time: "2주 전",
+    },
+    {
+        nickname: "@경고신호",
+        avatar: "경",
+        avatarColor: "bg-lime-400",
+        text: "Kingslayer2브금 나올때 진짜 ㅈ됐구나 느낌받음. 도망가라는 경고신호처럼 들림. 급박한 분위기 연출 지렸음",
+        likes: 312,
+        time: "3주 전",
+    },
+    {
+        nickname: "@전율_올라옴",
+        avatar: "전",
+        avatarColor: "bg-fuchsia-400",
+        text: "이번화 브금타이밍 나만 전율 올라왔냐? 캐치미 하이라이트 부분에서 김갑룡 막컷 겹쳐서 싸버림 ㅆㅂ",
+        likes: 198,
+        time: "1주 전",
+    },
+    // === YouTube 댓글들 (30-36번) ===
+    {
+        nickname: "@3년_애독자",
+        avatar: "3",
+        avatarColor: "bg-sky-400",
+        text: "22년 9월부터 25년 12월까지 3년동안 외지주 음악 만들어주셔서 감사. 제 24살~27살까지 삶에 녹아들어있습니다",
+        likes: 36,
+        time: "1개월 전",
+    },
+    {
+        nickname: "@플레이리스트",
+        avatar: "플",
+        avatarColor: "bg-rose-300",
+        text: "유튜브 재생목록 따로 만들어서 운동할때 들음. Epic, war, dark change, puppet, data, asap 다 명곡",
+        likes: 32,
+        time: "1개월 전",
+    },
+    {
+        nickname: "@80퍼센트",
+        avatar: "8",
+        avatarColor: "bg-blue-300",
+        text: "외지주 보는 이유중 80%는 브금때문에 보는건데",
+        likes: 5,
+        time: "1개월 전",
+    },
+    {
+        nickname: "@음악이_만화를",
+        avatar: "음",
+        avatarColor: "bg-green-400",
+        text: "뛰어넘었다는겁니다... 음악이 만화를!!!!!",
+        likes: 11,
+        time: "1개월 전",
+    },
+    {
+        nickname: "@몰입감_증인",
+        avatar: "몰",
+        avatarColor: "bg-purple-300",
+        text: "루트레이블의 진귀한 브금 덕분에 작품을 더욱 몰입감 있게 즐길 수 있었습니다. 끝까지 함께 못하는게 아쉽지만 응원합니다",
+        likes: 9,
+        time: "1개월 전",
+    },
+    {
+        nickname: "@허망한_기분",
+        avatar: "허",
+        avatarColor: "bg-orange-300",
+        text: "와... 왤케 허망하지.. ㅈㄴ우울하네... 뭔가 ㅈㄴ 좋아하는 연예인 사망 소식 듣는 기분임...",
+        likes: 17,
+        time: "1개월 전",
+    },
+    {
+        nickname: "@환영해요",
+        avatar: "환",
+        avatarColor: "bg-indigo-300",
+        text: "김기명 과거편부터 인천편까지 덕분에 웹툰 더 몰입해서 볼 수 있었습니다. 언제든 다시 돌아와도 환영할게요",
+        likes: 6,
+        time: "1개월 전",
+    },
+    {
+        nickname: "@버틸수없어",
+        avatar: "버",
+        avatarColor: "bg-cyan-300",
+        text: "외지주 질질 끌때도 브금때문에 봤는데 당신이 사라진다면 버틸수 없어",
+        likes: 2,
+        time: "1개월 전",
+    },
+    {
+        nickname: "@쌉고트",
+        avatar: "쌉",
+        avatarColor: "bg-emerald-300",
+        text: "개인적으로 부산편때 나온 1세대2, wolf, hounds 쌉고트였음",
+        likes: 4,
+        time: "5일 전",
+    },
+    {
+        nickname: "@과거의_위로",
+        avatar: "과",
+        avatarColor: "bg-pink-300",
+        text: "이 노래하나로 잊고있던 소중한 과거로 돌아간것같아요. 소중한 기억들이 지금의 저를 위로해주는것같아요",
+        likes: 42,
+        time: "4년 전",
+    },
+    {
+        nickname: "@매일_듣는중",
+        avatar: "매",
+        avatarColor: "bg-violet-300",
+        text: "원래 노래에 댓글 잘 안다는데 이 곡은 진짜 매일 들을 정도로 넘 좋음...ㅠㅠ",
+        likes: 5,
+        time: "1년 전",
+    },
+    {
+        nickname: "@MASTERPIECE",
+        avatar: "M",
+        avatarColor: "bg-amber-300",
+        text: "수고하셨어요 ㅠㅠ MASTERPIECE 진짜 명곡이었습니다",
+        likes: 11,
+        time: "1개월 전",
+    },
+    {
+        nickname: "@용기를_주셨어요",
+        avatar: "용",
+        avatarColor: "bg-teal-300",
+        text: "덕분에 힘든 일이 있을 때도 늘 자신감을 가지고 일어설 수 있었습니다. 진심으로 감사했습니다",
+        likes: 6,
+        time: "1개월 전",
+    },
+    {
+        nickname: "@노래_겁나좋다",
+        avatar: "노",
+        avatarColor: "bg-slate-300",
+        text: "노래 겁나 좋다",
+        likes: 11,
+        time: "4년 전",
+    },
+    {
+        nickname: "@감성_충만",
+        avatar: "감",
+        avatarColor: "bg-lime-300",
+        text: "어른이 되어버린 지금보다 그때 그시절이 더 감정에 솔직하고 성숙했던걸까. 마음이 무겁네",
+        likes: 7,
+        time: "10개월 전",
+    },
+    {
+        nickname: "@왕자림_팬",
+        avatar: "왕",
+        avatarColor: "bg-fuchsia-300",
+        text: "왕자림이 갈수록 감성충만해지니 노래도 절절하네",
+        likes: 3,
+        time: "2년 전",
     },
 ];
 
@@ -446,6 +579,36 @@ const centerPositionSets = [
         // 아래 중앙
         { x: -30, y: 180, rotation: -4, scale: 0.94 },
     ],
+    // 추가 페이지 7
+    [
+        // 왼쪽 위
+        { x: -350, y: -130, rotation: -3, scale: 0.97 },
+        // 오른쪽 위
+        { x: 330, y: -150, rotation: 4, scale: 0.99 },
+        // 왼쪽 아래
+        { x: -310, y: 90, rotation: 2, scale: 1.01 },
+        // 오른쪽 아래
+        { x: 350, y: 110, rotation: -4, scale: 0.95 },
+        // 상단 중앙
+        { x: 15, y: -170, rotation: -2, scale: 0.98 },
+        // 하단 중앙
+        { x: -25, y: 175, rotation: 3, scale: 0.96 },
+    ],
+    // 추가 페이지 8
+    [
+        // 좌상단
+        { x: -330, y: -140, rotation: 3, scale: 0.98 },
+        // 우상단
+        { x: 350, y: -110, rotation: -3, scale: 1.0 },
+        // 좌하단
+        { x: -355, y: 100, rotation: -2, scale: 0.96 },
+        // 우하단
+        { x: 315, y: 130, rotation: 4, scale: 0.97 },
+        // 중앙 상
+        { x: -10, y: -155, rotation: 2, scale: 1.02 },
+        // 중앙 하
+        { x: 35, y: 185, rotation: -3, scale: 0.94 },
+    ],
 ];
 
 interface ReaderReactionsProps {
@@ -456,9 +619,9 @@ export const ReaderReactions = ({ onCTAClick }: ReaderReactionsProps) => {
     // 모바일 여부 감지
     const isMobile = useIsMobile();
 
-    // PC: 메인 댓글 페이지 상태 (0-5, 6페이지 = 36개/6개씩)
+    // PC: 메인 댓글 페이지 상태 (0-7, 8페이지 = 48개/6개씩)
     const [currentPage, setCurrentPage] = useState(0);
-    // 모바일: 개별 카드 인덱스 (0-35)
+    // 모바일: 개별 카드 인덱스 (0-47)
     const [mobileIndex, setMobileIndex] = useState(0);
     // 메인 카드 hover 시 자동 순환 멈춤
     const [isHovering, setIsHovering] = useState(false);
@@ -479,8 +642,8 @@ export const ReaderReactions = ({ onCTAClick }: ReaderReactionsProps) => {
                 // 모바일: 개별 카드 순환
                 setMobileIndex((prev) => (prev + 1) % comments.length);
             } else {
-                // PC: 페이지 단위 순환
-                setCurrentPage((prev) => (prev + 1) % 6);
+                // PC: 페이지 단위 순환 (48개 댓글 / 6개씩 = 8페이지)
+                setCurrentPage((prev) => (prev + 1) % 8);
             }
         }, 3000);
         return () => clearInterval(interval);
@@ -514,7 +677,7 @@ export const ReaderReactions = ({ onCTAClick }: ReaderReactionsProps) => {
 
     // 현재 페이지 기반으로 셔플된 댓글 인덱스
     const shuffledIndices = shuffleArray(
-        Array.from({ length: 36 }, (_, i) => i),
+        Array.from({ length: comments.length }, (_, i) => i),
         currentPage * 100
     );
 
@@ -585,7 +748,7 @@ export const ReaderReactions = ({ onCTAClick }: ReaderReactionsProps) => {
                                             {comment.nickname}
                                         </span>
                                         <p className="text-gray-800 text-xs leading-relaxed line-clamp-2 mt-0.5">
-                                            {comment.text}
+                                            {renderTextWithBlur(comment.text)}
                                         </p>
                                     </div>
                                 </div>
@@ -683,7 +846,7 @@ export const ReaderReactions = ({ onCTAClick }: ReaderReactionsProps) => {
                                                 </span>
                                             </div>
                                             <p className="text-gray-800 text-[14px] leading-relaxed mb-3 line-clamp-3">
-                                                {comments[mobileIndex].text}
+                                                {renderTextWithBlur(comments[mobileIndex].text)}
                                             </p>
                                             <div className="flex items-center gap-4">
                                                 <div className="flex items-center gap-1">
@@ -752,7 +915,7 @@ export const ReaderReactions = ({ onCTAClick }: ReaderReactionsProps) => {
                                                     </span>
                                                 </div>
                                                 <p className="text-gray-800 text-[14px] leading-relaxed mb-3 line-clamp-3">
-                                                    {comment.text}
+                                                    {renderTextWithBlur(comment.text)}
                                                 </p>
                                                 <div className="flex items-center gap-4">
                                                     <div className="flex items-center gap-1">

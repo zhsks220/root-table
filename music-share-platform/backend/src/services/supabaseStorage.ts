@@ -22,13 +22,13 @@ export function isStorageAvailable(): boolean {
 }
 
 // 파일 업로드
-export async function uploadFile(key: string, body: Buffer, contentType: string): Promise<string> {
+export async function uploadFile(key: string, body: Buffer, contentType: string, bucket: string = BUCKET_NAME): Promise<string> {
   if (!supabase) {
     throw new Error('Supabase Storage is not configured. Please set SUPABASE_URL and SUPABASE_SERVICE_KEY.');
   }
 
   const { data, error } = await supabase.storage
-    .from(BUCKET_NAME)
+    .from(bucket)
     .upload(key, body, {
       contentType,
       upsert: true,
@@ -39,18 +39,18 @@ export async function uploadFile(key: string, body: Buffer, contentType: string)
     throw new Error(`Failed to upload file: ${error.message}`);
   }
 
-  console.log(`📁 File uploaded to Supabase Storage: ${key}`);
+  console.log(`📁 File uploaded to Supabase Storage (${bucket}): ${key}`);
   return key;
 }
 
 // 스트리밍용 Signed URL 생성 (1시간 유효)
-export async function getStreamUrl(key: string): Promise<string> {
+export async function getStreamUrl(key: string, bucket: string = BUCKET_NAME): Promise<string> {
   if (!supabase) {
     throw new Error('Supabase Storage is not configured. Please set SUPABASE_URL and SUPABASE_SERVICE_KEY.');
   }
 
   const { data, error } = await supabase.storage
-    .from(BUCKET_NAME)
+    .from(bucket)
     .createSignedUrl(key, 3600); // 1시간
 
   if (error) {
@@ -147,6 +147,7 @@ export async function ensureWebtoonBucketExists(): Promise<void> {
       return;
     }
 
+    // webtoon-images 버킷
     const webtoonBucketExists = buckets?.some(b => b.name === 'webtoon-images');
 
     if (!webtoonBucketExists) {
@@ -164,6 +165,26 @@ export async function ensureWebtoonBucketExists(): Promise<void> {
       }
     } else {
       console.log('✅ webtoon-images bucket already exists');
+    }
+
+    // project-tracks 버킷 (프로젝트 전용 음원)
+    const projectTracksBucketExists = buckets?.some(b => b.name === 'project-tracks');
+
+    if (!projectTracksBucketExists) {
+      console.log('📦 Creating project-tracks bucket...');
+      const { error: createError } = await supabase.storage.createBucket('project-tracks', {
+        public: false,
+        fileSizeLimit: 52428800, // 50MB
+        allowedMimeTypes: ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/x-wav', 'audio/flac', 'audio/aac', 'audio/ogg']
+      });
+
+      if (createError) {
+        console.error('❌ Failed to create project-tracks bucket:', createError);
+      } else {
+        console.log('✅ project-tracks bucket created successfully');
+      }
+    } else {
+      console.log('✅ project-tracks bucket already exists');
     }
   } catch (error) {
     console.error('Error ensuring webtoon bucket exists:', error);

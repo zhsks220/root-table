@@ -27,7 +27,11 @@ export interface Track {
     album?: string;
     duration?: number;
     file_size?: number;
+    file_key?: string;
+    stream_url?: string;
     created_at: string;
+    // 프로젝트 전용 음원 여부
+    is_project_track?: boolean;
     // 확장 필드
     mood?: string;
     language?: string;

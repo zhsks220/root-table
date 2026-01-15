@@ -192,4 +192,19 @@ export const webToonProjectAPI = {
 
   loadProjectData: (projectId: string) =>
     api.get(`/admin/webtoon-projects/${projectId}/data`),
+
+  // Project-specific tracks (프로젝트 전용 음원)
+  uploadProjectTrack: (projectId: string, formData: FormData) =>
+    api.post(`/admin/webtoon-projects/${projectId}/project-tracks`, formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    }),
+
+  getProjectTracks: (projectId: string) =>
+    api.get(`/admin/webtoon-projects/${projectId}/project-tracks`),
+
+  deleteProjectTrack: (projectId: string, trackId: string) =>
+    api.delete(`/admin/webtoon-projects/${projectId}/project-tracks/${trackId}`),
+
+  getProjectTrackStreamUrl: (projectId: string, trackId: string) =>
+    api.get(`/admin/webtoon-projects/${projectId}/project-tracks/${trackId}/stream`),
 };

@@ -333,9 +333,15 @@ export function useScrollBasedPlayback(
     mobileIsInitialized.current = false;
   }, []);
 
+  // 특정 마커를 passedMarkers에 추가 (삭제 시 재생 방지용)
+  const addToPassedMarkers = useCallback((markerId: string) => {
+    passedMarkers.current.add(markerId);
+  }, []);
+
   return {
     registerMarkerElement,
     resetPassedMarkers,
+    addToPassedMarkers,
     sortedMarkers,
   };
 }

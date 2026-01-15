@@ -72,7 +72,7 @@ export function WebToonProjectsView() {
   const cacheLoadedRef = useRef(false);
 
   // Intersection Observer 기반 스크롤 재생 훅
-  const { registerMarkerElement, resetPassedMarkers } = useScrollBasedPlayback(
+  const { registerMarkerElement, resetPassedMarkers, addToPassedMarkers } = useScrollBasedPlayback(
     previewContainerRef,
     trackMarkers,
     currentTrack?.id,
@@ -318,12 +318,27 @@ export function WebToonProjectsView() {
   };
 
   // 음원 마커 삭제
-  const handleDeleteTrackMarker = (markerId: string) => {
+  const handleDeleteTrackMarker = async (markerId: string) => {
     const markerToDelete = trackMarkers.find(m => m.id === markerId);
+    if (!markerToDelete) return;
+
+    // 삭제할 마커를 passedMarkers에 추가 (스크롤 이벤트로 인한 재생 방지)
+    addToPassedMarkers(markerId);
+
     // 삭제하는 마커의 트랙이 현재 재생 중이면 정지
-    if (markerToDelete && currentTrack?.id === markerToDelete.track.id) {
+    if (currentTrack?.id === markerToDelete.track.id) {
       stop();
     }
+
+    // 프로젝트 전용 음원인 경우 Storage에서도 삭제
+    if (currentProject && markerToDelete.track.is_project_track) {
+      try {
+        await webToonProjectAPI.deleteProjectTrack(currentProject.id, markerToDelete.track.id);
+      } catch (error) {
+        console.error('Failed to delete project track:', error);
+      }
+    }
+
     setTrackMarkers(prev => prev.filter(marker => marker.id !== markerId));
   };
 
@@ -1296,6 +1311,7 @@ export function WebToonProjectsView() {
         onClose={() => setShowTrackModal(false)}
         onSelectTrack={handleAddTrack}
         excludeTrackIds={trackMarkers.map(m => m.track.id)}
+        projectId={currentProject?.id}
       />
     </PageTransition>
   );

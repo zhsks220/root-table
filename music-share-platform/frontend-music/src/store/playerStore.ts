@@ -127,8 +127,13 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     try {
       let streamUrl: string;
 
+      // 트랙에 stream_url이 직접 있으면 바로 사용 (프로젝트 전용 음원 등)
+      if ((track as any).stream_url) {
+        streamUrl = (track as any).stream_url;
+        console.log('⚡ Using direct stream_url from track');
+      }
       // 캐시된 URL이 있으면 사용
-      if (state.preloadedUrls.has(track.id)) {
+      else if (state.preloadedUrls.has(track.id)) {
         streamUrl = state.preloadedUrls.get(track.id)!;
         console.log('⚡ Using preloaded URL');
       } else {

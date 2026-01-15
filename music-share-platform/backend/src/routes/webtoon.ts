@@ -6,6 +6,7 @@ import { pool } from '../db';
 import { AuthRequest } from '../types';
 import { authenticateToken, requireAdmin } from '../middleware/auth';
 import { uploadFile, deleteFile, getStreamUrl, supabase } from '../services/supabaseStorage';
+import { getAudioMetadata } from '../services/transcoder';
 
 const router = Router();
 
@@ -126,6 +127,20 @@ const imageUpload = multer({
       cb(null, true);
     } else {
       cb(new Error('Invalid file type. Only images allowed (jpeg, png, webp).'));
+    }
+  },
+});
+
+// 오디오 업로드 설정 (50MB 제한)
+const audioUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['audio/mpeg', 'audio/mp3', 'audio/wav', 'audio/x-wav', 'audio/flac', 'audio/aac', 'audio/ogg'];
+    if (allowedTypes.includes(file.mimetype) || file.originalname.toLowerCase().endsWith('.mp3')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only audio files allowed (mp3, wav, flac, aac, ogg).'));
     }
   },
 });
@@ -1070,6 +1085,207 @@ router.get('/webtoon-projects/:projectId/data', async (req: AuthRequest, res: Re
   } catch (error) {
     console.error('Error loading project data:', error);
     res.status(500).json({ error: 'Failed to load project data' });
+  }
+});
+
+// ===== 프로젝트 전용 음원 =====
+
+// 프로젝트 전용 음원 업로드
+router.post('/webtoon-projects/:projectId/project-tracks', audioUpload.single('file'), async (req: AuthRequest, res: Response) => {
+  try {
+    const { projectId } = req.params;
+    const { title, artist } = req.body;
+
+    if (!req.file) {
+      return res.status(400).json({ error: 'No audio file uploaded' });
+    }
+
+    if (!title) {
+      return res.status(400).json({ error: 'Title is required' });
+    }
+
+    // 프로젝트 존재 및 권한 확인
+    const projectCheck = await pool.query(
+      'SELECT id, created_by FROM webtoon_projects WHERE id = $1',
+      [projectId]
+    );
+
+    if (projectCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    // 파트너는 본인 프로젝트만 접근 가능
+    if (req.user?.role === 'partner' && projectCheck.rows[0].created_by !== req.user.id) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    // 오디오 메타데이터 추출 (duration)
+    let duration: number | null = null;
+    try {
+      const metadata = await getAudioMetadata(req.file.buffer);
+      duration = metadata.duration ? Math.round(metadata.duration) : null;
+    } catch (e) {
+      console.warn('Failed to extract audio metadata:', e);
+    }
+
+    // 파일 업로드 (Supabase Storage - project-tracks 버킷)
+    const trackId = crypto.randomUUID();
+    const fileExt = req.file.originalname.split('.').pop()?.toLowerCase() || 'mp3';
+    const fileKey = `${projectId}/${trackId}.${fileExt}`;
+
+    await uploadFile(fileKey, req.file.buffer, req.file.mimetype, 'project-tracks');
+
+    // DB에 저장
+    const result = await pool.query(
+      `INSERT INTO project_tracks (id, project_id, title, artist, file_key, file_size, duration, uploaded_by)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
+       RETURNING *`,
+      [trackId, projectId, title, artist || null, fileKey, req.file.size, duration, req.user!.id]
+    );
+
+    const track = result.rows[0];
+
+    // 스트리밍 URL 생성 (project-tracks 버킷 사용)
+    const streamUrl = await getStreamUrl(track.file_key, 'project-tracks');
+
+    res.status(201).json({
+      success: true,
+      track: {
+        ...track,
+        stream_url: streamUrl,
+      },
+    });
+  } catch (error) {
+    console.error('Error uploading project track:', error);
+    res.status(500).json({ error: 'Failed to upload track' });
+  }
+});
+
+// 프로젝트 전용 음원 목록 조회
+router.get('/webtoon-projects/:projectId/project-tracks', async (req: AuthRequest, res: Response) => {
+  try {
+    const { projectId } = req.params;
+
+    // 프로젝트 존재 및 권한 확인
+    const projectCheck = await pool.query(
+      'SELECT id, created_by FROM webtoon_projects WHERE id = $1',
+      [projectId]
+    );
+
+    if (projectCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (req.user?.role === 'partner' && projectCheck.rows[0].created_by !== req.user.id) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    // 프로젝트 전용 음원 조회
+    const result = await pool.query(
+      `SELECT * FROM project_tracks WHERE project_id = $1 ORDER BY created_at DESC`,
+      [projectId]
+    );
+
+    // 스트리밍 URL 생성 (project-tracks 버킷 사용)
+    const tracks = await Promise.all(result.rows.map(async (track) => {
+      let stream_url = null;
+      try {
+        stream_url = await getStreamUrl(track.file_key, 'project-tracks');
+      } catch (e) {
+        console.error('Failed to get stream URL:', e);
+      }
+      return { ...track, stream_url };
+    }));
+
+    res.json({ tracks });
+  } catch (error) {
+    console.error('Error fetching project tracks:', error);
+    res.status(500).json({ error: 'Failed to fetch tracks' });
+  }
+});
+
+// 프로젝트 전용 음원 삭제
+router.delete('/webtoon-projects/:projectId/project-tracks/:trackId', async (req: AuthRequest, res: Response) => {
+  try {
+    const { projectId, trackId } = req.params;
+
+    // 프로젝트 존재 및 권한 확인
+    const projectCheck = await pool.query(
+      'SELECT id, created_by FROM webtoon_projects WHERE id = $1',
+      [projectId]
+    );
+
+    if (projectCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (req.user?.role === 'partner' && projectCheck.rows[0].created_by !== req.user.id) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    // 음원 조회
+    const trackResult = await pool.query(
+      'SELECT * FROM project_tracks WHERE id = $1 AND project_id = $2',
+      [trackId, projectId]
+    );
+
+    if (trackResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Track not found' });
+    }
+
+    const track = trackResult.rows[0];
+
+    // 스토리지에서 파일 삭제
+    try {
+      await deleteFile(track.file_key);
+    } catch (e) {
+      console.error('Failed to delete file from storage:', e);
+    }
+
+    // DB에서 삭제
+    await pool.query('DELETE FROM project_tracks WHERE id = $1', [trackId]);
+
+    res.json({ success: true, message: 'Track deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting project track:', error);
+    res.status(500).json({ error: 'Failed to delete track' });
+  }
+});
+
+// 프로젝트 전용 음원 스트리밍 URL 생성
+router.get('/webtoon-projects/:projectId/project-tracks/:trackId/stream', async (req: AuthRequest, res: Response) => {
+  try {
+    const { projectId, trackId } = req.params;
+
+    // 프로젝트 권한 확인
+    const projectCheck = await pool.query(
+      'SELECT id, created_by FROM webtoon_projects WHERE id = $1',
+      [projectId]
+    );
+
+    if (projectCheck.rows.length === 0) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    if (req.user?.role === 'partner' && projectCheck.rows[0].created_by !== req.user.id) {
+      return res.status(403).json({ error: 'Access denied' });
+    }
+
+    // 음원 조회
+    const trackResult = await pool.query(
+      'SELECT file_key FROM project_tracks WHERE id = $1 AND project_id = $2',
+      [trackId, projectId]
+    );
+
+    if (trackResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Track not found' });
+    }
+
+    const streamUrl = await getStreamUrl(trackResult.rows[0].file_key, 'project-tracks');
+    res.json({ url: streamUrl });
+  } catch (error) {
+    console.error('Error generating stream URL:', error);
+    res.status(500).json({ error: 'Failed to generate stream URL' });
   }
 });
 

@@ -154,13 +154,13 @@ export const Process = () => {
                                             style={{ minHeight: '200px' }}
                                         >
                                             <div className="text-center py-4">
-                                                <h3 className={`text-2xl md:text-3xl 3xl:text-5xl font-bold mb-4 transition-colors duration-500 ${
+                                                <h3 className={`text-xl md:text-3xl 3xl:text-5xl font-bold mb-4 transition-colors duration-500 break-keep ${
                                                     isActive ? 'text-white' : 'text-white/30'
                                                 }`}>
                                                     {step.title}
                                                 </h3>
                                                 {isActive && (
-                                                    <p className="text-base md:text-lg 3xl:text-2xl leading-relaxed text-white/60">
+                                                    <p className="text-base md:text-lg 3xl:text-2xl leading-relaxed text-white/60 break-keep">
                                                         {step.description}
                                                     </p>
                                                 )}
@@ -205,7 +205,8 @@ export const Process = () => {
                     viewport={{ once: true }}
                     className="text-center text-white/50 text-base md:text-lg 3xl:text-2xl max-w-2xl 3xl:max-w-4xl mx-auto"
                 >
-                    이 방식으로, 작품의 흐름과 캐릭터 해석이 흔들리지 않게 음악을 설계합니다.
+                    이 방식으로, 작품의 흐름과 <br />
+                    캐릭터 해석이 흔들리지 않게 음악을 설계합니다.
                 </motion.p>
             </div>
         </section>

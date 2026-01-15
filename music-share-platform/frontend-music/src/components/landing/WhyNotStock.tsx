@@ -289,14 +289,14 @@ export const WhyNotStock = () => {
 
                                         <div className="relative z-10">
                                             {/* 장르 타이틀 */}
-                                            <h3 className={`text-2xl md:text-3xl 3xl:text-5xl font-bold mb-3 ${
+                                            <h3 className={`text-2xl md:text-3xl 3xl:text-5xl font-bold mb-3 break-keep ${
                                                 isActive ? card.accentText : 'text-white/40'
                                             }`}>
                                                 {card.genre}
                                             </h3>
 
                                             {/* 설명 */}
-                                            <p className={`text-sm md:text-base 3xl:text-xl mb-5 leading-relaxed transition-colors duration-500 ${
+                                            <p className={`text-sm md:text-base 3xl:text-xl mb-5 leading-relaxed transition-colors duration-500 break-keep ${
                                                 isActive ? 'text-white/70' : 'text-white/30'
                                             }`}>
                                                 {card.description}

@@ -270,7 +270,8 @@ export const SocialProof = () => {
                     viewport={{ once: true }}
                     className="text-center text-white/40 text-sm md:text-base"
                 >
-                    단발 프로젝트가 아닌, 연재 흐름을 함께 설계해왔습니다.
+                    단발 프로젝트가 아닌, <br />
+                    연재 흐름을 함께 설계해왔습니다.
                 </motion.p>
             </div>
         </section>

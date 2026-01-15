@@ -35,7 +35,7 @@ export function WebToonEditor({ projectId, onClose }: WebToonEditorProps) {
 
   // Long press 컨텍스트 메뉴
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
-  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 프로젝트 데이터 로드

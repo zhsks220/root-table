@@ -54,7 +54,7 @@ export function WebToonProjectsView() {
 
   // Long press 컨텍스트 메뉴
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
-  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 음원 추가 모달
   const [showTrackModal, setShowTrackModal] = useState(false);

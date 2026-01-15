@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { adminAPI, categoryAPI } from '../../services/api';
 import { Category, MoodOption, LanguageOption } from '../../types';
 import { PageTransition } from '../PageTransition';
-import { Upload, Music, Disc, User as UserIcon, Tag, Globe, Sparkles, ChevronDown, X, Calendar } from 'lucide-react';
+import { Upload, Music, Disc, User as UserIcon, Tag, Globe, Sparkles, ChevronDown, X } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useThemeStore } from '../../store/themeStore';
 

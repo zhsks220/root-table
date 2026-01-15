@@ -118,7 +118,9 @@ export interface WebToonScene {
     id: string;
     project_id: string;
     image_url: string;
+    thumbnail_url?: string;
     image_key?: string;
+    thumbnail_key?: string;
     display_order: number;
     memo?: string;
     scroll_trigger_position: number; // 0-100%

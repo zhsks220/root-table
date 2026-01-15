@@ -27,6 +27,7 @@ CREATE TABLE IF NOT EXISTS webtoon_scenes (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
   project_id UUID REFERENCES webtoon_projects(id) ON DELETE CASCADE NOT NULL,
   image_key VARCHAR(500) NOT NULL,
+  thumbnail_key VARCHAR(500),
   display_order INTEGER NOT NULL DEFAULT 0,
   memo TEXT,
   scroll_trigger_position INTEGER DEFAULT 50 CHECK (scroll_trigger_position >= 0 AND scroll_trigger_position <= 100),

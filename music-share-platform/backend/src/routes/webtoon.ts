@@ -83,6 +83,23 @@ async function optimizeImage(buffer: Buffer): Promise<Buffer> {
   return optimized;
 }
 
+// 썸네일 생성: 너비 320px, 종횡비 유지
+async function createThumbnail(buffer: Buffer): Promise<Buffer> {
+  const thumbnail = await sharp(buffer)
+    .resize(320, null, {
+      fit: 'inside',
+      withoutEnlargement: true,
+    })
+    .jpeg({
+      quality: 70,
+      progressive: true,
+    })
+    .toBuffer();
+
+  console.log(`🖼️ 썸네일 생성: ${(thumbnail.length / 1024).toFixed(0)}KB`);
+  return thumbnail;
+}
+
 // URL 캐시 (API 호출 줄이기)
 const urlCache = new Map<string, { url: string; expires: number }>();
 
@@ -314,17 +331,22 @@ router.get('/webtoon-projects/:projectId', async (req: AuthRequest, res: Respons
 
       // 이미지 URL 생성 (캐시 사용)
       let image_url = null;
-      if (scene.image_key) {
-        try {
+      let thumbnail_url = null;
+      try {
+        if (scene.image_key) {
           image_url = await getCachedWebtoonImageUrl(scene.image_key);
-        } catch (error) {
-          console.error('Failed to generate scene image URL:', error);
         }
+        if (scene.thumbnail_key) {
+          thumbnail_url = await getCachedWebtoonImageUrl(scene.thumbnail_key);
+        }
+      } catch (error) {
+        console.error('Failed to generate scene image URL:', error);
       }
 
       return {
         ...scene,
         image_url,
+        thumbnail_url,
         tracks: tracksResult.rows,
       };
     }));
@@ -472,18 +494,15 @@ router.delete('/webtoon-projects/:projectId', async (req: AuthRequest, res: Resp
 
     // 장면 이미지들 삭제
     const scenesResult = await pool.query(
-      'SELECT image_key FROM webtoon_scenes WHERE project_id = $1',
+      'SELECT image_key, thumbnail_key FROM webtoon_scenes WHERE project_id = $1',
       [projectId]
     );
 
     for (const scene of scenesResult.rows) {
-      if (scene.image_key) {
-        try {
-          await deleteWebtoonImage(scene.image_key);
-        } catch (error) {
-          console.error('Failed to delete scene image:', error);
-        }
-      }
+      const deletePromises = [];
+      if (scene.image_key) deletePromises.push(deleteWebtoonImage(scene.image_key).catch(console.error));
+      if (scene.thumbnail_key) deletePromises.push(deleteWebtoonImage(scene.thumbnail_key).catch(console.error));
+      await Promise.all(deletePromises);
     }
 
     // 커버 이미지 삭제
@@ -549,26 +568,39 @@ router.post('/webtoon-projects/:projectId/scenes', imageUpload.single('image'), 
     // 이미지 최적화 (JPEG 변환)
     const sceneId = crypto.randomUUID();
     const imageKey = `webtoon-images/projects/${projectId}/scenes/${sceneId}.jpg`;
+    const thumbnailKey = `webtoon-images/projects/${projectId}/scenes/${sceneId}_thumb.jpg`;
 
-    const optimizedBuffer = await optimizeImage(req.file.buffer);
-    await uploadWebtoonImage(imageKey, optimizedBuffer, 'image/jpeg');
+    // 원본 최적화 + 썸네일 생성 (병렬)
+    const [optimizedBuffer, thumbnailBuffer] = await Promise.all([
+      optimizeImage(req.file.buffer),
+      createThumbnail(req.file.buffer),
+    ]);
+
+    // 원본 + 썸네일 업로드 (병렬)
+    await Promise.all([
+      uploadWebtoonImage(imageKey, optimizedBuffer, 'image/jpeg'),
+      uploadWebtoonImage(thumbnailKey, thumbnailBuffer, 'image/jpeg'),
+    ]);
 
     // DB에 저장
     const result = await pool.query(
-      `INSERT INTO webtoon_scenes (id, project_id, image_key, display_order, memo, scroll_trigger_position)
-       VALUES ($1, $2, $3, $4, $5, $6)
+      `INSERT INTO webtoon_scenes (id, project_id, image_key, thumbnail_key, display_order, memo, scroll_trigger_position)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
        RETURNING *`,
-      [sceneId, projectId, imageKey, order, memo || null, scroll_trigger_position]
+      [sceneId, projectId, imageKey, thumbnailKey, order, memo || null, scroll_trigger_position]
     );
 
     const scene = result.rows[0];
 
     // 이미지 URL 생성 (캐시)
-    const image_url = await getCachedWebtoonImageUrl(imageKey);
+    const [image_url, thumbnail_url] = await Promise.all([
+      getCachedWebtoonImageUrl(imageKey),
+      getCachedWebtoonImageUrl(thumbnailKey),
+    ]);
 
     res.status(201).json({
       success: true,
-      scene: { ...scene, image_url },
+      scene: { ...scene, image_url, thumbnail_url },
     });
   } catch (error) {
     console.error('Error uploading scene:', error);
@@ -608,21 +640,30 @@ router.patch('/webtoon-projects/:projectId/scenes/:sceneId', imageUpload.single(
 
     const scene = sceneResult.rows[0];
     let imageKey = scene.image_key;
+    let thumbnailKey = scene.thumbnail_key;
 
     // 새 이미지 업로드
     if (req.file) {
-      // 기존 이미지 삭제
-      if (imageKey) {
-        try {
-          await deleteWebtoonImage(imageKey);
-        } catch (error) {
-          console.error('Failed to delete old scene image:', error);
-        }
-      }
+      // 기존 이미지 + 썸네일 삭제
+      const deletePromises = [];
+      if (imageKey) deletePromises.push(deleteWebtoonImage(imageKey).catch(console.error));
+      if (thumbnailKey) deletePromises.push(deleteWebtoonImage(thumbnailKey).catch(console.error));
+      await Promise.all(deletePromises);
 
       imageKey = `webtoon-images/projects/${projectId}/scenes/${sceneId}.jpg`;
-      const optimizedBuffer = await optimizeImage(req.file.buffer);
-      await uploadWebtoonImage(imageKey, optimizedBuffer, 'image/jpeg');
+      thumbnailKey = `webtoon-images/projects/${projectId}/scenes/${sceneId}_thumb.jpg`;
+
+      // 원본 최적화 + 썸네일 생성 (병렬)
+      const [optimizedBuffer, thumbnailBuffer] = await Promise.all([
+        optimizeImage(req.file.buffer),
+        createThumbnail(req.file.buffer),
+      ]);
+
+      // 원본 + 썸네일 업로드 (병렬)
+      await Promise.all([
+        uploadWebtoonImage(imageKey, optimizedBuffer, 'image/jpeg'),
+        uploadWebtoonImage(thumbnailKey, thumbnailBuffer, 'image/jpeg'),
+      ]);
     }
 
     // 업데이트할 필드 구성
@@ -649,6 +690,9 @@ router.patch('/webtoon-projects/:projectId/scenes/:sceneId', imageUpload.single(
       updates.push(`image_key = $${paramIndex}`);
       params.push(imageKey);
       paramIndex++;
+      updates.push(`thumbnail_key = $${paramIndex}`);
+      params.push(thumbnailKey);
+      paramIndex++;
     }
 
     if (updates.length === 0) {
@@ -663,11 +707,14 @@ router.patch('/webtoon-projects/:projectId/scenes/:sceneId', imageUpload.single(
     );
 
     const updatedScene = result.rows[0];
-    const image_url = await getCachedWebtoonImageUrl(updatedScene.image_key);
+    const [image_url, thumbnail_url] = await Promise.all([
+      getCachedWebtoonImageUrl(updatedScene.image_key),
+      updatedScene.thumbnail_key ? getCachedWebtoonImageUrl(updatedScene.thumbnail_key) : Promise.resolve(null),
+    ]);
 
     res.json({
       success: true,
-      scene: { ...updatedScene, image_url },
+      scene: { ...updatedScene, image_url, thumbnail_url },
     });
   } catch (error) {
     console.error('Error updating scene:', error);
@@ -758,14 +805,11 @@ router.delete('/webtoon-projects/:projectId/scenes/:sceneId', async (req: AuthRe
 
     const scene = sceneResult.rows[0];
 
-    // 이미지 삭제
-    if (scene.image_key) {
-      try {
-        await deleteWebtoonImage(scene.image_key);
-      } catch (error) {
-        console.error('Failed to delete scene image:', error);
-      }
-    }
+    // 이미지 + 썸네일 삭제
+    const deletePromises = [];
+    if (scene.image_key) deletePromises.push(deleteWebtoonImage(scene.image_key).catch(console.error));
+    if (scene.thumbnail_key) deletePromises.push(deleteWebtoonImage(scene.thumbnail_key).catch(console.error));
+    await Promise.all(deletePromises);
 
     // 장면 삭제 (CASCADE로 scene_tracks도 자동 삭제)
     await pool.query('DELETE FROM webtoon_scenes WHERE id = $1', [sceneId]);

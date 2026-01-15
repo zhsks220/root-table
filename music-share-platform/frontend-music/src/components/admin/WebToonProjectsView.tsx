@@ -10,7 +10,6 @@ import { cn } from '../../lib/utils';
 import { useThemeStore } from '../../store/themeStore';
 import { usePlayerStore } from '../../store/playerStore';
 import { useScrollBasedPlayback } from '../../hooks/useScrollBasedPlayback';
-import { useImagePreloader } from '../../hooks/useImagePreloader';
 import {
   ArrowLeft, Plus, Upload, Trash2, Music,
   Loader2, Image as ImageIcon, X, Smartphone, StickyNote,
@@ -83,11 +82,6 @@ export function WebToonProjectsView() {
     { enabled: trackMarkers.length > 0 },
     mobileContainerRef
   );
-
-  // 이미지 프리로더 (70% 스크롤 시 다음 3개 장면 프리로드)
-  const imageUrls = scenes.map(scene => scene.image_url).filter(Boolean) as string[];
-  useImagePreloader(previewContainerRef, imageUrls, { threshold: 0.7, preloadCount: 3 });
-  useImagePreloader(mobileContainerRef, imageUrls, { threshold: 0.7, preloadCount: 3 });
 
   // 프로젝트 생성
   const handleCreateProject = async () => {
@@ -177,24 +171,26 @@ export function WebToonProjectsView() {
     }
   }, [currentProject?.id]);
 
-  // 사이드바 이미지 blob 캐싱 (프로젝트 로드 시 한번만)
+  // 사이드바 썸네일 blob 캐싱 (프로젝트 로드 시 한번만)
   useEffect(() => {
     if (scenes.length === 0 || cacheLoadedRef.current) return;
 
     const cacheImages = async () => {
       const cache: Record<string, string> = {};
 
-      // 모든 이미지 병렬로 fetch -> blob 변환
+      // 썸네일 이미지 병렬로 fetch -> blob 변환
       await Promise.all(
         scenes.map(async (scene) => {
-          if (!scene.image_url) return;
+          // 썸네일이 있으면 썸네일 사용, 없으면 원본 사용
+          const imageUrl = scene.thumbnail_url || scene.image_url;
+          if (!imageUrl) return;
           try {
-            const res = await fetch(scene.image_url);
+            const res = await fetch(imageUrl);
             const blob = await res.blob();
             cache[scene.id] = URL.createObjectURL(blob);
           } catch (e) {
-            // 실패 시 원본 URL 사용
-            cache[scene.id] = scene.image_url;
+            // 실패 시 URL 직접 사용
+            cache[scene.id] = imageUrl;
           }
         })
       );
@@ -968,12 +964,23 @@ export function WebToonProjectsView() {
                 <>
                   <div className="space-y-0">
                     {scenes.map((scene, index) => (
-                      <img
+                      <div
                         key={scene.id}
-                        src={scene.image_url}
-                        alt={`Scene ${index + 1}`}
-                        className="w-full"
-                      />
+                        style={{
+                          contentVisibility: 'auto',
+                          containIntrinsicSize: 'auto 500px',
+                          contain: 'layout paint',
+                          willChange: 'transform',
+                        }}
+                      >
+                        <img
+                          src={scene.image_url}
+                          alt={`Scene ${index + 1}`}
+                          className="w-full"
+                          loading="lazy"
+                          decoding="async"
+                        />
+                      </div>
                     ))}
                   </div>
 
@@ -1109,11 +1116,19 @@ export function WebToonProjectsView() {
                             'relative cursor-pointer transition-all',
                             selectedScene?.id === scene.id && 'ring-4 ring-emerald-500'
                           )}
+                          style={{
+                            contentVisibility: 'auto',
+                            containIntrinsicSize: 'auto 500px',
+                            contain: 'layout paint',
+                            willChange: 'transform',
+                          }}
                         >
                           <img
                             src={scene.image_url}
                             alt={`Scene ${index + 1}`}
                             className="w-full object-contain"
+                            loading="lazy"
+                            decoding="async"
                           />
                           {selectedScene?.id === scene.id && (
                             <div className="absolute top-2 left-2 px-2 py-1 bg-emerald-500 text-white text-xs font-bold rounded">

@@ -25,7 +25,6 @@ export function useImagePreloader(
     const img = new Image();
     img.src = url;
     preloadedSet.current.add(url);
-    console.log(`🖼️ 프리로드: ${url.slice(0, 50)}...`);
   }, []);
 
   // 다음 이미지들 프리로드

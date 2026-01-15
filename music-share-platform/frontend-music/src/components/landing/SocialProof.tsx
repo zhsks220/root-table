@@ -143,7 +143,10 @@ export const SocialProof = () => {
                                 key={`row1-${idx}`}
                                 className="relative w-[200px] h-[280px] flex-shrink-0 rounded-lg overflow-hidden"
                                 style={{
-                                    filter: 'blur(3px) brightness(0.7)',
+                                    filter: 'blur(2px) brightness(0.7)',
+                                    willChange: 'transform',
+                                    transform: 'translateZ(0)',
+                                    contain: 'layout paint',
                                 }}
                             >
                                 <img
@@ -178,7 +181,10 @@ export const SocialProof = () => {
                                 key={`row2-${idx}`}
                                 className="relative w-[200px] h-[280px] flex-shrink-0 rounded-lg overflow-hidden"
                                 style={{
-                                    filter: 'blur(3px) brightness(0.7)',
+                                    filter: 'blur(2px) brightness(0.7)',
+                                    willChange: 'transform',
+                                    transform: 'translateZ(0)',
+                                    contain: 'layout paint',
                                 }}
                             >
                                 <img

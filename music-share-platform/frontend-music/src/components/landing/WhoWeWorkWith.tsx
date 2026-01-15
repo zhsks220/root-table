@@ -44,7 +44,7 @@ const ConclusionText = ({ progress }: { progress: MotionValue<number> }) => {
             }}
         >
             <h3 className="text-4xl md:text-6xl 3xl:text-8xl font-black leading-tight text-center">
-                이런 고민들, <br className="hidden sm:block" />
+                이런 고민들, <br />
                 <span className="text-emerald-500">우리가 해결합니다.</span>
             </h3>
         </motion.div>

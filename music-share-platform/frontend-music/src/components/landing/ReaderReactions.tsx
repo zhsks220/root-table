@@ -707,15 +707,16 @@ export const ReaderReactions = () => {
                         50% { transform: translateY(-16px) rotate(var(--rotation)); }
                     }
                 `}</style>
-                {backgroundComments.map((comment, idx) => {
+                {/* 모바일에서는 배경 카드 15개만 표시 (성능 최적화) */}
+                {(isMobile ? backgroundComments.slice(0, 15) : backgroundComments).map((comment, idx) => {
                     const pos = backgroundPositions[idx];
                     if (!pos) return null;
 
-                    // 레이어별 설정 (애니메이션 제거)
+                    // 레이어별 설정 (모바일에서 blur 줄임)
                     const layerConfig = {
-                        1: { blur: 3, brightness: 0.12 },
-                        2: { blur: 2, brightness: 0.18 },
-                        3: { blur: 1, brightness: 0.25 },
+                        1: { blur: isMobile ? 2 : 3, brightness: 0.12 },
+                        2: { blur: isMobile ? 1 : 2, brightness: 0.18 },
+                        3: { blur: isMobile ? 1 : 1, brightness: 0.25 },
                     }[pos.layer] || { blur: 2, brightness: 0.15 };
 
                     return (
@@ -725,10 +726,12 @@ export const ReaderReactions = () => {
                             style={{
                                 left: pos.left,
                                 top: pos.top,
-                                transform: `rotate(${pos.rotation}deg)`,
+                                transform: `rotate(${pos.rotation}deg) translateZ(0)`,
                                 filter: `blur(${layerConfig.blur}px) brightness(${layerConfig.brightness})`,
                                 zIndex: pos.layer,
                                 width: `${324 * pos.scale}px`,
+                                willChange: 'transform',
+                                contain: 'layout paint',
                             } as React.CSSProperties}
                         >
                             <div

@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { cn } from '../../lib/utils';
 import { useAuthStore } from '../../store/authStore';
@@ -11,6 +11,8 @@ export const Navbar = ({ onCTAClick }: NavbarProps) => {
     const [isScrolled, setIsScrolled] = useState(false);
     const navigate = useNavigate();
     const { isAuthenticated, user } = useAuthStore();
+    const lastScrollRef = useRef(0);
+    const throttleMs = 50;
 
     const handleStart = () => {
         if (isAuthenticated) {
@@ -28,13 +30,21 @@ export const Navbar = ({ onCTAClick }: NavbarProps) => {
         }
     };
 
-    useEffect(() => {
-        const handleScroll = () => {
-            setIsScrolled(window.scrollY > 20);
-        };
-        window.addEventListener('scroll', handleScroll);
-        return () => window.removeEventListener('scroll', handleScroll);
+    const handleScroll = useCallback(() => {
+        const now = Date.now();
+        if (now - lastScrollRef.current < throttleMs) return;
+
+        lastScrollRef.current = now;
+        setIsScrolled(window.scrollY > 20);
     }, []);
+
+    useEffect(() => {
+        // 초기 상태 설정
+        setIsScrolled(window.scrollY > 20);
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, [handleScroll]);
 
     return (
         <nav

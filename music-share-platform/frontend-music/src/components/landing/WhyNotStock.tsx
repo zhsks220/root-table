@@ -232,10 +232,10 @@ export const WhyNotStock = () => {
 
     return (
         <section ref={sectionRef} className="py-24 px-6 bg-black overflow-hidden">
-            {/* 오디오 요소 - 장르별 샘플 음악 */}
+            {/* 오디오 요소 - 장르별 샘플 음악 (metadata만 프리로드하여 초기 로딩 최적화) */}
             <audio
                 ref={audioRef}
-                preload="auto"
+                preload="metadata"
                 onEnded={handleAudioEnded}
             />
 
@@ -331,7 +331,8 @@ export const WhyNotStock = () => {
                                                     rel="noopener noreferrer"
                                                     className={`absolute -bottom-3 -right-2 sm:-bottom-5 sm:-right-4 inline-flex items-center gap-1 sm:gap-2 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 ${card.accentText} bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20`}
                                                 >
-                                                    다른 작품 보기
+                                                    <span className="sm:hidden">더보기</span>
+                                                    <span className="hidden sm:inline">다른 작품 보기</span>
                                                     <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                                                 </motion.a>
                                             )}
@@ -416,14 +417,6 @@ export const WhyNotStock = () => {
                         {Math.round((isMuted ? 0 : volume) * 100)}%
                     </span>
                 </div>
-
-                {/* 재생 중 표시 */}
-                {isPlaying && (
-                    <div className="flex items-center justify-center gap-2 text-emerald-400 mb-6">
-                        <Volume2 className="w-4 h-4 animate-pulse" />
-                        <span className="text-sm">{currentCard.genre} 샘플 재생 중</span>
-                    </div>
-                )}
 
                 {/* 페이지네이션 인디케이터 */}
                 <div className="flex justify-center gap-2 mb-12">

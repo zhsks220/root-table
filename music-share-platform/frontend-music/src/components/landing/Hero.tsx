@@ -1,12 +1,16 @@
 import { motion } from 'framer-motion';
 import { useMousePosition } from '../../hooks/useMousePosition';
+import { useIsMobile } from '../../hooks/useResponsive';
 
 export const Hero = () => {
-    const mousePosition = useMousePosition();
+    const isMobile = useIsMobile();
+    const mousePosition = useMousePosition(!isMobile); // 모바일에서는 비활성화
 
-    // Glow position calculated relative to the mouse
+    // Glow position - 모바일에서는 화면 중앙 고정
+    const glowX = isMobile ? '50%' : `${mousePosition.x}px`;
+    const glowY = isMobile ? '40%' : `${mousePosition.y}px`;
     const glowStyle = {
-        background: `radial-gradient(400px circle at ${mousePosition.x}px ${mousePosition.y}px, rgba(16, 185, 129, 0.12), transparent 70%)`,
+        background: `radial-gradient(400px circle at ${glowX} ${glowY}, rgba(16, 185, 129, 0.12), transparent 70%)`,
     };
 
     return (

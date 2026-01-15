@@ -1,11 +1,11 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { webToonProjectAPI } from '../../services/api';
 import { WebToonProject, WebToonScene } from '../../types';
 import { cn } from '../../lib/utils';
 import { useThemeStore } from '../../store/themeStore';
 import {
   ArrowLeft, Plus, Upload, Trash2, Music, FileText,
-  Loader2, Image as ImageIcon, X, Save
+  Loader2, Image as ImageIcon, X, Save, Menu, StickyNote
 } from 'lucide-react';
 
 interface WebToonEditorProps {
@@ -29,6 +29,14 @@ export function WebToonEditor({ projectId, onClose }: WebToonEditorProps) {
   // 장면 메모 편집
   const [editingMemo, setEditingMemo] = useState('');
   const [savingMemo, setSavingMemo] = useState(false);
+
+  // 모바일 메뉴 상태
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Long press 컨텍스트 메뉴
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   // 프로젝트 데이터 로드
   const loadProject = useCallback(async () => {
@@ -105,6 +113,31 @@ export function WebToonEditor({ projectId, onClose }: WebToonEditorProps) {
     }
   };
 
+  // Long press 핸들러
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    longPressTimer.current = setTimeout(() => {
+      setContextMenu({ x: touch.clientX, y: touch.clientY });
+    }, 500);
+  };
+
+  const handleTouchEnd = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+
+  const handleTouchMove = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+
+  // 컨텍스트 메뉴 닫기
+  const closeContextMenu = () => setContextMenu(null);
+
   // 메모 저장
   const handleSaveMemo = async () => {
     if (!selectedScene) return;
@@ -142,9 +175,95 @@ export function WebToonEditor({ projectId, onClose }: WebToonEditorProps) {
 
   return (
     <div className={cn('h-screen flex flex-col', isDark ? 'bg-gray-900' : 'bg-gray-50')}>
-      {/* 헤더 */}
+      {/* 헤더 - 모바일 */}
       <header className={cn(
-        'flex items-center justify-between px-6 py-4 border-b',
+        'md:hidden flex items-center justify-between px-4 py-3 border-b',
+        isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+      )}>
+        {/* 왼쪽: 뒤로가기 */}
+        <button
+          onClick={() => onClose?.()}
+          className={cn(
+            'p-2 rounded-lg transition-colors',
+            isDark ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-700'
+          )}
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+
+        {/* 중앙: 제목 */}
+        <h1 className={cn('text-lg font-bold truncate max-w-[50%]', isDark ? 'text-white' : 'text-gray-900')}>
+          {project.title}
+        </h1>
+
+        {/* 오른쪽: 메뉴 버튼 */}
+        <div className="relative">
+          <button
+            onClick={() => setMenuOpen(!menuOpen)}
+            className={cn(
+              'p-2 rounded-lg transition-colors',
+              isDark ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-700'
+            )}
+          >
+            <Menu className="w-5 h-5" />
+          </button>
+
+          {/* 드롭다운 메뉴 */}
+          {menuOpen && (
+            <>
+              <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+              <div className={cn(
+                'absolute right-0 top-full mt-2 w-48 rounded-lg shadow-lg border z-50',
+                isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+              )}>
+                <label className={cn(
+                  'flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors',
+                  isDark ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-700'
+                )}>
+                  <Upload className="w-5 h-5" />
+                  <span>이미지 업로드</span>
+                  <input
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    onChange={(e) => { handleUploadScene(e); setMenuOpen(false); }}
+                    disabled={uploading}
+                    className="hidden"
+                  />
+                </label>
+                <button
+                  onClick={() => { handleSaveMemo(); setMenuOpen(false); }}
+                  disabled={!selectedScene || savingMemo}
+                  className={cn(
+                    'w-full flex items-center gap-3 px-4 py-3 transition-colors',
+                    isDark ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-700',
+                    (!selectedScene || savingMemo) && 'opacity-50 cursor-not-allowed'
+                  )}
+                >
+                  <Save className="w-5 h-5" />
+                  <span>저장</span>
+                </button>
+                <button
+                  onClick={() => { if (selectedScene) handleDeleteScene(selectedScene.id); setMenuOpen(false); }}
+                  disabled={!selectedScene}
+                  className={cn(
+                    'w-full flex items-center gap-3 px-4 py-3 transition-colors text-red-500',
+                    isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100',
+                    !selectedScene && 'opacity-50 cursor-not-allowed'
+                  )}
+                >
+                  <Trash2 className="w-5 h-5" />
+                  <span>삭제</span>
+                </button>
+              </div>
+            </>
+          )}
+        </div>
+      </header>
+
+      {/* 헤더 - 데스크톱 */}
+      <header className={cn(
+        'hidden md:flex items-center justify-between px-6 py-4 border-b',
         isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
       )}>
         <div className="flex items-center gap-4">
@@ -178,6 +297,7 @@ export function WebToonEditor({ projectId, onClose }: WebToonEditorProps) {
             <Upload className="w-5 h-5" />
             <span>장면 업로드</span>
             <input
+              ref={fileInputRef}
               type="file"
               accept="image/*"
               multiple
@@ -211,9 +331,9 @@ export function WebToonEditor({ projectId, onClose }: WebToonEditorProps) {
 
       {/* 메인 컨텐츠 */}
       <div className="flex-1 flex overflow-hidden">
-        {/* 왼쪽 사이드바 - 장면 리스트 */}
+        {/* 왼쪽 사이드바 - 장면 리스트 (데스크톱만) */}
         <aside className={cn(
-          'w-80 border-r overflow-y-auto',
+          'hidden md:block w-80 border-r overflow-y-auto',
           isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
         )}>
           <div className="p-4 space-y-2">
@@ -295,10 +415,48 @@ export function WebToonEditor({ projectId, onClose }: WebToonEditorProps) {
           </div>
         </aside>
 
-        {/* 중앙 - 모바일 프리뷰 (375px) */}
-        <main className={cn('flex-1 flex items-center justify-center p-8', isDark ? 'bg-gray-900' : 'bg-gray-100')}>
+        {/* 중앙 - 모바일: 풀스크린 / 데스크톱: 프리뷰 */}
+        <main className={cn(
+          'flex-1 overflow-hidden',
+          // 모바일: 풀스크린
+          'md:flex md:items-center md:justify-center md:p-8',
+          isDark ? 'bg-gray-900' : 'bg-gray-100'
+        )}>
+          {/* 모바일 풀스크린 이미지 */}
+          <div
+            className={cn(
+              'md:hidden w-full h-full overflow-y-auto',
+              isDark ? 'bg-black' : 'bg-white'
+            )}
+            onTouchStart={handleTouchStart}
+            onTouchEnd={handleTouchEnd}
+            onTouchMove={handleTouchMove}
+          >
+            {selectedScene ? (
+              <img
+                src={selectedScene.image_url}
+                alt="Preview"
+                className="w-full"
+              />
+            ) : scenes.length > 0 ? (
+              <img
+                src={scenes[0].image_url}
+                alt="Preview"
+                className="w-full"
+              />
+            ) : (
+              <div className="w-full h-full flex items-center justify-center">
+                <div className="text-center text-gray-400">
+                  <ImageIcon className="w-16 h-16 mx-auto mb-3 opacity-50" />
+                  <p>이미지를 업로드하세요</p>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* 데스크톱 프리뷰 (375px) */}
           <div className={cn(
-            'relative rounded-lg shadow-2xl overflow-hidden',
+            'hidden md:block relative rounded-lg shadow-2xl overflow-hidden',
             'bg-white'
           )}
             style={{ width: '375px', height: '667px' }}
@@ -327,9 +485,44 @@ export function WebToonEditor({ projectId, onClose }: WebToonEditorProps) {
           </div>
         </main>
 
-        {/* 오른쪽 사이드바 - 상세 정보 */}
+        {/* Long Press 컨텍스트 메뉴 */}
+        {contextMenu && (
+          <>
+            <div className="fixed inset-0 z-40" onClick={closeContextMenu} />
+            <div
+              className={cn(
+                'fixed z-50 rounded-lg shadow-lg border overflow-hidden',
+                isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+              )}
+              style={{ left: contextMenu.x - 75, top: contextMenu.y - 10 }}
+            >
+              <button
+                onClick={() => { closeContextMenu(); /* TODO: 메모 추가 모달 */ }}
+                className={cn(
+                  'w-full flex items-center gap-3 px-4 py-3 transition-colors',
+                  isDark ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-700'
+                )}
+              >
+                <StickyNote className="w-5 h-5" />
+                <span>메모 추가</span>
+              </button>
+              <button
+                onClick={() => { closeContextMenu(); /* TODO: 음원 추가 모달 */ }}
+                className={cn(
+                  'w-full flex items-center gap-3 px-4 py-3 transition-colors',
+                  isDark ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-700'
+                )}
+              >
+                <Music className="w-5 h-5" />
+                <span>음원 추가</span>
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* 오른쪽 사이드바 - 상세 정보 (데스크톱만) */}
         <aside className={cn(
-          'w-96 border-l overflow-y-auto',
+          'hidden md:block w-96 border-l overflow-y-auto',
           isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
         )}>
           {selectedScene ? (

@@ -12,7 +12,7 @@ import { useScrollBasedPlayback } from '../../hooks/useScrollBasedPlayback';
 import {
   ArrowLeft, Plus, Upload, Trash2, Music,
   Loader2, Image as ImageIcon, X, Smartphone, StickyNote,
-  Save, Volume2, VolumeX, Play, Pause
+  Save, Volume2, VolumeX, Play, Pause, Menu
 } from 'lucide-react';
 
 interface TrackMarker {
@@ -49,6 +49,12 @@ export function WebToonProjectsView() {
   // 저장 상태
   const [saving, setSaving] = useState(false);
 
+  // 모바일 메뉴 상태
+  const [menuOpen, setMenuOpen] = useState(false);
+
+  // Long press 컨텍스트 메뉴
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const longPressTimer = useRef<NodeJS.Timeout | null>(null);
 
   // 음원 추가 모달
   const [showTrackModal, setShowTrackModal] = useState(false);
@@ -56,6 +62,7 @@ export function WebToonProjectsView() {
   // 메모 노트 관리
   const [memoNotes, setMemoNotes] = useState<WebToonMemoNote[]>([]);
   const previewContainerRef = useRef<HTMLDivElement>(null);
+  const mobileContainerRef = useRef<HTMLDivElement>(null);
 
   // 음원 마커 관리
   const [trackMarkers, setTrackMarkers] = useState<TrackMarker[]>([]);
@@ -67,7 +74,8 @@ export function WebToonProjectsView() {
     currentTrack?.id,
     isPlaying,
     playTrack,
-    { enabled: trackMarkers.length > 0 }
+    { enabled: trackMarkers.length > 0 },
+    mobileContainerRef
   );
 
   // 프로젝트 생성
@@ -208,22 +216,44 @@ export function WebToonProjectsView() {
   };
 
 
+  // 음원 마커 추가를 위한 터치 위치 저장
+  const [pendingTrackPosition, setPendingTrackPosition] = useState<{ x: number; y: number } | null>(null);
+
   // 음원 마커 추가
   const handleAddTrack = (track: Track) => {
+    // 모바일: 저장된 터치 위치 사용
+    if (pendingTrackPosition && mobileContainerRef.current) {
+      const containerRect = mobileContainerRef.current.getBoundingClientRect();
+      const scrollTop = mobileContainerRef.current.scrollTop;
+
+      const newMarker: TrackMarker = {
+        id: `track-${Date.now()}`,
+        track,
+        position: {
+          x: 0,
+          y: pendingTrackPosition.y - containerRect.top + scrollTop
+        }
+      };
+
+      setTrackMarkers(prev => [...prev, newMarker]);
+      setPendingTrackPosition(null);
+      return;
+    }
+
+    // 데스크톱: 기존 방식
     if (!previewContainerRef.current) return;
 
     const container = previewContainerRef.current;
     const scrollTop = container.scrollTop;
     const containerHeight = container.clientHeight;
 
-    // 현재 화면 중앙에 마커 배치
     const centerPosition = scrollTop + (containerHeight / 2);
 
     const newMarker: TrackMarker = {
       id: `track-${Date.now()}`,
       track,
       position: {
-        x: 0, // 가로 전체를 차지하므로 X는 0
+        x: 0,
         y: centerPosition
       }
     };
@@ -249,8 +279,28 @@ export function WebToonProjectsView() {
     setTrackMarkers(prev => prev.filter(marker => marker.id !== markerId));
   };
 
-  // 메모 노트 추가
-  const handleAddMemoNote = () => {
+  // 메모 노트 추가 (컨텍스트 메뉴 위치 기반)
+  const handleAddMemoNote = (touchPosition?: { x: number; y: number }) => {
+    // 모바일: 터치 위치 기반
+    if (touchPosition && mobileContainerRef.current) {
+      const containerRect = mobileContainerRef.current.getBoundingClientRect();
+      const scrollTop = mobileContainerRef.current.scrollTop;
+
+      const newNote: WebToonMemoNote = {
+        id: `memo-${Date.now()}`,
+        scene_id: '',
+        content: '',
+        position_x: touchPosition.x - containerRect.left - 100,
+        position_y: touchPosition.y - containerRect.top + scrollTop - 50,
+        width: 200,
+        height: 100
+      };
+
+      setMemoNotes(prev => [...prev, newNote]);
+      return;
+    }
+
+    // 데스크톱: 기존 방식
     if (!previewContainerRef.current) return;
 
     const containerRect = previewContainerRef.current.getBoundingClientRect();
@@ -258,7 +308,7 @@ export function WebToonProjectsView() {
 
     const newNote: WebToonMemoNote = {
       id: `memo-${Date.now()}`,
-      scene_id: '', // 임시, 나중에 위치 기반으로 scene 결정
+      scene_id: '',
       content: '',
       position_x: containerRect.width / 2 - 100,
       position_y: scrollTop + 100,
@@ -334,6 +384,30 @@ export function WebToonProjectsView() {
       setSaving(false);
     }
   };
+
+  // Long press 핸들러
+  const handleTouchStart = (e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    longPressTimer.current = setTimeout(() => {
+      setContextMenu({ x: touch.clientX, y: touch.clientY });
+    }, 500);
+  };
+
+  const handleTouchEnd = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+
+  const handleTouchMove = () => {
+    if (longPressTimer.current) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
+  };
+
+  const closeContextMenu = () => setContextMenu(null);
 
   // 프로젝트 변경 시 마커 상태 리셋 및 음악 정지
   useEffect(() => {
@@ -557,13 +631,97 @@ export function WebToonProjectsView() {
     );
   }
 
-  // 프로젝트 작업 화면
+  // 프로젝트 작업 화면 (전체 화면 덮기)
   return (
     <PageTransition>
-      <div className={cn('h-screen flex flex-col', isDark ? 'bg-black' : 'bg-gray-50')}>
-        {/* 헤더 */}
+      <div className={cn('fixed inset-0 z-50 flex flex-col', isDark ? 'bg-black' : 'bg-gray-50')}>
+        {/* 헤더 - 모바일 */}
         <header className={cn(
-          'flex items-center justify-between px-6 py-4 border-b',
+          'md:hidden flex items-center justify-between px-4 py-3 border-b',
+          isDark ? 'bg-black border-gray-800' : 'bg-white border-gray-200'
+        )}>
+          {/* 왼쪽: 뒤로가기 */}
+          <button
+            onClick={() => setCurrentProject(null)}
+            className={cn(
+              'p-2 rounded-lg transition-colors',
+              isDark ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-700'
+            )}
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+
+          {/* 중앙: 제목 */}
+          <h1 className={cn('text-lg font-bold truncate max-w-[50%]', isDark ? 'text-white' : 'text-gray-900')}>
+            {currentProject.title}
+          </h1>
+
+          {/* 오른쪽: 메뉴 버튼 */}
+          <div className="relative">
+            <button
+              onClick={() => setMenuOpen(!menuOpen)}
+              className={cn(
+                'p-2 rounded-lg transition-colors',
+                isDark ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-700'
+              )}
+            >
+              <Menu className="w-5 h-5" />
+            </button>
+
+            {/* 드롭다운 메뉴 */}
+            {menuOpen && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+                <div className={cn(
+                  'absolute right-0 top-full mt-2 w-48 rounded-lg shadow-lg border z-50',
+                  isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+                )}>
+                  <label className={cn(
+                    'flex items-center gap-3 px-4 py-3 cursor-pointer transition-colors',
+                    isDark ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-700'
+                  )}>
+                    <Upload className="w-5 h-5" />
+                    <span>이미지 업로드</span>
+                    <input
+                      type="file"
+                      accept="image/*"
+                      multiple
+                      onChange={(e) => { handleUploadScene(e); setMenuOpen(false); }}
+                      disabled={uploading}
+                      className="hidden"
+                    />
+                  </label>
+                  <button
+                    onClick={() => { handleSaveProject(); setMenuOpen(false); }}
+                    disabled={saving}
+                    className={cn(
+                      'w-full flex items-center gap-3 px-4 py-3 transition-colors',
+                      isDark ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-700',
+                      saving && 'opacity-50 cursor-not-allowed'
+                    )}
+                  >
+                    <Save className="w-5 h-5" />
+                    <span>저장</span>
+                  </button>
+                  <button
+                    onClick={() => { handleDeleteProject(currentProject.id, currentProject.title); setMenuOpen(false); }}
+                    className={cn(
+                      'w-full flex items-center gap-3 px-4 py-3 transition-colors text-red-500',
+                      isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+                    )}
+                  >
+                    <Trash2 className="w-5 h-5" />
+                    <span>삭제</span>
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </header>
+
+        {/* 헤더 - 데스크톱 */}
+        <header className={cn(
+          'hidden md:flex items-center justify-between px-6 py-4 border-b',
           isDark ? 'bg-black border-gray-800' : 'bg-white border-gray-200'
         )}>
           <div className="flex items-center gap-4">
@@ -655,9 +813,9 @@ export function WebToonProjectsView() {
 
         {/* 메인 작업 영역 */}
         <div className="flex-1 flex overflow-hidden">
-          {/* 왼쪽: 장면 리스트 */}
+          {/* 왼쪽: 장면 리스트 (데스크톱만) */}
           <aside className={cn(
-            'w-80 border-r overflow-y-auto',
+            'hidden md:block w-80 border-r overflow-y-auto',
             isDark ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200'
           )}>
             <div className="p-4 space-y-2">
@@ -723,11 +881,108 @@ export function WebToonProjectsView() {
             </div>
           </aside>
 
-          {/* 중앙: 핸드폰 모양 프리뷰 */}
-          <main className="flex-1 flex flex-col items-center justify-center p-8 gap-4">
-            {/* 버튼들 */}
+          {/* 중앙: 모바일 풀스크린 / 데스크톱 핸드폰 프리뷰 */}
+          <main className={cn(
+            'flex-1 overflow-hidden',
+            'md:flex md:flex-col md:items-center md:justify-center md:p-8 md:gap-4'
+          )}>
+            {/* 모바일 풀스크린 이미지 */}
+            <div
+              ref={mobileContainerRef}
+              className={cn(
+                'md:hidden w-full h-full overflow-y-auto relative',
+                isDark ? 'bg-black' : 'bg-white'
+              )}
+              onTouchStart={handleTouchStart}
+              onTouchEnd={handleTouchEnd}
+              onTouchMove={handleTouchMove}
+            >
+              {scenes.length === 0 ? (
+                <div className="w-full h-full flex items-center justify-center">
+                  <div className="text-center text-gray-400">
+                    <ImageIcon className="w-16 h-16 mx-auto mb-3 opacity-50" />
+                    <p>이미지를 업로드하세요</p>
+                  </div>
+                </div>
+              ) : (
+                <>
+                  <div className="space-y-0">
+                    {scenes.map((scene, index) => (
+                      <img
+                        key={scene.id}
+                        src={scene.image_url}
+                        alt={`Scene ${index + 1}`}
+                        className="w-full"
+                      />
+                    ))}
+                  </div>
+
+                  {/* 모바일 메모 노트들 */}
+                  {memoNotes.map(note => (
+                    <DraggableMemoNote
+                      key={note.id}
+                      note={note}
+                      onUpdate={handleUpdateMemoNote}
+                      onDelete={handleDeleteMemoNote}
+                      containerRef={mobileContainerRef}
+                    />
+                  ))}
+
+                  {/* 모바일 음원 마커들 */}
+                  {trackMarkers.map(marker => (
+                    <DraggableTrackMarker
+                      key={marker.id}
+                      markerId={marker.id}
+                      track={marker.track}
+                      position={marker.position}
+                      onUpdate={(pos) => handleUpdateTrackMarker(marker.id, pos)}
+                      onDelete={() => handleDeleteTrackMarker(marker.id)}
+                      containerRef={mobileContainerRef}
+                      onRegister={registerMarkerElement}
+                    />
+                  ))}
+                </>
+              )}
+            </div>
+
+            {/* Long Press 컨텍스트 메뉴 */}
+            {contextMenu && (
+              <>
+                <div className="fixed inset-0 z-40" onClick={closeContextMenu} />
+                <div
+                  className={cn(
+                    'fixed z-50 rounded-lg shadow-lg border overflow-hidden',
+                    isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+                  )}
+                  style={{ left: contextMenu.x - 75, top: contextMenu.y - 10 }}
+                >
+                  <button
+                    onClick={() => { handleAddMemoNote(contextMenu); closeContextMenu(); }}
+                    className={cn(
+                      'w-full flex items-center gap-3 px-4 py-3 transition-colors',
+                      isDark ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-700'
+                    )}
+                  >
+                    <StickyNote className="w-5 h-5" />
+                    <span>메모 추가</span>
+                  </button>
+                  <button
+                    onClick={() => { setPendingTrackPosition(contextMenu); setShowTrackModal(true); closeContextMenu(); }}
+                    className={cn(
+                      'w-full flex items-center gap-3 px-4 py-3 transition-colors',
+                      isDark ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-700'
+                    )}
+                  >
+                    <Music className="w-5 h-5" />
+                    <span>음원 추가</span>
+                  </button>
+                </div>
+              </>
+            )}
+
+            {/* 데스크톱: 버튼들 */}
             {scenes.length > 0 && (
-              <div className="flex gap-3">
+              <div className="hidden md:flex gap-3">
                 <button
                   onClick={handleAddMemoNote}
                   className={cn(
@@ -755,9 +1010,10 @@ export function WebToonProjectsView() {
               </div>
             )}
 
+            {/* 데스크톱: 핸드폰 모양 프리뷰 */}
             <div
               className={cn(
-                'relative rounded-3xl shadow-2xl overflow-hidden',
+                'hidden md:block relative rounded-3xl shadow-2xl overflow-hidden',
                 isDark ? 'bg-gray-950' : 'bg-white'
               )}
               style={{ width: '390px', height: '844px' }}
@@ -844,9 +1100,9 @@ export function WebToonProjectsView() {
             </div>
           </main>
 
-          {/* 오른쪽: 재생 및 볼륨 컨트롤 */}
+          {/* 오른쪽: 재생 및 볼륨 컨트롤 (데스크톱만) */}
           <aside className={cn(
-            'w-20 flex flex-col items-center justify-center gap-4 border-l',
+            'hidden md:flex w-20 flex-col items-center justify-center gap-4 border-l',
             isDark ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200'
           )}>
             {/* 재생/일시정지 버튼 */}
@@ -915,6 +1171,47 @@ export function WebToonProjectsView() {
               {Math.round((isMuted ? 0 : volume) * 100)}%
             </span>
           </aside>
+        </div>
+
+        {/* 모바일 하단 재생바 */}
+        <div className={cn(
+          'md:hidden flex items-center gap-3 px-4 py-3 border-t',
+          isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'
+        )}>
+          {currentTrack ? (
+            <>
+              {/* 트랙 정보 */}
+              <div className="flex-1 min-w-0">
+                <p className={cn('text-sm font-medium truncate', isDark ? 'text-white' : 'text-gray-900')}>
+                  {currentTrack.title}
+                </p>
+                <p className={cn('text-xs truncate', isDark ? 'text-gray-400' : 'text-gray-500')}>
+                  {currentTrack.artist}
+                </p>
+              </div>
+
+              {/* 재생/일시정지 버튼 */}
+              <button
+                onClick={togglePlay}
+                className={cn(
+                  'p-3 rounded-full transition-colors',
+                  isDark
+                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
+                    : 'bg-emerald-500 hover:bg-emerald-600 text-white'
+                )}
+              >
+                {isPlaying ? (
+                  <Pause className="w-5 h-5" />
+                ) : (
+                  <Play className="w-5 h-5 ml-0.5" />
+                )}
+              </button>
+            </>
+          ) : (
+            <p className={cn('text-sm', isDark ? 'text-gray-500' : 'text-gray-400')}>
+              음원 마커를 추가하세요
+            </p>
+          )}
         </div>
       </div>
 

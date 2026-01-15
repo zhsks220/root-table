@@ -20,7 +20,8 @@ export function useScrollBasedPlayback(
   currentTrackId: string | undefined,
   isPlaying: boolean,
   playTrack: (track: Track) => Promise<void>,
-  options: UseScrollBasedPlaybackOptions = {}
+  options: UseScrollBasedPlaybackOptions = {},
+  mobileContainerRef?: React.RefObject<HTMLDivElement>
 ) {
   const {
     enabled = true,
@@ -28,10 +29,13 @@ export function useScrollBasedPlayback(
   } = options;
 
   const observerRef = useRef<IntersectionObserver | null>(null);
+  const mobileObserverRef = useRef<IntersectionObserver | null>(null);
   const markerElementsRef = useRef<Map<string, HTMLElement>>(new Map());
   const lastScrollTop = useRef<number>(0);
+  const mobileLastScrollTop = useRef<number>(0);
   const passedMarkers = useRef<Set<string>>(new Set());
   const isInitialized = useRef(false);
+  const mobileIsInitialized = useRef(false);
 
   // 마커를 Y 위치로 정렬 (캐싱)
   const sortedMarkers = useMemo(() =>
@@ -40,13 +44,16 @@ export function useScrollBasedPlayback(
   );
 
   // 스크롤 방향 감지
-  const getScrollDirection = useCallback((): 'down' | 'up' => {
-    if (!containerRef.current) return 'down';
-    const currentScrollTop = containerRef.current.scrollTop;
-    const direction = currentScrollTop > lastScrollTop.current ? 'down' : 'up';
-    lastScrollTop.current = currentScrollTop;
+  const getScrollDirection = useCallback((isMobile = false): 'down' | 'up' => {
+    const ref = isMobile ? mobileContainerRef : containerRef;
+    const lastScroll = isMobile ? mobileLastScrollTop : lastScrollTop;
+
+    if (!ref?.current) return 'down';
+    const currentScrollTop = ref.current.scrollTop;
+    const direction = currentScrollTop > lastScroll.current ? 'down' : 'up';
+    lastScroll.current = currentScrollTop;
     return direction;
-  }, [containerRef]);
+  }, [containerRef, mobileContainerRef]);
 
   // 마커 재생 처리
   const handleMarkerTrigger = useCallback(async (
@@ -65,8 +72,8 @@ export function useScrollBasedPlayback(
   }, [currentTrackId, isPlaying, playTrack]);
 
   // Intersection Observer 콜백
-  const handleIntersection = useCallback((entries: IntersectionObserverEntry[]) => {
-    const direction = getScrollDirection();
+  const handleIntersection = useCallback((entries: IntersectionObserverEntry[], isMobile = false) => {
+    const direction = getScrollDirection(isMobile);
 
     entries.forEach((entry) => {
       const markerId = entry.target.getAttribute('data-marker-id');
@@ -108,8 +115,9 @@ export function useScrollBasedPlayback(
     if (!element) {
       // element가 null이면 unregister
       const existingElement = markerElementsRef.current.get(markerId);
-      if (existingElement && observerRef.current) {
-        observerRef.current.unobserve(existingElement);
+      if (existingElement) {
+        observerRef.current?.unobserve(existingElement);
+        mobileObserverRef.current?.unobserve(existingElement);
       }
       markerElementsRef.current.delete(markerId);
       return;
@@ -118,16 +126,17 @@ export function useScrollBasedPlayback(
     // data-marker-id 속성 설정
     element.setAttribute('data-marker-id', markerId);
 
-    if (observerRef.current) {
-      // 기존 element가 있으면 unobserve
-      const existingElement = markerElementsRef.current.get(markerId);
-      if (existingElement && existingElement !== element) {
-        observerRef.current.unobserve(existingElement);
-      }
-
-      observerRef.current.observe(element);
-      markerElementsRef.current.set(markerId, element);
+    // 기존 element가 있으면 unobserve
+    const existingElement = markerElementsRef.current.get(markerId);
+    if (existingElement && existingElement !== element) {
+      observerRef.current?.unobserve(existingElement);
+      mobileObserverRef.current?.unobserve(existingElement);
     }
+
+    // 데스크톱/모바일 observer에 등록
+    observerRef.current?.observe(element);
+    mobileObserverRef.current?.observe(element);
+    markerElementsRef.current.set(markerId, element);
   }, []);
 
   // 초기화: 현재 보이는 마커 체크
@@ -158,12 +167,12 @@ export function useScrollBasedPlayback(
     isInitialized.current = true;
   }, [containerRef, sortedMarkers, currentTrackId, playTrack]);
 
-  // Observer 설정
+  // Observer 설정 (데스크톱)
   useEffect(() => {
     if (!enabled || !containerRef.current) return;
 
     // IntersectionObserver 생성
-    observerRef.current = new IntersectionObserver(handleIntersection, {
+    observerRef.current = new IntersectionObserver((entries) => handleIntersection(entries, false), {
       root: containerRef.current,
       threshold: threshold,
       rootMargin: '0px',
@@ -179,6 +188,28 @@ export function useScrollBasedPlayback(
       observerRef.current = null;
     };
   }, [enabled, containerRef, threshold, handleIntersection]);
+
+  // Observer 설정 (모바일)
+  useEffect(() => {
+    if (!enabled || !mobileContainerRef?.current) return;
+
+    // 모바일 IntersectionObserver 생성
+    mobileObserverRef.current = new IntersectionObserver((entries) => handleIntersection(entries, true), {
+      root: mobileContainerRef.current,
+      threshold: threshold,
+      rootMargin: '0px',
+    });
+
+    // 기존 등록된 엘리먼트들 다시 observe
+    markerElementsRef.current.forEach((element) => {
+      mobileObserverRef.current?.observe(element);
+    });
+
+    return () => {
+      mobileObserverRef.current?.disconnect();
+      mobileObserverRef.current = null;
+    };
+  }, [enabled, mobileContainerRef, threshold, handleIntersection]);
 
   // 빠른 스크롤 감지를 위한 스크롤 이벤트 폴백
   useEffect(() => {
@@ -224,6 +255,51 @@ export function useScrollBasedPlayback(
     return () => container.removeEventListener('scroll', handleScroll);
   }, [enabled, containerRef, sortedMarkers, handleMarkerTrigger]);
 
+  // 모바일용 스크롤 이벤트 폴백
+  useEffect(() => {
+    if (!enabled || !mobileContainerRef?.current || sortedMarkers.length === 0) return;
+
+    const container = mobileContainerRef.current;
+    let lastCheckTime = 0;
+    const throttleMs = 50;
+
+    const handleScroll = () => {
+      const now = Date.now();
+      if (now - lastCheckTime < throttleMs) return;
+      lastCheckTime = now;
+
+      const scrollTop = container.scrollTop;
+      const viewportTop = scrollTop;
+      const viewportBottom = scrollTop + container.clientHeight;
+      const viewportCenter = scrollTop + container.clientHeight / 2;
+
+      let closestMarker: TrackMarker | null = null;
+      let closestDistance = Infinity;
+
+      for (const marker of sortedMarkers) {
+        if (marker.position.y >= viewportTop && marker.position.y <= viewportBottom) {
+          const distance = Math.abs(marker.position.y - viewportCenter);
+          if (distance < closestDistance) {
+            closestDistance = distance;
+            closestMarker = marker;
+          }
+        }
+      }
+
+      if (closestMarker && !passedMarkers.current.has(closestMarker.id)) {
+        passedMarkers.current.add(closestMarker.id);
+        handleMarkerTrigger(closestMarker, 'down');
+      }
+    };
+
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    container.addEventListener('touchmove', handleScroll, { passive: true });
+    return () => {
+      container.removeEventListener('scroll', handleScroll);
+      container.removeEventListener('touchmove', handleScroll);
+    };
+  }, [enabled, mobileContainerRef, sortedMarkers, handleMarkerTrigger]);
+
   // 마커가 변경되면 초기화
   useEffect(() => {
     if (!enabled || trackMarkers.length === 0) return;
@@ -242,6 +318,7 @@ export function useScrollBasedPlayback(
   const resetPassedMarkers = useCallback(() => {
     passedMarkers.current.clear();
     isInitialized.current = false;
+    mobileIsInitialized.current = false;
   }, []);
 
   return {

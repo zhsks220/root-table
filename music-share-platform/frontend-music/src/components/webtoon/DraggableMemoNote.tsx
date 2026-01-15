@@ -35,18 +35,32 @@ export function DraggableMemoNote({ note, onUpdate, onDelete, containerRef }: Dr
     };
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (isEditing) return;
+    if (!containerRef.current) return;
+
+    const touch = e.touches[0];
+    const containerRect = containerRef.current.getBoundingClientRect();
+
+    setIsDragging(true);
+    dragStartPos.current = {
+      x: touch.clientX - containerRect.left - position.x,
+      y: touch.clientY - containerRect.top - position.y + containerRef.current.scrollTop
+    };
+  };
+
   useEffect(() => {
     if (!isDragging) return;
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMove = (clientX: number, clientY: number) => {
       if (!containerRef.current) return;
 
       const containerRect = containerRef.current.getBoundingClientRect();
       const scrollTop = containerRef.current.scrollTop;
 
       // 상대적 위치 계산 수정
-      let newX = e.clientX - containerRect.left - dragStartPos.current.x;
-      let newY = e.clientY - containerRect.top + scrollTop - dragStartPos.current.y;
+      let newX = clientX - containerRect.left - dragStartPos.current.x;
+      let newY = clientY - containerRect.top + scrollTop - dragStartPos.current.y;
 
       // 컨테이너 경계 체크
       const noteWidth = noteRef.current?.offsetWidth || 200;
@@ -57,7 +71,14 @@ export function DraggableMemoNote({ note, onUpdate, onDelete, containerRef }: Dr
       setPosition({ x: newX, y: newY });
     };
 
-    const handleMouseUp = () => {
+    const handleMouseMove = (e: MouseEvent) => handleMove(e.clientX, e.clientY);
+    const handleTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      const touch = e.touches[0];
+      handleMove(touch.clientX, touch.clientY);
+    };
+
+    const handleEnd = () => {
       setIsDragging(false);
       // 위치 업데이트 저장
       onUpdate({
@@ -68,11 +89,15 @@ export function DraggableMemoNote({ note, onUpdate, onDelete, containerRef }: Dr
     };
 
     document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('mouseup', handleEnd);
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleEnd);
 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('mouseup', handleEnd);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleEnd);
     };
   }, [isDragging, position, note, onUpdate, containerRef]);
 
@@ -104,10 +129,11 @@ export function DraggableMemoNote({ note, onUpdate, onDelete, containerRef }: Dr
       {/* 헤더 - 드래그 핸들 */}
       <div
         className={cn(
-          'flex items-center justify-between px-2 py-1 border-b cursor-grab',
+          'flex items-center justify-between px-2 py-1 border-b cursor-grab touch-none',
           isDark ? 'border-yellow-400' : 'border-yellow-300'
         )}
         onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
       >
         <GripVertical className="w-4 h-4 text-yellow-700" />
         <button

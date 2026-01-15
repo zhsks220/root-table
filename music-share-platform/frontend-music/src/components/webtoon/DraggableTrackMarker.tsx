@@ -75,19 +75,31 @@ export const DraggableTrackMarker = forwardRef<HTMLDivElement, DraggableTrackMar
     };
   };
 
+  const handleTouchStart = (e: React.TouchEvent) => {
+    if (!containerRef.current) return;
+    const touch = e.touches[0];
+    const containerRect = containerRef.current.getBoundingClientRect();
+
+    setIsDragging(true);
+    dragStartPos.current = {
+      x: 0,
+      y: touch.clientY - containerRect.top - currentPos.y + containerRef.current.scrollTop
+    };
+  };
+
   useEffect(() => {
     if (!isDragging) return;
 
     let finalPos = currentPos;
 
-    const handleMouseMove = (e: MouseEvent) => {
+    const handleMove = (clientY: number) => {
       if (!containerRef.current) return;
 
       const containerRect = containerRef.current.getBoundingClientRect();
       const scrollTop = containerRef.current.scrollTop;
 
       // Y축만 계산 (X축은 항상 0)
-      let newY = e.clientY - containerRect.top + scrollTop - dragStartPos.current.y;
+      let newY = clientY - containerRect.top + scrollTop - dragStartPos.current.y;
 
       // 컨테이너 경계 체크 (Y축만)
       newY = Math.max(0, newY);
@@ -96,17 +108,27 @@ export const DraggableTrackMarker = forwardRef<HTMLDivElement, DraggableTrackMar
       setCurrentPos(finalPos);
     };
 
-    const handleMouseUp = () => {
+    const handleMouseMove = (e: MouseEvent) => handleMove(e.clientY);
+    const handleTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      handleMove(e.touches[0].clientY);
+    };
+
+    const handleEnd = () => {
       setIsDragging(false);
       onUpdate(finalPos);
     };
 
     document.addEventListener('mousemove', handleMouseMove);
-    document.addEventListener('mouseup', handleMouseUp);
+    document.addEventListener('mouseup', handleEnd);
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    document.addEventListener('touchend', handleEnd);
 
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
-      document.removeEventListener('mouseup', handleMouseUp);
+      document.removeEventListener('mouseup', handleEnd);
+      document.removeEventListener('touchmove', handleTouchMove);
+      document.removeEventListener('touchend', handleEnd);
     };
   }, [isDragging, onUpdate, containerRef]);
 
@@ -114,7 +136,7 @@ export const DraggableTrackMarker = forwardRef<HTMLDivElement, DraggableTrackMar
     <div
       ref={markerRef}
       className={cn(
-        'absolute z-20 rounded-lg shadow-lg border-2 cursor-grab',
+        'absolute z-20 rounded-lg shadow-lg border-2 cursor-grab touch-none',
         isDark ? 'bg-emerald-600 border-emerald-500' : 'bg-emerald-500 border-emerald-400',
         isDragging && 'cursor-grabbing opacity-80',
         isThisTrackPlaying && 'ring-2 ring-yellow-400'
@@ -126,6 +148,7 @@ export const DraggableTrackMarker = forwardRef<HTMLDivElement, DraggableTrackMar
         width: '100%',
       }}
       onMouseDown={handleMouseDown}
+      onTouchStart={handleTouchStart}
     >
       {/* 한 줄로 표시 */}
       <div className="flex items-center justify-between px-3 py-2">

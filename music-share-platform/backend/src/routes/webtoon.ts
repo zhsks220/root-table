@@ -449,7 +449,7 @@ router.delete('/webtoon-projects/:projectId', async (req: AuthRequest, res: Resp
     for (const scene of scenesResult.rows) {
       if (scene.image_key) {
         try {
-          await deleteFile(scene.image_key);
+          await deleteWebtoonImage(scene.image_key);
         } catch (error) {
           console.error('Failed to delete scene image:', error);
         }
@@ -585,7 +585,7 @@ router.patch('/webtoon-projects/:projectId/scenes/:sceneId', imageUpload.single(
       // 기존 이미지 삭제
       if (imageKey) {
         try {
-          await deleteFile(imageKey);
+          await deleteWebtoonImage(imageKey);
         } catch (error) {
           console.error('Failed to delete old scene image:', error);
         }
@@ -593,7 +593,7 @@ router.patch('/webtoon-projects/:projectId/scenes/:sceneId', imageUpload.single(
 
       const fileExt = req.file.originalname.split('.').pop() || 'jpg';
       imageKey = `webtoon-images/projects/${projectId}/scenes/${sceneId}.${fileExt}`;
-      await uploadFile(imageKey, req.file.buffer, req.file.mimetype);
+      await uploadWebtoonImage(imageKey, req.file.buffer, req.file.mimetype);
     }
 
     // 업데이트할 필드 구성
@@ -634,7 +634,7 @@ router.patch('/webtoon-projects/:projectId/scenes/:sceneId', imageUpload.single(
     );
 
     const updatedScene = result.rows[0];
-    const image_url = await getStreamUrl(updatedScene.image_key);
+    const image_url = await getWebtoonImageUrl(updatedScene.image_key);
 
     res.json({
       success: true,
@@ -732,7 +732,7 @@ router.delete('/webtoon-projects/:projectId/scenes/:sceneId', async (req: AuthRe
     // 이미지 삭제
     if (scene.image_key) {
       try {
-        await deleteFile(scene.image_key);
+        await deleteWebtoonImage(scene.image_key);
       } catch (error) {
         console.error('Failed to delete scene image:', error);
       }

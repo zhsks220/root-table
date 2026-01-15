@@ -25,7 +25,7 @@ interface TrackMarker {
 export function WebToonProjectsView() {
   const { theme } = useThemeStore();
   const isDark = theme === 'dark';
-  const { playTrack, currentTrack, stop, volume, isMuted, setVolume, toggleMute, isPlaying, togglePlay } = usePlayerStore();
+  const { playTrack, preloadTrack, currentTrack, stop, volume, isMuted, setVolume, toggleMute, isPlaying, togglePlay } = usePlayerStore();
 
   // 프로젝트 목록
   const [projects, setProjects] = useState<WebToonProject[]>([]);
@@ -80,7 +80,8 @@ export function WebToonProjectsView() {
     isPlaying,
     playTrack,
     { enabled: trackMarkers.length > 0 },
-    mobileContainerRef
+    mobileContainerRef,
+    preloadTrack
   );
 
   // 프로젝트 생성

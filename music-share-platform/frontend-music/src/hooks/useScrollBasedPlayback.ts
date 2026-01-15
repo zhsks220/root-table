@@ -21,7 +21,8 @@ export function useScrollBasedPlayback(
   isPlaying: boolean,
   playTrack: (track: Track) => Promise<void>,
   options: UseScrollBasedPlaybackOptions = {},
-  mobileContainerRef?: React.RefObject<HTMLDivElement>
+  mobileContainerRef?: React.RefObject<HTMLDivElement>,
+  preloadTrack?: (track: Track) => Promise<void>
 ) {
   const {
     enabled = true,
@@ -55,6 +56,18 @@ export function useScrollBasedPlayback(
     return direction;
   }, [containerRef, mobileContainerRef]);
 
+  // 다음 마커들 프리로드 (2개)
+  const preloadNextMarkers = useCallback((currentMarkerIndex: number) => {
+    if (!preloadTrack) return;
+
+    for (let i = 1; i <= 2; i++) {
+      const nextIndex = currentMarkerIndex + i;
+      if (nextIndex < sortedMarkers.length) {
+        preloadTrack(sortedMarkers[nextIndex].track);
+      }
+    }
+  }, [sortedMarkers, preloadTrack]);
+
   // 마커 재생 처리
   const handleMarkerTrigger = useCallback(async (
     marker: TrackMarker,
@@ -66,10 +79,16 @@ export function useScrollBasedPlayback(
 
     try {
       await playTrack(marker.track);
+
+      // 다음 마커들 프리로드
+      const currentIndex = sortedMarkers.findIndex(m => m.id === marker.id);
+      if (currentIndex >= 0) {
+        preloadNextMarkers(currentIndex);
+      }
     } catch (error) {
       console.error('Failed to play track:', error);
     }
-  }, [currentTrackId, isPlaying, playTrack]);
+  }, [currentTrackId, isPlaying, playTrack, sortedMarkers, preloadNextMarkers]);
 
   // Intersection Observer 콜백
   const handleIntersection = useCallback((entries: IntersectionObserverEntry[], isMobile = false) => {
@@ -83,26 +102,13 @@ export function useScrollBasedPlayback(
       if (!marker) return;
 
       if (entry.isIntersecting) {
-        // 마커가 화면에 진입
-        if (direction === 'down') {
-          // 아래로 스크롤 시: 새 마커 진입하면 재생
-          if (!passedMarkers.current.has(markerId)) {
-            passedMarkers.current.add(markerId);
-            handleMarkerTrigger(marker, direction);
-          }
-        } else {
-          // 위로 스크롤 시: 이전 마커 찾아서 재생
-          const currentIndex = sortedMarkers.findIndex(m => m.id === markerId);
-          if (currentIndex > 0) {
-            const previousMarker = sortedMarkers[currentIndex - 1];
-            if (!passedMarkers.current.has(previousMarker.id)) {
-              passedMarkers.current.add(previousMarker.id);
-            }
-            handleMarkerTrigger(previousMarker, direction);
-          }
+        // 마커가 화면에 진입 - 아래로 스크롤할 때만 재생
+        if (direction === 'down' && !passedMarkers.current.has(markerId)) {
+          passedMarkers.current.add(markerId);
+          handleMarkerTrigger(marker, direction);
         }
       } else {
-        // 마커가 화면에서 벗어남
+        // 마커가 화면에서 벗어남 (위로 스크롤 시 passedMarkers에서 제거)
         if (direction === 'up' && passedMarkers.current.has(markerId)) {
           passedMarkers.current.delete(markerId);
         }
@@ -158,14 +164,20 @@ export function useScrollBasedPlayback(
       }
     }
 
-    // 초기 재생
+    // 초기 재생 및 다음 마커들 프리로드
     if (lastVisibleMarker && currentTrackId !== lastVisibleMarker.track.id) {
       playTrack(lastVisibleMarker.track).catch(console.error);
+
+      // 초기화 시 다음 마커들 프리로드
+      const lastIndex = sortedMarkers.findIndex(m => m.id === lastVisibleMarker!.id);
+      if (lastIndex >= 0) {
+        preloadNextMarkers(lastIndex);
+      }
     }
 
     lastScrollTop.current = container.scrollTop;
     isInitialized.current = true;
-  }, [containerRef, sortedMarkers, currentTrackId, playTrack]);
+  }, [containerRef, sortedMarkers, currentTrackId, playTrack, preloadNextMarkers]);
 
   // Observer 설정 (데스크톱)
   useEffect(() => {

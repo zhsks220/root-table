@@ -29,8 +29,13 @@ interface PlayerState {
   // 라이브러리 모드 (트랙 탭에서만 하단 바 표시)
   isLibraryMode: boolean;
 
+  // 프리로드 캐시
+  preloadedUrls: Map<string, string>;
+  preloadingTracks: Set<string>;
+
   // 액션
   setAudio: (audio: HTMLAudioElement) => void;
+  preloadTrack: (track: Track) => Promise<void>;
   playTrack: (track: Track, playlist?: Track[]) => Promise<void>;
   togglePlay: () => void;
   pause: () => void;
@@ -59,24 +64,27 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   isMuted: false,
   audio: null,
   isLibraryMode: false,
+  preloadedUrls: new Map(),
+  preloadingTracks: new Set(),
 
   setAudio: (audio) => {
     console.log('🔊 Audio element registered in store');
     set({ audio });
   },
 
-  playTrack: async (track, playlist) => {
+  // 트랙 프리로드 (URL 캐싱 + Audio 버퍼링)
+  preloadTrack: async (track) => {
     const state = get();
 
-    console.log('🎵 playTrack called:', track.title);
-    console.log('🔊 Audio element exists:', !!state.audio);
+    // 이미 프리로드됨 또는 프리로드 중이면 스킵
+    if (state.preloadedUrls.has(track.id) || state.preloadingTracks.has(track.id)) {
+      return;
+    }
 
-    set({ isLoading: true });
+    // 프리로드 시작 표시
+    state.preloadingTracks.add(track.id);
 
     try {
-      // 스트리밍 URL 가져오기 - 관리자 권한 확인
-      console.log('📡 Fetching stream URL for track:', track.id);
-
       // 로컬스토리지에서 사용자 정보 확인
       const authStorage = localStorage.getItem('auth-storage');
       let isAdmin = false;
@@ -85,12 +93,60 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
         isAdmin = authState?.user?.role === 'admin';
       }
 
-      // 관리자면 adminAPI, 아니면 trackAPI 사용
+      // 스트리밍 URL 가져오기
       const response = isAdmin
         ? await adminAPI.getStreamUrl(track.id)
         : await trackAPI.getStreamUrl(track.id);
       const { streamUrl } = response.data;
-      console.log('✅ Stream URL received:', streamUrl?.substring(0, 100) + '...');
+
+      // URL 캐싱
+      state.preloadedUrls.set(track.id, streamUrl);
+
+      // Audio 객체로 미리 버퍼링
+      const preloadAudio = new Audio();
+      preloadAudio.preload = 'auto';
+      preloadAudio.src = streamUrl;
+      // 로드 시작 (재생하지 않음)
+      preloadAudio.load();
+
+      console.log('📦 Preloaded:', track.title);
+    } catch (error) {
+      console.error('❌ Failed to preload track:', track.title, error);
+    } finally {
+      state.preloadingTracks.delete(track.id);
+    }
+  },
+
+  playTrack: async (track, playlist) => {
+    const state = get();
+
+    console.log('🎵 playTrack called:', track.title);
+
+    set({ isLoading: true });
+
+    try {
+      let streamUrl: string;
+
+      // 캐시된 URL이 있으면 사용
+      if (state.preloadedUrls.has(track.id)) {
+        streamUrl = state.preloadedUrls.get(track.id)!;
+        console.log('⚡ Using preloaded URL');
+      } else {
+        // 캐시가 없으면 새로 가져오기
+        console.log('📡 Fetching stream URL for track:', track.id);
+
+        const authStorage = localStorage.getItem('auth-storage');
+        let isAdmin = false;
+        if (authStorage) {
+          const { state: authState } = JSON.parse(authStorage);
+          isAdmin = authState?.user?.role === 'admin';
+        }
+
+        const response = isAdmin
+          ? await adminAPI.getStreamUrl(track.id)
+          : await trackAPI.getStreamUrl(track.id);
+        streamUrl = response.data.streamUrl;
+      }
 
       // 플레이리스트 설정
       if (playlist) {
@@ -100,7 +156,6 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
 
       // 오디오 재생
       if (state.audio) {
-        console.log('▶️ Setting audio source and playing...');
         state.audio.src = streamUrl;
         state.audio.load();
         await state.audio.play();

@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { adminAPI } from '../../services/api';
 import { Invitation, Track } from '../../types';
 import { PageTransition } from '../PageTransition';
-import { Link as LinkIcon, Check, Copy, Calendar, RefreshCw, Music } from 'lucide-react';
+import { Link as LinkIcon, Check, Copy, Calendar, RefreshCw, Music, ChevronDown } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useThemeStore } from '../../store/themeStore';
 
@@ -19,6 +19,14 @@ export function InvitationsView() {
     const [creating, setCreating] = useState(false);
     const [newInviteCode, setNewInviteCode] = useState<string | null>(null);
     const [copied, setCopied] = useState(false);
+    const [showExpiresFilter, setShowExpiresFilter] = useState(false);
+
+    const expiresOptions = [
+        { value: 7, label: '7일' },
+        { value: 30, label: '30일' },
+        { value: 90, label: '90일' },
+        { value: 365, label: '1년' },
+    ];
 
     useEffect(() => {
         loadData();
@@ -153,19 +161,45 @@ export function InvitationsView() {
 
                         <div>
                             <label className={cn("block text-sm font-medium mb-2", isDark ? "text-white/70" : "text-gray-700")}>유효 기간</label>
-                            <select
-                                value={expiresInDays}
-                                onChange={(e) => setExpiresInDays(Number(e.target.value))}
-                                className={cn(
-                                    "w-full border rounded-lg px-4 py-2.5 text-sm focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 transition-shadow",
-                                    isDark ? "bg-white/5 border-white/10 text-white" : "border-gray-200 text-gray-900"
+                            <div className="relative">
+                                <button
+                                    type="button"
+                                    onClick={() => setShowExpiresFilter(!showExpiresFilter)}
+                                    className={cn(
+                                        "w-full px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all inline-flex items-center justify-between border",
+                                        isDark ? "bg-white/5 border-white/10 text-white/70 hover:border-white/20" : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
+                                    )}
+                                >
+                                    <span>{expiresOptions.find(o => o.value === expiresInDays)?.label}</span>
+                                    <ChevronDown className="w-3 h-3" />
+                                </button>
+
+                                {showExpiresFilter && (
+                                    <div className={cn(
+                                        "absolute top-full left-0 mt-1 rounded-lg shadow-lg py-1 z-20 w-full",
+                                        isDark ? "bg-black border border-white/10" : "bg-white border border-gray-200"
+                                    )}>
+                                        {expiresOptions.map(option => (
+                                            <button
+                                                key={option.value}
+                                                type="button"
+                                                onClick={() => {
+                                                    setExpiresInDays(option.value);
+                                                    setShowExpiresFilter(false);
+                                                }}
+                                                className={cn(
+                                                    "w-full px-3 py-2 text-left text-sm transition-colors",
+                                                    expiresInDays === option.value
+                                                        ? isDark ? "bg-emerald-500/20 text-emerald-400" : "bg-emerald-50 text-emerald-600"
+                                                        : isDark ? "text-white/70 hover:bg-white/5" : "hover:bg-gray-50"
+                                                )}
+                                            >
+                                                {option.label}
+                                            </button>
+                                        ))}
+                                    </div>
                                 )}
-                            >
-                                <option value={7}>7일</option>
-                                <option value={30}>30일</option>
-                                <option value={90}>90일</option>
-                                <option value={365}>1년</option>
-                            </select>
+                            </div>
                         </div>
 
                         <button

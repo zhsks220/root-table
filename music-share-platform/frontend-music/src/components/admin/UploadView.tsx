@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { adminAPI, categoryAPI } from '../../services/api';
 import { Category, MoodOption, LanguageOption } from '../../types';
 import { PageTransition } from '../PageTransition';
-import { Upload, Music, Disc, User as UserIcon, Tag, Globe, Sparkles, ChevronDown, X } from 'lucide-react';
+import { Upload, Music, Disc, User as UserIcon, Tag, Globe, Sparkles, ChevronDown, X, Calendar } from 'lucide-react';
 import { cn } from '../../lib/utils';
 import { useThemeStore } from '../../store/themeStore';
 
@@ -31,6 +31,8 @@ export function UploadView() {
     const [moods, setMoods] = useState<MoodOption[]>([]);
     const [languages, setLanguages] = useState<LanguageOption[]>([]);
     const [showAdvanced, setShowAdvanced] = useState(false);
+    const [showMoodFilter, setShowMoodFilter] = useState(false);
+    const [showLanguageFilter, setShowLanguageFilter] = useState(false);
 
     useEffect(() => {
         loadOptions();
@@ -355,19 +357,63 @@ export function UploadView() {
                                         <Sparkles className="inline w-4 h-4 mr-1" />
                                         분위기
                                     </label>
-                                    <select
-                                        value={form.mood}
-                                        onChange={e => setForm({ ...form, mood: e.target.value })}
-                                        className={cn(
-                                            "w-full px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500",
-                                            isDark ? "bg-white/5 border-white/10 text-white" : "border-gray-200 text-gray-900"
+                                    <div className="relative">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setShowMoodFilter(!showMoodFilter);
+                                                setShowLanguageFilter(false);
+                                            }}
+                                            className={cn(
+                                                "w-full px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all inline-flex items-center justify-between border",
+                                                isDark ? "bg-white/5 border-white/10 text-white/70 hover:border-white/20" : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
+                                            )}
+                                        >
+                                            <span>{form.mood ? moods.find(m => m.value === form.mood)?.label : '선택 안함'}</span>
+                                            <ChevronDown className="w-3 h-3" />
+                                        </button>
+
+                                        {showMoodFilter && (
+                                            <div className={cn(
+                                                "absolute top-full left-0 mt-1 rounded-lg shadow-lg py-1 z-20 w-full max-h-48 overflow-y-auto",
+                                                isDark ? "bg-black border border-white/10" : "bg-white border border-gray-200"
+                                            )}>
+                                                <button
+                                                    type="button"
+                                                    onClick={() => {
+                                                        setForm({ ...form, mood: '' });
+                                                        setShowMoodFilter(false);
+                                                    }}
+                                                    className={cn(
+                                                        "w-full px-3 py-2 text-left text-sm transition-colors",
+                                                        !form.mood
+                                                            ? isDark ? "bg-pink-500/20 text-pink-400" : "bg-pink-50 text-pink-600"
+                                                            : isDark ? "text-white/70 hover:bg-white/5" : "hover:bg-gray-50"
+                                                    )}
+                                                >
+                                                    선택 안함
+                                                </button>
+                                                {moods.map(mood => (
+                                                    <button
+                                                        type="button"
+                                                        key={mood.value}
+                                                        onClick={() => {
+                                                            setForm({ ...form, mood: mood.value });
+                                                            setShowMoodFilter(false);
+                                                        }}
+                                                        className={cn(
+                                                            "w-full px-3 py-2 text-left text-sm transition-colors",
+                                                            form.mood === mood.value
+                                                                ? isDark ? "bg-pink-500/20 text-pink-400" : "bg-pink-50 text-pink-600"
+                                                                : isDark ? "text-white/70 hover:bg-white/5" : "hover:bg-gray-50"
+                                                        )}
+                                                    >
+                                                        {mood.label}
+                                                    </button>
+                                                ))}
+                                            </div>
                                         )}
-                                    >
-                                        <option value="">선택 안함</option>
-                                        {moods.map(mood => (
-                                            <option key={mood.value} value={mood.value}>{mood.label}</option>
-                                        ))}
-                                    </select>
+                                    </div>
                                 </div>
 
                                 {/* 언어 */}
@@ -376,18 +422,48 @@ export function UploadView() {
                                         <Globe className="inline w-4 h-4 mr-1" />
                                         언어
                                     </label>
-                                    <select
-                                        value={form.language}
-                                        onChange={e => setForm({ ...form, language: e.target.value })}
-                                        className={cn(
-                                            "w-full px-3 py-2.5 border rounded-lg focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500",
-                                            isDark ? "bg-white/5 border-white/10 text-white" : "border-gray-200 text-gray-900"
+                                    <div className="relative">
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                setShowLanguageFilter(!showLanguageFilter);
+                                                setShowMoodFilter(false);
+                                            }}
+                                            className={cn(
+                                                "w-full px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all inline-flex items-center justify-between border",
+                                                isDark ? "bg-white/5 border-white/10 text-white/70 hover:border-white/20" : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
+                                            )}
+                                        >
+                                            <span>{languages.find(l => l.value === form.language)?.label || '선택'}</span>
+                                            <ChevronDown className="w-3 h-3" />
+                                        </button>
+
+                                        {showLanguageFilter && (
+                                            <div className={cn(
+                                                "absolute top-full left-0 mt-1 rounded-lg shadow-lg py-1 z-20 w-full max-h-48 overflow-y-auto",
+                                                isDark ? "bg-black border border-white/10" : "bg-white border border-gray-200"
+                                            )}>
+                                                {languages.map(lang => (
+                                                    <button
+                                                        type="button"
+                                                        key={lang.value}
+                                                        onClick={() => {
+                                                            setForm({ ...form, language: lang.value });
+                                                            setShowLanguageFilter(false);
+                                                        }}
+                                                        className={cn(
+                                                            "w-full px-3 py-2 text-left text-sm transition-colors",
+                                                            form.language === lang.value
+                                                                ? isDark ? "bg-emerald-500/20 text-emerald-400" : "bg-emerald-50 text-emerald-600"
+                                                                : isDark ? "text-white/70 hover:bg-white/5" : "hover:bg-gray-50"
+                                                        )}
+                                                    >
+                                                        {lang.label}
+                                                    </button>
+                                                ))}
+                                            </div>
                                         )}
-                                    >
-                                        {languages.map(lang => (
-                                            <option key={lang.value} value={lang.value}>{lang.label}</option>
-                                        ))}
-                                    </select>
+                                    </div>
                                 </div>
                             </div>
 

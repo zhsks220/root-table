@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { partnerAdminAPI } from '../../services/partnerAdminApi';
-import { X, Copy, Check, Loader2, UserPlus } from 'lucide-react';
+import { X, Copy, Check, Loader2, UserPlus, ChevronDown } from 'lucide-react';
+import { cn } from '../../lib/utils';
 import { useThemeStore } from '../../store/themeStore';
 
 interface PartnerInviteModalProps {
@@ -15,6 +16,15 @@ export function PartnerInviteModal({ isOpen, onClose, onComplete }: PartnerInvit
   const [generatedCode, setGeneratedCode] = useState<string | null>(null);
   const { theme } = useThemeStore();
   const isDark = theme === 'dark';
+  const [showExpiresFilter, setShowExpiresFilter] = useState(false);
+
+  const expiresOptions = [
+    { value: 7, label: '7일' },
+    { value: 14, label: '14일' },
+    { value: 30, label: '30일' },
+    { value: 60, label: '60일' },
+    { value: 90, label: '90일' },
+  ];
 
   const [formData, setFormData] = useState({
     partnerType: 'artist' as 'artist' | 'company' | 'composer',
@@ -71,6 +81,7 @@ export function PartnerInviteModal({ isOpen, onClose, onComplete }: PartnerInvit
     });
     setGeneratedCode(null);
     setCopied(false);
+    setShowExpiresFilter(false);
     onClose();
     if (generatedCode) {
       onComplete();
@@ -228,17 +239,45 @@ export function PartnerInviteModal({ isOpen, onClose, onComplete }: PartnerInvit
                 <label className={`block text-sm font-medium mb-1 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>
                   초대 유효기간
                 </label>
-                <select
-                  value={formData.expiresInDays}
-                  onChange={(e) => setFormData({ ...formData, expiresInDays: parseInt(e.target.value) })}
-                  className={`w-full px-4 py-2.5 border rounded-lg focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent ${isDark ? 'bg-white/5 border-white/10 text-white' : 'bg-gray-50 border-gray-200 text-gray-900'}`}
-                >
-                  <option value={7}>7일</option>
-                  <option value={14}>14일</option>
-                  <option value={30}>30일</option>
-                  <option value={60}>60일</option>
-                  <option value={90}>90일</option>
-                </select>
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() => setShowExpiresFilter(!showExpiresFilter)}
+                    className={cn(
+                      "w-full px-3 sm:px-4 py-1.5 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all inline-flex items-center justify-between border",
+                      isDark ? "bg-white/5 border-white/10 text-white/70 hover:border-white/20" : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
+                    )}
+                  >
+                    <span>{expiresOptions.find(o => o.value === formData.expiresInDays)?.label}</span>
+                    <ChevronDown className="w-3 h-3" />
+                  </button>
+
+                  {showExpiresFilter && (
+                    <div className={cn(
+                      "absolute top-full left-0 mt-1 rounded-lg shadow-lg py-1 z-20 w-full",
+                      isDark ? "bg-black border border-white/10" : "bg-white border border-gray-200"
+                    )}>
+                      {expiresOptions.map(option => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => {
+                            setFormData({ ...formData, expiresInDays: option.value });
+                            setShowExpiresFilter(false);
+                          }}
+                          className={cn(
+                            "w-full px-3 py-2 text-left text-sm transition-colors",
+                            formData.expiresInDays === option.value
+                              ? isDark ? "bg-emerald-500/20 text-emerald-400" : "bg-emerald-50 text-emerald-600"
+                              : isDark ? "text-white/70 hover:bg-white/5" : "hover:bg-gray-50"
+                          )}
+                        >
+                          {option.label}
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* 메모 */}

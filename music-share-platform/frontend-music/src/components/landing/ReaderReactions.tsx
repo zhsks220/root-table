@@ -941,7 +941,7 @@ export const ReaderReactions = () => {
                     className="text-center"
                 >
                     <p className="text-white/50 text-base md:text-lg 3xl:text-2xl leading-relaxed">
-                        이런 반응은, <br className="hidden sm:block" />
+                        이런 반응은, <br />
                         음악을 '곡'이 아니라 연출로 설계했을 때 나옵니다.
                     </p>
                 </motion.div>

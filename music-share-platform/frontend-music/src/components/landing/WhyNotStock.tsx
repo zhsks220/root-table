@@ -439,7 +439,7 @@ export const WhyNotStock = () => {
                     viewport={{ once: true }}
                     className="text-center text-white/50 text-base md:text-lg 3xl:text-2xl max-w-2xl 3xl:max-w-4xl mx-auto leading-relaxed"
                 >
-                    우리는 음악을 만드는 팀이 아니라, <br className="hidden sm:block" />
+                    우리는 음악을 만드는 팀이 아니라, <br />
                     웹툰의 흐름을 함께 설계하는 팀입니다.
                 </motion.p>
             </div>

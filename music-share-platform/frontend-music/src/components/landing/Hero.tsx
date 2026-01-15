@@ -28,12 +28,12 @@ export const Hero = () => {
                 className="text-center z-10 max-w-4xl 3xl:max-w-7xl"
             >
                 <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl 3xl:text-8xl font-black tracking-tight mb-6 md:mb-8 leading-[1.1] mx-auto">
-                    <span className="whitespace-nowrap">우리는 <span className="text-emerald-500">웹툰 음악</span>을</span> <br className="hidden sm:block" />
+                    <span className="whitespace-nowrap">우리는 <span className="text-emerald-500">웹툰 음악</span>을</span> <br />
                     만듭니다.
                 </h1>
 
                 <p className="text-base sm:text-lg md:text-xl 3xl:text-3xl text-white/50 max-w-2xl 3xl:max-w-4xl mx-auto mb-8 md:mb-10 leading-relaxed">
-                    단순히 곡을 만들어 낼뿐 아니라, <br className="hidden sm:block" />
+                    단순히 곡을 만들어 낼뿐 아니라, <br />
                     음악으로 회차, 장면, 캐릭터를 더 돋보이게 합니다.
                 </p>
 

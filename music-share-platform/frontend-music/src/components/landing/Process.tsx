@@ -111,7 +111,7 @@ export const Process = () => {
                     className="text-center mb-16"
                 >
                     <h2 className="text-3xl md:text-5xl 3xl:text-7xl font-black mb-6">
-                        마감일까지, <br className="hidden sm:block" />
+                        마감일까지, <br />
                         <span className="text-emerald-500">체계적으로.</span>
                     </h2>
                 </motion.div>

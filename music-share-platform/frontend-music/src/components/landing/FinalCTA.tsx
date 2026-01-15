@@ -25,12 +25,12 @@ export const FinalCTA = ({ onCTAClick }: FinalCTAProps) => {
                     className="text-center"
                 >
                     <p className="text-xl 3xl:text-3xl text-white/50 mb-12 max-w-2xl 3xl:max-w-4xl mx-auto leading-relaxed">
-                        우리는 콘티를 읽고, 작품을 보며 <br className="hidden sm:block" />
+                        우리는 콘티를 읽고, 작품을 보며 <br />
                         웹툰과 딱 맞는 곡을 설계합니다.
                     </p>
 
                     <h3 className="text-2xl md:text-4xl 3xl:text-6xl font-black leading-tight mb-40">
-                        <span className="whitespace-nowrap">지금, <span className="text-emerald-500">작품</span>에 대해서</span> <br className="hidden sm:block" />
+                        <span className="whitespace-nowrap">지금, <span className="text-emerald-500">작품</span>에 대해서</span> <br />
                         우리와 이야기 나눠보면 어떨까요?
                     </h3>
 

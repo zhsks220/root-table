@@ -179,7 +179,7 @@ export const WhoWeWorkWith = () => {
                     {/* 헤드라인 - 항상 표시 */}
                     <div className="text-center mb-8">
                         <h2 className="text-3xl md:text-5xl 3xl:text-7xl font-black mb-4">
-                            <span className="whitespace-nowrap">잘 맞는 <span className="text-emerald-500">프로젝트</span>가</span> <br className="hidden sm:block" />
+                            <span className="whitespace-nowrap">잘 맞는 <span className="text-emerald-500">프로젝트</span>가</span> <br />
                             있습니다
                         </h2>
                     </div>

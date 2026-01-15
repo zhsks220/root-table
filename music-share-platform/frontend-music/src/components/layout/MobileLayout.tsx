@@ -112,7 +112,7 @@ export function MobileLayout({
             )}
           </button>
 
-          <div className="flex items-center gap-2">
+          <button onClick={() => navigate('/')} className="flex items-center gap-2">
             {logoImage ? (
               <>
                 <img src={isDark && logoImageDark ? logoImageDark : logoImage} alt="Logo" className="h-6" />
@@ -135,7 +135,7 @@ export function MobileLayout({
                 )}
               </>
             )}
-          </div>
+          </button>
 
           <div className={cn(
             "w-8 h-8 rounded-full flex items-center justify-center font-bold text-xs",
@@ -177,38 +177,40 @@ export function MobileLayout({
             "p-6 border-b",
             isDark ? "border-white/10" : "border-gray-200"
           )}>
-            {logoImage ? (
-              <div>
-                <div className="flex items-center gap-3">
-                  <img src={isDark && logoImageDark ? logoImageDark : logoImage} alt="Logo" className="h-8" />
-                  {logoTypeImage && (
-                    <img src={isDark && logoTypeImageDark ? logoTypeImageDark : logoTypeImage} alt="Type" className="h-16" />
-                  )}
-                </div>
-                {logoSubtext && (
-                  <span className="text-xs text-emerald-500 block mt-1">{logoSubtext}</span>
-                )}
-              </div>
-            ) : (
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center">
-                  {LogoIcon && <LogoIcon className="w-6 h-6 text-white" />}
-                </div>
+            <button onClick={() => navigate('/')} className="text-left">
+              {logoImage ? (
                 <div>
-                  {logoText && (
-                    <span className={cn(
-                      "font-bold text-lg block",
-                      isDark ? "text-white" : "text-gray-900"
-                    )}>
-                      {logoText}
-                    </span>
-                  )}
+                  <div className="flex items-center gap-3">
+                    <img src={isDark && logoImageDark ? logoImageDark : logoImage} alt="Logo" className="h-8" />
+                    {logoTypeImage && (
+                      <img src={isDark && logoTypeImageDark ? logoTypeImageDark : logoTypeImage} alt="Type" className="h-16" />
+                    )}
+                  </div>
                   {logoSubtext && (
-                    <span className="text-xs text-emerald-500">{logoSubtext}</span>
+                    <span className="text-xs text-emerald-500 block mt-1">{logoSubtext}</span>
                   )}
                 </div>
-              </div>
-            )}
+              ) : (
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 bg-emerald-500 rounded-lg flex items-center justify-center">
+                    {LogoIcon && <LogoIcon className="w-6 h-6 text-white" />}
+                  </div>
+                  <div>
+                    {logoText && (
+                      <span className={cn(
+                        "font-bold text-lg block",
+                        isDark ? "text-white" : "text-gray-900"
+                      )}>
+                        {logoText}
+                      </span>
+                    )}
+                    {logoSubtext && (
+                      <span className="text-xs text-emerald-500">{logoSubtext}</span>
+                    )}
+                  </div>
+                </div>
+              )}
+            </button>
           </div>
 
           {/* 네비게이션 */}
@@ -333,7 +335,7 @@ export function MobileLayout({
           isDark ? "bg-black" : "bg-[#fbfbfb] border-r border-gray-100"
         )}>
           <div className="p-6">
-            <div className="mb-8">
+            <button onClick={() => navigate('/')} className="mb-8 text-left">
               {logoImage ? (
                 <div>
                   <div className="flex items-center gap-3">
@@ -366,7 +368,7 @@ export function MobileLayout({
                   </div>
                 </div>
               )}
-            </div>
+            </button>
 
             <nav className="space-y-1">
               {menuItems.map((item) => (

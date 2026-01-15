@@ -1,6 +1,7 @@
 import { Router, Response } from 'express';
 import multer from 'multer';
 import crypto from 'crypto';
+import sharp from 'sharp';
 import { pool } from '../db';
 import { AuthRequest } from '../types';
 import { authenticateToken, requireAdmin } from '../middleware/auth';
@@ -67,6 +68,35 @@ async function deleteWebtoonImage(key: string): Promise<void> {
   }
 
   console.log(`🗑️ Webtoon image deleted: ${key}`);
+}
+
+// 이미지 최적화: JPEG 80% + Progressive
+async function optimizeImage(buffer: Buffer): Promise<Buffer> {
+  const optimized = await sharp(buffer)
+    .jpeg({
+      quality: 80,
+      progressive: true,
+    })
+    .toBuffer();
+
+  console.log(`📦 이미지 최적화: ${(buffer.length / 1024).toFixed(0)}KB → ${(optimized.length / 1024).toFixed(0)}KB`);
+  return optimized;
+}
+
+// URL 캐시 (API 호출 줄이기)
+const urlCache = new Map<string, { url: string; expires: number }>();
+
+async function getCachedWebtoonImageUrl(key: string): Promise<string> {
+  const cached = urlCache.get(key);
+  const now = Date.now();
+
+  if (cached && cached.expires > now + 10 * 60 * 1000) {
+    return cached.url;
+  }
+
+  const url = await getWebtoonImageUrl(key);
+  urlCache.set(key, { url, expires: now + 55 * 60 * 1000 });
+  return url;
 }
 
 // 이미지 업로드 설정 (10MB 제한)
@@ -282,11 +312,11 @@ router.get('/webtoon-projects/:projectId', async (req: AuthRequest, res: Respons
         [scene.id]
       );
 
-      // 이미지 URL 생성
+      // 이미지 URL 생성 (캐시 사용)
       let image_url = null;
       if (scene.image_key) {
         try {
-          image_url = await getWebtoonImageUrl(scene.image_key);
+          image_url = await getCachedWebtoonImageUrl(scene.image_key);
         } catch (error) {
           console.error('Failed to generate scene image URL:', error);
         }
@@ -516,13 +546,12 @@ router.post('/webtoon-projects/:projectId/scenes', imageUpload.single('image'), 
       order = maxOrderResult.rows[0].next_order;
     }
 
-    // 이미지 업로드를 위한 새로운 함수 사용
+    // 이미지 최적화 (JPEG 변환)
     const sceneId = crypto.randomUUID();
-    const fileExt = req.file.originalname.split('.').pop() || 'jpg';
-    const imageKey = `webtoon-images/projects/${projectId}/scenes/${sceneId}.${fileExt}`;
+    const imageKey = `webtoon-images/projects/${projectId}/scenes/${sceneId}.jpg`;
 
-    // Supabase Storage에 직접 업로드 (webtoon-images 버킷 사용)
-    await uploadWebtoonImage(imageKey, req.file.buffer, req.file.mimetype);
+    const optimizedBuffer = await optimizeImage(req.file.buffer);
+    await uploadWebtoonImage(imageKey, optimizedBuffer, 'image/jpeg');
 
     // DB에 저장
     const result = await pool.query(
@@ -534,8 +563,8 @@ router.post('/webtoon-projects/:projectId/scenes', imageUpload.single('image'), 
 
     const scene = result.rows[0];
 
-    // 이미지 URL 생성
-    const image_url = await getWebtoonImageUrl(imageKey);
+    // 이미지 URL 생성 (캐시)
+    const image_url = await getCachedWebtoonImageUrl(imageKey);
 
     res.status(201).json({
       success: true,
@@ -591,9 +620,9 @@ router.patch('/webtoon-projects/:projectId/scenes/:sceneId', imageUpload.single(
         }
       }
 
-      const fileExt = req.file.originalname.split('.').pop() || 'jpg';
-      imageKey = `webtoon-images/projects/${projectId}/scenes/${sceneId}.${fileExt}`;
-      await uploadWebtoonImage(imageKey, req.file.buffer, req.file.mimetype);
+      imageKey = `webtoon-images/projects/${projectId}/scenes/${sceneId}.jpg`;
+      const optimizedBuffer = await optimizeImage(req.file.buffer);
+      await uploadWebtoonImage(imageKey, optimizedBuffer, 'image/jpeg');
     }
 
     // 업데이트할 필드 구성
@@ -634,7 +663,7 @@ router.patch('/webtoon-projects/:projectId/scenes/:sceneId', imageUpload.single(
     );
 
     const updatedScene = result.rows[0];
-    const image_url = await getWebtoonImageUrl(updatedScene.image_key);
+    const image_url = await getCachedWebtoonImageUrl(updatedScene.image_key);
 
     res.json({
       success: true,

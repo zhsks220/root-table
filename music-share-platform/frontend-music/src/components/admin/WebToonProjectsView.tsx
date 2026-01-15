@@ -5,10 +5,12 @@ import { PageTransition } from '../PageTransition';
 import { TrackSearchModal } from '../webtoon/TrackSearchModal';
 import { DraggableMemoNote } from '../webtoon/DraggableMemoNote';
 import { DraggableTrackMarker } from '../webtoon/DraggableTrackMarker';
+import { CachedImage } from '../common/CachedImage';
 import { cn } from '../../lib/utils';
 import { useThemeStore } from '../../store/themeStore';
 import { usePlayerStore } from '../../store/playerStore';
 import { useScrollBasedPlayback } from '../../hooks/useScrollBasedPlayback';
+import { useImagePreloader } from '../../hooks/useImagePreloader';
 import {
   ArrowLeft, Plus, Upload, Trash2, Music,
   Loader2, Image as ImageIcon, X, Smartphone, StickyNote,
@@ -67,6 +69,10 @@ export function WebToonProjectsView() {
   // 음원 마커 관리
   const [trackMarkers, setTrackMarkers] = useState<TrackMarker[]>([]);
 
+  // 사이드바 이미지 blob 캐시
+  const [cachedImages, setCachedImages] = useState<Record<string, string>>({});
+  const cacheLoadedRef = useRef(false);
+
   // Intersection Observer 기반 스크롤 재생 훅
   const { registerMarkerElement, resetPassedMarkers } = useScrollBasedPlayback(
     previewContainerRef,
@@ -77,6 +83,11 @@ export function WebToonProjectsView() {
     { enabled: trackMarkers.length > 0 },
     mobileContainerRef
   );
+
+  // 이미지 프리로더 (70% 스크롤 시 다음 3개 장면 프리로드)
+  const imageUrls = scenes.map(scene => scene.image_url).filter(Boolean) as string[];
+  useImagePreloader(previewContainerRef, imageUrls, { threshold: 0.7, preloadCount: 3 });
+  useImagePreloader(mobileContainerRef, imageUrls, { threshold: 0.7, preloadCount: 3 });
 
   // 프로젝트 생성
   const handleCreateProject = async () => {
@@ -163,6 +174,47 @@ export function WebToonProjectsView() {
   useEffect(() => {
     if (currentProject) {
       loadProject();
+    }
+  }, [currentProject?.id]);
+
+  // 사이드바 이미지 blob 캐싱 (프로젝트 로드 시 한번만)
+  useEffect(() => {
+    if (scenes.length === 0 || cacheLoadedRef.current) return;
+
+    const cacheImages = async () => {
+      const cache: Record<string, string> = {};
+
+      // 모든 이미지 병렬로 fetch -> blob 변환
+      await Promise.all(
+        scenes.map(async (scene) => {
+          if (!scene.image_url) return;
+          try {
+            const res = await fetch(scene.image_url);
+            const blob = await res.blob();
+            cache[scene.id] = URL.createObjectURL(blob);
+          } catch (e) {
+            // 실패 시 원본 URL 사용
+            cache[scene.id] = scene.image_url;
+          }
+        })
+      );
+
+      setCachedImages(cache);
+      cacheLoadedRef.current = true;
+    };
+
+    cacheImages();
+  }, [scenes]);
+
+  // 프로젝트 변경 시 캐시 리셋
+  useEffect(() => {
+    if (!currentProject) {
+      // 기존 blob URL 해제
+      Object.values(cachedImages).forEach(url => {
+        if (url.startsWith('blob:')) URL.revokeObjectURL(url);
+      });
+      setCachedImages({});
+      cacheLoadedRef.current = false;
     }
   }, [currentProject?.id]);
 
@@ -814,10 +866,17 @@ export function WebToonProjectsView() {
         {/* 메인 작업 영역 */}
         <div className="flex-1 flex overflow-hidden">
           {/* 왼쪽: 장면 리스트 (데스크톱만) */}
-          <aside className={cn(
-            'hidden md:block w-80 border-r overflow-y-auto',
-            isDark ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200'
-          )}>
+          <aside
+            className={cn(
+              'hidden md:block w-80 border-r overflow-y-auto',
+              isDark ? 'bg-gray-950 border-gray-800' : 'bg-white border-gray-200'
+            )}
+            style={{
+              maxHeight: 'calc(100vh - 80px)',
+              contentVisibility: 'visible',
+              containIntrinsicSize: 'auto',
+            }}
+          >
             <div className="p-4 space-y-2">
               {scenes.length === 0 ? (
                 <div className={cn(
@@ -865,9 +924,10 @@ export function WebToonProjectsView() {
                     </button>
 
                     <img
-                      src={scene.image_url}
+                      src={cachedImages[scene.id] || scene.image_url}
                       alt={`Scene ${index + 1}`}
                       className="w-full h-48 object-cover"
+                      style={{ transform: 'translateZ(0)', willChange: 'transform' }}
                     />
 
                     {scene.memo && (

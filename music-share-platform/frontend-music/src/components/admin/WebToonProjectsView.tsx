@@ -5,7 +5,6 @@ import { PageTransition } from '../PageTransition';
 import { TrackSearchModal } from '../webtoon/TrackSearchModal';
 import { DraggableMemoNote } from '../webtoon/DraggableMemoNote';
 import { DraggableTrackMarker } from '../webtoon/DraggableTrackMarker';
-import { CachedImage } from '../common/CachedImage';
 import { cn } from '../../lib/utils';
 import { useThemeStore } from '../../store/themeStore';
 import { usePlayerStore } from '../../store/playerStore';
@@ -1052,7 +1051,7 @@ export function WebToonProjectsView() {
             {scenes.length > 0 && (
               <div className="hidden md:flex gap-3">
                 <button
-                  onClick={handleAddMemoNote}
+                  onClick={() => handleAddMemoNote()}
                   className={cn(
                     'flex items-center gap-2 px-4 py-2 rounded-lg transition-colors',
                     isDark

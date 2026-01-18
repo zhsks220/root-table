@@ -27,7 +27,7 @@ const isProduction = process.env.NODE_ENV === 'production';
 // Rate Limiters
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15분
-  max: 100, // 15분에 100요청
+  max: 60, // 15분에 60요청 (보안 강화)
   message: { error: 'Too many requests, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,

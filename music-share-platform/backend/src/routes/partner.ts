@@ -102,9 +102,12 @@ router.post('/register', async (req, res: Response) => {
       await client.query('COMMIT');
 
       // JWT 토큰 생성
+      if (!process.env.JWT_SECRET) {
+        throw new Error('JWT_SECRET is not configured');
+      }
       const token = jwt.sign(
         { id: user.id, email: user.email, role: 'partner', partnerId },
-        process.env.JWT_SECRET || 'your-secret-key',
+        process.env.JWT_SECRET,
         { expiresIn: '7d' }
       );
 
@@ -166,9 +169,12 @@ router.post('/login', async (req, res: Response) => {
     }
 
     // JWT 토큰 생성
+    if (!process.env.JWT_SECRET) {
+      throw new Error('JWT_SECRET is not configured');
+    }
     const token = jwt.sign(
       { id: user.id, email: user.email, role: 'partner', partnerId: user.partner_id },
-      process.env.JWT_SECRET || 'your-secret-key',
+      process.env.JWT_SECRET,
       { expiresIn: '7d' }
     );
 

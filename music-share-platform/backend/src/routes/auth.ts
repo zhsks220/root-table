@@ -6,13 +6,13 @@ import { generateToken, generateRefreshToken, verifyRefreshToken } from '../midd
 
 const router = Router();
 
-// 비밀번호 정책: 8자 이상, 대문자, 소문자, 숫자, 특수문자(!@#$%^&*) 포함 필수
+// 비밀번호 정책: 12자 이상, 대문자, 소문자, 숫자, 특수문자 포함 필수
 const passwordSchema = z.string()
-  .min(8, '비밀번호는 8자 이상이어야 합니다')
+  .min(12, '비밀번호는 12자 이상이어야 합니다')
   .regex(/[A-Z]/, '비밀번호에 대문자가 포함되어야 합니다')
   .regex(/[a-z]/, '비밀번호에 소문자가 포함되어야 합니다')
   .regex(/[0-9]/, '비밀번호에 숫자가 포함되어야 합니다')
-  .regex(/[!@#$%^&*]/, '비밀번호에 특수문자(!@#$%^&*)가 포함되어야 합니다');
+  .regex(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, '비밀번호에 특수문자가 포함되어야 합니다');
 
 // 회원가입 스키마
 const registerSchema = z.object({
@@ -127,7 +127,11 @@ router.post('/register', async (req: Request, res: Response) => {
     }
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid input', details: error.errors });
+      const isProduction = process.env.NODE_ENV === 'production';
+      return res.status(400).json({
+        error: 'Invalid input',
+        ...(isProduction ? {} : { details: error.errors })
+      });
     }
     console.error('Register error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -226,7 +230,11 @@ router.post('/login', async (req: Request, res: Response) => {
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid input', details: error.errors });
+      const isProduction = process.env.NODE_ENV === 'production';
+      return res.status(400).json({
+        error: 'Invalid input',
+        ...(isProduction ? {} : { details: error.errors })
+      });
     }
     console.error('Login error:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -268,17 +276,40 @@ router.post('/refresh', async (req: Request, res: Response) => {
       role: user.role,
     });
 
+    // Refresh Token 회전: 새 Refresh Token도 발급
+    const newRefreshToken = generateRefreshToken({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      tokenType: 'refresh',
+    });
+
     res.json({
       success: true,
       accessToken,
+      refreshToken: newRefreshToken,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Invalid input', details: error.errors });
+      const isProduction = process.env.NODE_ENV === 'production';
+      return res.status(400).json({
+        error: 'Invalid input',
+        ...(isProduction ? {} : { details: error.errors })
+      });
     }
     console.error('Refresh token error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
+});
+
+// 로그아웃
+router.post('/logout', async (req: Request, res: Response) => {
+  // 클라이언트에서 토큰 삭제하도록 안내
+  // 서버측에서는 토큰 블랙리스트 없이 간단히 처리
+  res.json({
+    success: true,
+    message: 'Logged out successfully. Please remove tokens from client.',
+  });
 });
 
 export default router;

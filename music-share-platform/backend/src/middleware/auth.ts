@@ -12,7 +12,9 @@ export function authenticateToken(req: AuthRequest, res: Response, next: NextFun
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as JWTPayload;
+    const decoded = jwt.verify(token, process.env.JWT_SECRET!, {
+      algorithms: ['HS256'],
+    }) as JWTPayload;
     req.user = decoded;
     next();
   } catch (error) {
@@ -36,21 +38,25 @@ export function requireAdmin(req: AuthRequest, res: Response, next: NextFunction
 // JWT Access Token 생성 헬퍼 (15분 만료)
 export function generateToken(user: JWTPayload): string {
   return jwt.sign(user, process.env.JWT_SECRET!, {
-    expiresIn: '15m', // 15분 유효
+    algorithm: 'HS256',
+    expiresIn: '15m',
   });
 }
 
 // JWT Refresh Token 생성 헬퍼 (7일 만료)
 export function generateRefreshToken(user: RefreshTokenPayload): string {
   return jwt.sign(user, process.env.JWT_REFRESH_SECRET!, {
-    expiresIn: '7d', // 7일 유효
+    algorithm: 'HS256',
+    expiresIn: '7d',
   });
 }
 
 // JWT Refresh Token 검증 헬퍼
 export function verifyRefreshToken(token: string): RefreshTokenPayload | null {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET!) as RefreshTokenPayload;
+    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET!, {
+      algorithms: ['HS256'],
+    }) as RefreshTokenPayload;
     return decoded;
   } catch (error) {
     return null;

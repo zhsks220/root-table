@@ -201,8 +201,10 @@ router.get('/webtoon-projects', async (req: AuthRequest, res: Response) => {
 
     // 검색
     if (q) {
+      // ILIKE 와일드카드 이스케이프 처리
+      const safeQ = (q as string).replace(/[%_\\]/g, '\\$&');
       query += ` AND (wp.title ILIKE $${paramIndex} OR wp.description ILIKE $${paramIndex})`;
-      params.push(`%${q}%`);
+      params.push(`%${safeQ}%`);
       paramIndex++;
     }
 

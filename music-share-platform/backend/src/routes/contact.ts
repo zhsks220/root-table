@@ -29,9 +29,30 @@ router.post('/', async (req: Request, res: Response) => {
       return res.status(400).json({ error: '유효한 이메일 주소를 입력해주세요.' });
     }
 
-    // URL 형식 검증
+    // URL 형식 검증 및 SSRF 방어
     try {
-      new URL(workLink);
+      const parsedUrl = new URL(workLink);
+
+      // SSRF 방어: 내부 네트워크 접근 차단
+      const hostname = parsedUrl.hostname.toLowerCase();
+      const blockedHosts = ['localhost', '127.0.0.1', '0.0.0.0', '[::1]'];
+      if (blockedHosts.includes(hostname)) {
+        return res.status(400).json({ error: '허용되지 않는 URL입니다.' });
+      }
+
+      // 내부 IP 대역 차단 (10.x.x.x, 172.16-31.x.x, 192.168.x.x)
+      const ipMatch = hostname.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+      if (ipMatch) {
+        const [, a, b] = ipMatch.map(Number);
+        if (a === 10 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168)) {
+          return res.status(400).json({ error: '허용되지 않는 URL입니다.' });
+        }
+      }
+
+      // 허용된 프로토콜만 (http, https)
+      if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+        return res.status(400).json({ error: '허용되지 않는 URL 프로토콜입니다.' });
+      }
     } catch {
       return res.status(400).json({ error: '유효한 작품 링크를 입력해주세요.' });
     }
@@ -102,10 +123,31 @@ router.post('/chatbot', async (req: Request, res: Response) => {
       return res.status(400).json({ error: '유효한 이메일 주소를 입력해주세요.' });
     }
 
-    // URL 형식 검증 (제공된 경우)
+    // URL 형식 검증 및 SSRF 방어 (제공된 경우)
     if (workLink) {
       try {
-        new URL(workLink);
+        const parsedUrl = new URL(workLink);
+
+        // SSRF 방어: 내부 네트워크 접근 차단
+        const hostname = parsedUrl.hostname.toLowerCase();
+        const blockedHosts = ['localhost', '127.0.0.1', '0.0.0.0', '[::1]'];
+        if (blockedHosts.includes(hostname)) {
+          return res.status(400).json({ error: '허용되지 않는 URL입니다.' });
+        }
+
+        // 내부 IP 대역 차단
+        const ipMatch = hostname.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+        if (ipMatch) {
+          const [, a, b] = ipMatch.map(Number);
+          if (a === 10 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168)) {
+            return res.status(400).json({ error: '허용되지 않는 URL입니다.' });
+          }
+        }
+
+        // 허용된 프로토콜만
+        if (!['http:', 'https:'].includes(parsedUrl.protocol)) {
+          return res.status(400).json({ error: '허용되지 않는 URL 프로토콜입니다.' });
+        }
       } catch {
         return res.status(400).json({ error: '유효한 작품 링크를 입력해주세요.' });
       }
@@ -204,8 +246,10 @@ router.get('/admin', authenticateToken as any, requireAdmin as any, async (req: 
 
     // 검색 (이름, 이메일, 소속)
     if (search) {
+      // SQL Injection 방어: ILIKE 와일드카드 이스케이프
+      const safeSearch = (search as string).replace(/[%_\\]/g, '\\$&');
       query += ` AND (ci.name ILIKE $${paramIndex} OR ci.email ILIKE $${paramIndex} OR ci.organization ILIKE $${paramIndex})`;
-      params.push(`%${search}%`);
+      params.push(`%${safeSearch}%`);
       paramIndex++;
     }
 

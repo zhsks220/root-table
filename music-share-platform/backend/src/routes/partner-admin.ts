@@ -52,8 +52,10 @@ router.get('/partners', async (req: AuthRequest, res: Response) => {
     }
 
     if (search) {
+      // ILIKE 와일드카드 이스케이프 처리
+      const safeSearch = (search as string).replace(/[%_\\]/g, '\\$&');
       query += ` AND (p.business_name ILIKE $${paramIndex} OR p.representative_name ILIKE $${paramIndex} OR u.email ILIKE $${paramIndex})`;
-      params.push(`%${search}%`);
+      params.push(`%${safeSearch}%`);
       paramIndex++;
     }
 
@@ -850,8 +852,10 @@ router.get('/tracks', async (req: AuthRequest, res: Response) => {
     const params: any[] = [];
 
     if (search) {
+      // ILIKE 와일드카드 이스케이프 처리
+      const safeSearch = (search as string).replace(/[%_\\]/g, '\\$&');
       query += ` AND (title ILIKE $1 OR artist ILIKE $1 OR album ILIKE $1)`;
-      params.push(`%${search}%`);
+      params.push(`%${safeSearch}%`);
     }
 
     query += ` ORDER BY title ASC LIMIT 100`;

@@ -11,10 +11,18 @@ const router = Router();
 // 공통 설정 API (모든 인증된 사용자)
 // =====================================================
 
+// 비밀번호 정책: 12자 이상, 대문자, 소문자, 숫자, 특수문자 포함 필수
+const passwordSchema = z.string()
+  .min(12, '비밀번호는 12자 이상이어야 합니다')
+  .regex(/[A-Z]/, '비밀번호에 대문자가 포함되어야 합니다')
+  .regex(/[a-z]/, '비밀번호에 소문자가 포함되어야 합니다')
+  .regex(/[0-9]/, '비밀번호에 숫자가 포함되어야 합니다')
+  .regex(/[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/, '비밀번호에 특수문자가 포함되어야 합니다');
+
 // 비밀번호 변경 스키마
 const changePasswordSchema = z.object({
   currentPassword: z.string().min(1),
-  newPassword: z.string().min(8),
+  newPassword: passwordSchema,
 });
 
 // PUT /api/settings/password - 비밀번호 변경

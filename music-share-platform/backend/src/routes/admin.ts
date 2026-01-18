@@ -207,9 +207,10 @@ router.get('/tracks', async (req: AuthRequest, res: Response) => {
       paramIndex++;
     }
 
-    // 검색어 필터
+    // 검색어 필터 (LIKE 와일드카드 이스케이프 처리)
     if (q && typeof q === 'string' && q.trim()) {
-      const searchTerm = `%${q.trim().toLowerCase()}%`;
+      const safeQ = q.trim().toLowerCase().replace(/[%_\\]/g, '\\$&');
+      const searchTerm = `%${safeQ}%`;
       conditions.push(`(
         LOWER(t.title) LIKE $${paramIndex} OR
         LOWER(t.artist) LIKE $${paramIndex} OR

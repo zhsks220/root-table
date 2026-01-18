@@ -2,6 +2,18 @@ import { Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import { AuthRequest, JWTPayload, RefreshTokenPayload } from '../types';
 
+// JWT Secret 검증 - 앱 시작 시 확인
+const JWT_SECRET = process.env.JWT_SECRET;
+const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
+
+if (!JWT_SECRET) {
+  throw new Error('JWT_SECRET environment variable is required');
+}
+
+if (!JWT_REFRESH_SECRET) {
+  throw new Error('JWT_REFRESH_SECRET environment variable is required');
+}
+
 // JWT Access Token 검증 미들웨어
 export function authenticateToken(req: AuthRequest, res: Response, next: NextFunction) {
   const authHeader = req.headers['authorization'];
@@ -12,7 +24,7 @@ export function authenticateToken(req: AuthRequest, res: Response, next: NextFun
   }
 
   try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!, {
+    const decoded = jwt.verify(token, JWT_SECRET, {
       algorithms: ['HS256'],
     }) as JWTPayload;
     req.user = decoded;
@@ -37,7 +49,7 @@ export function requireAdmin(req: AuthRequest, res: Response, next: NextFunction
 
 // JWT Access Token 생성 헬퍼 (15분 만료)
 export function generateToken(user: JWTPayload): string {
-  return jwt.sign(user, process.env.JWT_SECRET!, {
+  return jwt.sign(user, JWT_SECRET, {
     algorithm: 'HS256',
     expiresIn: '15m',
   });
@@ -45,7 +57,7 @@ export function generateToken(user: JWTPayload): string {
 
 // JWT Refresh Token 생성 헬퍼 (7일 만료)
 export function generateRefreshToken(user: RefreshTokenPayload): string {
-  return jwt.sign(user, process.env.JWT_REFRESH_SECRET!, {
+  return jwt.sign(user, JWT_REFRESH_SECRET, {
     algorithm: 'HS256',
     expiresIn: '7d',
   });
@@ -54,7 +66,7 @@ export function generateRefreshToken(user: RefreshTokenPayload): string {
 // JWT Refresh Token 검증 헬퍼
 export function verifyRefreshToken(token: string): RefreshTokenPayload | null {
   try {
-    const decoded = jwt.verify(token, process.env.JWT_REFRESH_SECRET!, {
+    const decoded = jwt.verify(token, JWT_REFRESH_SECRET, {
       algorithms: ['HS256'],
     }) as RefreshTokenPayload;
     return decoded;

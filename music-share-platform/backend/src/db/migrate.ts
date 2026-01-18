@@ -15,10 +15,19 @@ async function runMigration() {
     await pool.query(schema);
     console.log('✅ Schema created successfully');
 
-    // 관리자 계정 생성
-    const adminEmail = process.env.ADMIN_EMAIL || 'admin@example.com';
-    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
-    const passwordHash = await bcrypt.hash(adminPassword, 10);
+    // 관리자 계정 생성 - 환경변수 필수
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    if (!adminEmail || !adminPassword) {
+      throw new Error('ADMIN_EMAIL and ADMIN_PASSWORD environment variables are required');
+    }
+
+    if (adminPassword.length < 12) {
+      throw new Error('ADMIN_PASSWORD must be at least 12 characters');
+    }
+
+    const passwordHash = await bcrypt.hash(adminPassword, 12);
 
     await pool.query(
       `INSERT INTO users (email, password_hash, name, role)
@@ -29,8 +38,6 @@ async function runMigration() {
 
     console.log('✅ Admin user created');
     console.log(`   Email: ${adminEmail}`);
-    console.log(`   Password: ${adminPassword}`);
-    console.log('');
     console.log('⚠️  IMPORTANT: Change the admin password after first login!');
 
     process.exit(0);

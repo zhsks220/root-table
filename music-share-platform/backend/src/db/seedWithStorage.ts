@@ -32,10 +32,15 @@ async function seedWithStorage() {
 
     await client.query('BEGIN');
 
-    // 1. 관리자 계정 확인/생성
-    const adminEmail = process.env.ADMIN_EMAIL || 'admin@test.com';
-    const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
-    const adminHash = await bcrypt.hash(adminPassword, 10);
+    // 1. 관리자 계정 확인/생성 - 환경변수 필수
+    const adminEmail = process.env.ADMIN_EMAIL;
+    const adminPassword = process.env.ADMIN_PASSWORD;
+
+    if (!adminEmail || !adminPassword) {
+      throw new Error('ADMIN_EMAIL and ADMIN_PASSWORD environment variables are required');
+    }
+
+    const adminHash = await bcrypt.hash(adminPassword, 12);
 
     const adminResult = await client.query(
       `INSERT INTO users (email, password_hash, name, role)
@@ -118,7 +123,7 @@ async function seedWithStorage() {
     const userIds: string[] = [];
 
     for (const user of users) {
-      const hash = await bcrypt.hash(user.password, 10);
+      const hash = await bcrypt.hash(user.password, 12);
       const result = await client.query(
         `INSERT INTO users (email, password_hash, name, role)
          VALUES ($1, $2, $3, 'user')
@@ -198,9 +203,9 @@ async function seedWithStorage() {
 
     console.log('\n📋 TEST ACCOUNTS:');
     console.log('─'.repeat(40));
-    console.log(`  Admin:  ${adminEmail} / ${adminPassword}`);
+    console.log(`  Admin:  ${adminEmail}`);
     users.forEach((u, i) => {
-      console.log(`  User ${i+1}: ${u.email} / ${u.password}`);
+      console.log(`  User ${i+1}: ${u.email}`);
     });
 
     console.log('\n🎫 INVITATION CODES:');

@@ -58,8 +58,8 @@ router.post('/register', async (req: Request, res: Response) => {
       return res.status(400).json({ error: 'Email already registered' });
     }
 
-    // 비밀번호 해싱
-    const passwordHash = await bcrypt.hash(password, 10);
+    // 비밀번호 해싱 (bcrypt 12 라운드)
+    const passwordHash = await bcrypt.hash(password, 12);
 
     // 트랜잭션 시작
     const client = await pool.connect();

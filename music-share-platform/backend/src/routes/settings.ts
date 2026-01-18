@@ -46,8 +46,8 @@ router.put('/password', authenticateToken as any, async (req: AuthRequest, res: 
       return res.status(400).json({ error: 'Current password is incorrect' });
     }
 
-    // 새 비밀번호 해싱 및 저장
-    const newPasswordHash = await bcrypt.hash(newPassword, 10);
+    // 새 비밀번호 해싱 및 저장 (bcrypt 12 라운드)
+    const newPasswordHash = await bcrypt.hash(newPassword, 12);
     await pool.query(
       'UPDATE users SET password_hash = $1, updated_at = NOW() WHERE id = $2',
       [newPasswordHash, userId]

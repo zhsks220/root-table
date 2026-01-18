@@ -48,8 +48,8 @@ router.post('/register', async (req, res: Response) => {
     try {
       await client.query('BEGIN');
 
-      // 비밀번호 해시
-      const passwordHash = await bcrypt.hash(password, 10);
+      // 비밀번호 해시 (bcrypt 12 라운드)
+      const passwordHash = await bcrypt.hash(password, 12);
 
       // 사용자 생성 (role: partner)
       const userResult = await client.query(`
@@ -359,8 +359,10 @@ router.get('/settlements', authenticateToken as any, requirePartner, async (req:
     const params: any[] = [partnerId];
 
     if (year) {
+      // LIKE 와일드카드 이스케이프 처리
+      const safeYear = String(year).replace(/[%_\\]/g, '\\$&');
       query += ` AND ps.year_month LIKE $2`;
-      params.push(`${year}%`);
+      params.push(`${safeYear}%`);
     }
 
     query += ` ORDER BY ps.year_month DESC`;

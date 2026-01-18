@@ -9,8 +9,9 @@ const genreCards = [
         genre: "액션 / 배틀",
         description: "전투와 각성의 순간을 음악으로 극대화합니다.",
         features: ["고조되는 텐션 설계", "캐릭터 각성 테마", "임팩트 있는 타이밍"],
-        accent: "from-red-600/30 via-orange-500/20 to-red-900/40",
         accentText: "text-red-400",
+        accentBorder: "border-red-400",
+        accentDot: "bg-red-400",
         audioSrc: "/audio/액션 테마.mp3",
         youtubeLink: "https://www.youtube.com/@routelabel",
     },
@@ -18,8 +19,9 @@ const genreCards = [
         genre: "로맨스",
         description: "설렘과 애틋함, 그리고 이별의 감정선을 섬세하게 담아냅니다.",
         features: ["감정선 따라가는 멜로디", "캐릭터 케미 표현", "클라이맥스 연출"],
-        accent: "from-pink-600/30 via-rose-400/20 to-fuchsia-900/40",
         accentText: "text-pink-400",
+        accentBorder: "border-pink-400",
+        accentDot: "bg-pink-400",
         audioSrc: "/audio/발라드 테마.mp3",
         youtubeLink: "https://www.youtube.com/@routelabel",
     },
@@ -27,8 +29,9 @@ const genreCards = [
         genre: "공포 / 호러",
         description: "반전과 긴장, 공포의 순간을 청각적으로 완성합니다.",
         features: ["불안감 조성", "반전 포인트 강조", "심리적 압박감"],
-        accent: "from-purple-700/35 via-violet-500/20 to-slate-900/50",
         accentText: "text-purple-400",
+        accentBorder: "border-purple-400",
+        accentDot: "bg-purple-400",
         audioSrc: "/audio/공포 호러 테마.mp3",
         youtubeLink: "https://www.youtube.com/@routelabel",
     },
@@ -36,8 +39,9 @@ const genreCards = [
         genre: "판타지 / 이세계",
         description: "웅장한 세계관과 마법의 순간을 음악으로 구현합니다.",
         features: ["세계관 몰입도 강화", "마법/스킬 효과음", "에픽한 스케일"],
-        accent: "from-blue-600/30 via-cyan-400/20 to-indigo-900/40",
         accentText: "text-blue-400",
+        accentBorder: "border-blue-400",
+        accentDot: "bg-blue-400",
         audioSrc: "/audio/판타지 테마.mp3",
         youtubeLink: "https://www.youtube.com/@routelabel",
     },
@@ -45,8 +49,9 @@ const genreCards = [
         genre: "스포츠",
         description: "승리를 향한 열정과 도전의 순간을 음악으로 담아냅니다.",
         features: ["긴장감 고조", "승리의 순간 강조", "팀워크와 열정 표현"],
-        accent: "from-lime-500/30 via-green-400/20 to-emerald-900/40",
         accentText: "text-lime-400",
+        accentBorder: "border-lime-400",
+        accentDot: "bg-lime-400",
         audioSrc: "/audio/스포츠 테마.mp3",
         youtubeLink: "https://www.youtube.com/@routelabel",
     },
@@ -54,8 +59,9 @@ const genreCards = [
         genre: "일상 / 코믹",
         description: "유쾌하고 편안한 분위기로 독자에게 휴식을 선사합니다.",
         features: ["개그 타이밍 강조", "편안한 배경 음악", "상황별 효과음"],
-        accent: "from-amber-500/30 via-yellow-400/20 to-orange-800/40",
         accentText: "text-amber-400",
+        accentBorder: "border-amber-400",
+        accentDot: "bg-amber-400",
         audioSrc: "/audio/일상-코믹 테마.mp3",
         youtubeLink: "https://www.youtube.com/@routelabel",
     },
@@ -63,8 +69,9 @@ const genreCards = [
         genre: "국악 / 동양",
         description: "동양적 정서와 전통의 멋을 현대적으로 재해석합니다.",
         features: ["전통악기 활용", "동양적 선율", "역사/무협 장르 특화"],
-        accent: "from-amber-700/35 via-red-800/25 to-stone-900/50",
         accentText: "text-amber-500",
+        accentBorder: "border-amber-500",
+        accentDot: "bg-amber-500",
         audioSrc: "/audio/국악-동양 테마.mp3",
         youtubeLink: "https://www.youtube.com/@routelabel",
     },
@@ -277,15 +284,13 @@ export const WhyNotStock = () => {
                                 return (
                                     <div
                                         key={idx}
-                                        className={`relative flex-shrink-0 w-[280px] sm:w-[420px] md:w-[520px] mx-[10px] sm:mx-[20px] p-6 sm:p-8 rounded-3xl transition-all duration-500 backdrop-blur-sm ${
+                                        className={`relative flex-shrink-0 w-[280px] sm:w-[420px] md:w-[520px] mx-[10px] sm:mx-[20px] p-6 sm:p-8 rounded-3xl transition-all duration-500 ${
                                             isActive
-                                                ? 'bg-white/[0.08] border border-emerald-500/40 scale-100 opacity-100'
-                                                : 'bg-white/[0.03] border border-white/10 scale-95 opacity-50'
+                                                ? `bg-white/[0.03] border-2 ${card.accentBorder} scale-100 opacity-100`
+                                                : 'bg-white/[0.02] border-2 border-white/20 scale-95 opacity-50'
                                         }`}
                                         style={{ minHeight: '260px' }}
                                     >
-                                        {/* 장르별 그라데이션 배경 */}
-                                        <div className={`absolute inset-0 rounded-3xl bg-gradient-to-br ${card.accent} opacity-30 pointer-events-none`} />
 
                                         <div className="relative z-10">
                                             {/* 장르 타이틀 */}
@@ -311,7 +316,7 @@ export const WhyNotStock = () => {
                                                 >
                                                     {card.features.map((feature, fidx) => (
                                                         <li key={fidx} className="flex items-center gap-2 text-sm text-white/50">
-                                                            <span className={`w-1.5 h-1.5 rounded-full ${card.accentText.replace('text-', 'bg-')}`} />
+                                                            <span className={`w-1.5 h-1.5 rounded-full ${card.accentDot}`} />
                                                             {feature}
                                                         </li>
                                                     ))}

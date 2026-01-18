@@ -212,7 +212,7 @@ export const SocialProof = () => {
                     className="text-center mb-12"
                 >
                     <h2 className="text-3xl md:text-4xl font-black mb-4">
-                        이미, 웹툰 안에서 <span className="text-emerald-500">증명</span>했습니다
+                        이미, 웹툰 안에서 <br className="sm:hidden" /><span className="text-emerald-500">증명</span>했습니다.
                     </h2>
                 </motion.div>
 

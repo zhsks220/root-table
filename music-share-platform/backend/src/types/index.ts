@@ -1,11 +1,26 @@
 import { Request } from 'express';
 
-// JWT 페이로드
+// JWT Access Token 페이로드
 export interface JWTPayload {
   id: string;
   email: string;
   role: 'user' | 'admin' | 'partner';
   partnerId?: string;
+}
+
+// JWT Refresh Token 페이로드
+export interface RefreshTokenPayload {
+  id: string;
+  email: string;
+  role: 'user' | 'admin' | 'partner';
+  partnerId?: string;
+  tokenType: 'refresh';
+}
+
+// 토큰 응답 타입
+export interface TokenResponse {
+  accessToken: string;
+  refreshToken: string;
 }
 
 // 인증된 요청

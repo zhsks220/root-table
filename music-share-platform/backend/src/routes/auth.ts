@@ -2,14 +2,22 @@ import { Router, Request, Response } from 'express';
 import bcrypt from 'bcrypt';
 import { z } from 'zod';
 import { pool } from '../db';
-import { generateToken } from '../middleware/auth';
+import { generateToken, generateRefreshToken, verifyRefreshToken } from '../middleware/auth';
 
 const router = Router();
+
+// 비밀번호 정책: 8자 이상, 대문자, 소문자, 숫자, 특수문자(!@#$%^&*) 포함 필수
+const passwordSchema = z.string()
+  .min(8, '비밀번호는 8자 이상이어야 합니다')
+  .regex(/[A-Z]/, '비밀번호에 대문자가 포함되어야 합니다')
+  .regex(/[a-z]/, '비밀번호에 소문자가 포함되어야 합니다')
+  .regex(/[0-9]/, '비밀번호에 숫자가 포함되어야 합니다')
+  .regex(/[!@#$%^&*]/, '비밀번호에 특수문자(!@#$%^&*)가 포함되어야 합니다');
 
 // 회원가입 스키마
 const registerSchema = z.object({
   email: z.string().email(),
-  password: z.string().min(8),
+  password: passwordSchema,
   name: z.string().min(1),
   invitationCode: z.string().min(1),
 });
@@ -18,6 +26,11 @@ const registerSchema = z.object({
 const loginSchema = z.object({
   email: z.string().email(),
   password: z.string(),
+});
+
+// Refresh Token 스키마
+const refreshSchema = z.object({
+  refreshToken: z.string().min(1),
 });
 
 // 회원가입 (초대 코드 필수)
@@ -80,11 +93,19 @@ router.post('/register', async (req: Request, res: Response) => {
 
       await client.query('COMMIT');
 
-      // JWT 토큰 생성
-      const token = generateToken({
+      // JWT Access Token 생성 (15분 만료)
+      const accessToken = generateToken({
         id: user.id,
         email: user.email,
         role: user.role,
+      });
+
+      // JWT Refresh Token 생성 (7일 만료)
+      const refreshToken = generateRefreshToken({
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        tokenType: 'refresh',
       });
 
       res.status(201).json({
@@ -95,7 +116,8 @@ router.post('/register', async (req: Request, res: Response) => {
           name: user.name,
           role: user.role,
         },
-        token,
+        accessToken,
+        refreshToken,
       });
     } catch (error) {
       await client.query('ROLLBACK');
@@ -117,9 +139,9 @@ router.post('/login', async (req: Request, res: Response) => {
   try {
     const { email, password } = loginSchema.parse(req.body);
 
-    // 사용자 조회
+    // 사용자 조회 (계정 잠금 정보 포함)
     const result = await pool.query(
-      'SELECT id, email, password_hash, name, role FROM users WHERE email = $1',
+      'SELECT id, email, password_hash, name, role, login_attempts, locked_until FROM users WHERE email = $1',
       [email]
     );
 
@@ -129,17 +151,66 @@ router.post('/login', async (req: Request, res: Response) => {
 
     const user = result.rows[0];
 
+    // 계정 잠금 여부 확인
+    if (user.locked_until && new Date(user.locked_until) > new Date()) {
+      const remainingTime = Math.ceil((new Date(user.locked_until).getTime() - Date.now()) / 1000 / 60);
+      return res.status(423).json({
+        error: 'Account is locked',
+        message: `Too many failed login attempts. Please try again in ${remainingTime} minute(s).`,
+        lockedUntil: user.locked_until
+      });
+    }
+
     // 비밀번호 검증
     const isValid = await bcrypt.compare(password, user.password_hash);
     if (!isValid) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+      // 로그인 실패: login_attempts 증가
+      const newAttempts = (user.login_attempts || 0) + 1;
+
+      if (newAttempts >= 5) {
+        // 5회 이상 실패: 15분 잠금
+        const lockUntil = new Date(Date.now() + 15 * 60 * 1000);
+        await pool.query(
+          'UPDATE users SET login_attempts = $1, locked_until = $2 WHERE id = $3',
+          [newAttempts, lockUntil, user.id]
+        );
+        return res.status(423).json({
+          error: 'Account is locked',
+          message: 'Too many failed login attempts. Account locked for 15 minutes.',
+          lockedUntil: lockUntil
+        });
+      } else {
+        // 5회 미만: 시도 횟수만 증가
+        await pool.query(
+          'UPDATE users SET login_attempts = $1 WHERE id = $2',
+          [newAttempts, user.id]
+        );
+        return res.status(401).json({
+          error: 'Invalid email or password',
+          remainingAttempts: 5 - newAttempts
+        });
+      }
     }
 
-    // JWT 토큰 생성
-    const token = generateToken({
+    // 로그인 성공: login_attempts 초기화, locked_until NULL로 설정
+    await pool.query(
+      'UPDATE users SET login_attempts = 0, locked_until = NULL WHERE id = $1',
+      [user.id]
+    );
+
+    // JWT Access Token 생성 (15분 만료)
+    const accessToken = generateToken({
       id: user.id,
       email: user.email,
       role: user.role,
+    });
+
+    // JWT Refresh Token 생성 (7일 만료)
+    const refreshToken = generateRefreshToken({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+      tokenType: 'refresh',
     });
 
     res.json({
@@ -150,13 +221,62 @@ router.post('/login', async (req: Request, res: Response) => {
         name: user.name,
         role: user.role,
       },
-      token,
+      accessToken,
+      refreshToken,
     });
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid input', details: error.errors });
     }
     console.error('Login error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Refresh Token으로 새 Access Token 발급
+router.post('/refresh', async (req: Request, res: Response) => {
+  try {
+    const { refreshToken } = refreshSchema.parse(req.body);
+
+    // Refresh Token 검증
+    const decoded = verifyRefreshToken(refreshToken);
+    if (!decoded) {
+      return res.status(401).json({ error: 'Invalid or expired refresh token' });
+    }
+
+    // tokenType 검증
+    if (decoded.tokenType !== 'refresh') {
+      return res.status(401).json({ error: 'Invalid token type' });
+    }
+
+    // 사용자가 여전히 존재하는지 확인
+    const result = await pool.query(
+      'SELECT id, email, role FROM users WHERE id = $1',
+      [decoded.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(401).json({ error: 'User not found' });
+    }
+
+    const user = result.rows[0];
+
+    // 새 Access Token 생성
+    const accessToken = generateToken({
+      id: user.id,
+      email: user.email,
+      role: user.role,
+    });
+
+    res.json({
+      success: true,
+      accessToken,
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid input', details: error.errors });
+    }
+    console.error('Refresh token error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

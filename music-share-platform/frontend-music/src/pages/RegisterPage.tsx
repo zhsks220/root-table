@@ -39,8 +39,8 @@ export default function RegisterPage() {
         formData.name,
         code
       );
-      const { user, token } = response.data;
-      setAuth(user, token);
+      const { user, accessToken, refreshToken } = response.data;
+      setAuth(user, accessToken, refreshToken);
       navigate('/');
     } catch (err: any) {
       setError(err.response?.data?.error || '회원가입에 실패했습니다.');

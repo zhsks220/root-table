@@ -11,50 +11,81 @@ interface User {
 
 interface AuthState {
   user: User | null;
-  token: string | null;
+  accessToken: string | null;
+  refreshToken: string | null;
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  setAuth: (user: User, token: string) => void;
+  setAuth: (user: User, accessToken: string, refreshToken: string) => void;
+  setTokens: (accessToken: string, refreshToken: string) => void;
   logout: () => void;
   login: (email: string, password: string) => Promise<void>;
+  refreshAccessToken: () => Promise<boolean>;
   clearError: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
-      token: null,
+      accessToken: null,
+      refreshToken: null,
       isAuthenticated: false,
       isLoading: false,
       error: null,
 
-      setAuth: (user, token) => {
+      setAuth: (user, accessToken, refreshToken) => {
         // API 클라이언트에 토큰 설정
-        api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        set({ user, token, isAuthenticated: true, error: null });
+        api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+        set({ user, accessToken, refreshToken, isAuthenticated: true, error: null });
+      },
+
+      setTokens: (accessToken, refreshToken) => {
+        // API 클라이언트에 토큰 설정
+        api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+        set({ accessToken, refreshToken });
       },
 
       logout: () => {
         // API 클라이언트에서 토큰 제거
         delete api.defaults.headers.common['Authorization'];
-        set({ user: null, token: null, isAuthenticated: false, error: null });
+        set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false, error: null });
       },
 
       login: async (email: string, password: string) => {
         set({ isLoading: true, error: null });
         try {
           const response = await api.post('/auth/login', { email, password });
-          const { user, token } = response.data;
+          const { user, accessToken, refreshToken } = response.data;
 
           // API 클라이언트에 토큰 설정
-          api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-          set({ user, token, isAuthenticated: true, isLoading: false, error: null });
+          api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
+          set({ user, accessToken, refreshToken, isAuthenticated: true, isLoading: false, error: null });
         } catch (err: any) {
           const errorMessage = err.response?.data?.error || '로그인에 실패했습니다.';
           set({ isLoading: false, error: errorMessage });
           throw err;
+        }
+      },
+
+      refreshAccessToken: async () => {
+        const { refreshToken } = get();
+        if (!refreshToken) {
+          return false;
+        }
+
+        try {
+          const response = await api.post('/auth/refresh', { refreshToken });
+          const { accessToken: newAccessToken, refreshToken: newRefreshToken } = response.data;
+
+          // API 클라이언트에 새 토큰 설정
+          api.defaults.headers.common['Authorization'] = `Bearer ${newAccessToken}`;
+          set({ accessToken: newAccessToken, refreshToken: newRefreshToken || refreshToken });
+          return true;
+        } catch (err) {
+          // 리프레시 토큰도 만료된 경우 로그아웃
+          get().logout();
+          return false;
         }
       },
 
@@ -64,7 +95,8 @@ export const useAuthStore = create<AuthState>()(
       name: 'auth-storage',
       partialize: (state) => ({
         user: state.user,
-        token: state.token,
+        accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
         isAuthenticated: state.isAuthenticated,
       }),
     }
@@ -76,8 +108,8 @@ const storedAuth = localStorage.getItem('auth-storage');
 if (storedAuth) {
   try {
     const { state } = JSON.parse(storedAuth);
-    if (state?.token) {
-      api.defaults.headers.common['Authorization'] = `Bearer ${state.token}`;
+    if (state?.accessToken) {
+      api.defaults.headers.common['Authorization'] = `Bearer ${state.accessToken}`;
     }
   } catch (e) {
     // 파싱 실패 시 무시

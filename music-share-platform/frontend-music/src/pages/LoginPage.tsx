@@ -25,8 +25,8 @@ export default function LoginPage() {
 
     try {
       const response = await authAPI.login(email, password);
-      const { user, token } = response.data;
-      setAuth(user, token);
+      const { user, accessToken, refreshToken } = response.data;
+      setAuth(user, accessToken, refreshToken);
 
       // 사용자 역할에 따라 적절한 페이지로 이동
       if (user.role === 'admin') {

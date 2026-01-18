@@ -1,5 +1,7 @@
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import dotenv from 'dotenv';
 import authRoutes from './routes/auth';
 import invitationRoutes from './routes/invitations';
@@ -20,6 +22,24 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3001;
+const isProduction = process.env.NODE_ENV === 'production';
+
+// Rate Limiters
+const globalLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15분
+  max: 100, // 15분에 100요청
+  message: { error: 'Too many requests, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
+
+const authLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15분
+  max: 5, // 15분에 5요청
+  message: { error: 'Too many authentication attempts, please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
 // 미들웨어
 const allowedOrigins = [
@@ -35,10 +55,25 @@ if (process.env.CORS_ORIGINS) {
   allowedOrigins.push(...additionalOrigins);
 }
 
+// 보안 헤더 (helmet)
+app.use(helmet());
+
+// 전역 Rate Limiter
+app.use(globalLimiter);
+
+// 인증 엔드포인트 엄격한 Rate Limiter
+app.use('/api/auth/login', authLimiter);
+app.use('/api/auth/register', authLimiter);
+
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
+    // 프로덕션에서는 origin 없는 요청 거부
+    if (!origin) {
+      if (isProduction) {
+        return callback(new Error('Origin required in production'));
+      }
+      return callback(null, true);
+    }
 
     if (allowedOrigins.indexOf(origin) !== -1) {
       callback(null, true);
@@ -92,7 +127,12 @@ app.use((req, res) => {
 
 // 에러 핸들러
 app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  console.error('Error:', err);
+  // 프로덕션에서는 err.message만 로깅
+  if (isProduction) {
+    console.error('Error:', err.message);
+  } else {
+    console.error('Error:', err);
+  }
   res.status(500).json({ error: 'Internal server error' });
 });
 

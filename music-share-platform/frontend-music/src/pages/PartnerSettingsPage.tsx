@@ -23,7 +23,7 @@ const tabs: TabItem[] = [
 ];
 
 const PartnerSettingsPage: React.FC = () => {
-  const { user, setAuth, token } = useAuthStore();
+  const { user, setAuth, accessToken, refreshToken } = useAuthStore();
   const { theme } = useThemeStore();
   const isDark = theme === 'dark';
   const [activeTab, setActiveTab] = useState('profile');
@@ -63,8 +63,8 @@ const PartnerSettingsPage: React.FC = () => {
     setLoading(true);
     try {
       const response = await settingsAPI.updateProfile(name);
-      if (user && token) {
-        setAuth({ ...user, name: response.data.user.name }, token);
+      if (user && accessToken && refreshToken) {
+        setAuth({ ...user, name: response.data.user.name }, accessToken, refreshToken);
       }
       showMessage('success', '프로필이 업데이트되었습니다.');
     } catch (error: any) {

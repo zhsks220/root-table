@@ -15,7 +15,8 @@
     "db:partner-migrate": "tsx src/db/partner-migrate.ts",
     "db:fix-role": "tsx src/db/fix-role-migrate.ts",
     "db:library-migrate": "tsx src/db/library-migrate.ts",
-    "db:seed-library": "tsx src/db/seed-library.ts"
+    "db:seed-library": "tsx src/db/seed-library.ts",
+    "db:security-migrate": "tsx src/db/security-migrate.ts"
   },
   "keywords": [
     "music",
@@ -26,22 +27,24 @@
   "license": "MIT",
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",
-    "sharp": "^0.33.2",
     "bcrypt": "^5.1.1",
     "cors": "^2.8.5",
     "dotenv": "^16.3.1",
     "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "file-type": "^16.5.4",
     "fluent-ffmpeg": "^2.1.3",
+    "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.2",
     "multer": "^1.4.5-lts.1",
     "nodemailer": "^7.0.12",
     "pg": "^8.11.3",
+    "sharp": "^0.33.2",
     "xlsx": "^0.18.5",
     "zod": "^3.22.4"
   },
   "devDependencies": {
     "@types/bcrypt": "^5.0.2",
-    "@types/sharp": "^0.32.0",
     "@types/cors": "^2.8.17",
     "@types/express": "^4.17.21",
     "@types/fluent-ffmpeg": "^2.1.28",

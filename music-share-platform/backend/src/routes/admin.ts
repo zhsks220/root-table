@@ -2,11 +2,15 @@ import { Router, Response } from 'express';
 import { z } from 'zod';
 import multer from 'multer';
 import crypto from 'crypto';
+import { fromBuffer as fileTypeFromBuffer } from 'file-type';
 import { pool } from '../db';
 import { AuthRequest } from '../types';
 import { authenticateToken, requireAdmin } from '../middleware/auth';
 import { uploadFile, deleteFile, getStreamUrl, downloadFile } from '../services/supabaseStorage';
 import { transcodeToFlac, transcodeToMp3, getAudioMetadata, checkFfmpegInstalled } from '../services/transcoder';
+
+// 허용된 실제 파일 MIME 타입 (magic bytes 기반)
+const ALLOWED_AUDIO_TYPES = ['audio/mpeg', 'audio/wav', 'audio/flac', 'audio/x-flac'];
 
 const router = Router();
 const upload = multer({
@@ -31,6 +35,17 @@ router.post('/tracks', upload.single('file'), async (req: AuthRequest, res: Resp
     if (!req.file) {
       return res.status(400).json({ error: 'No file uploaded' });
     }
+
+    // Magic bytes 검증 - 실제 파일 타입 확인
+    const detectedType = await fileTypeFromBuffer(req.file.buffer);
+    if (!detectedType || !ALLOWED_AUDIO_TYPES.includes(detectedType.mime)) {
+      console.warn(`🚫 File type validation failed: detected=${detectedType?.mime || 'unknown'}, claimed=${req.file.mimetype}`);
+      return res.status(400).json({
+        error: 'Invalid file type. Only audio files (MP3, WAV, FLAC) are allowed.',
+        detected: detectedType?.mime || 'unknown'
+      });
+    }
+    console.log(`✅ File type verified: ${detectedType.mime}`);
 
     const {
       title, artist, album, duration,

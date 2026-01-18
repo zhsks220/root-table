@@ -3,16 +3,16 @@ import jwt from 'jsonwebtoken';
 import { AuthRequest, JWTPayload, RefreshTokenPayload } from '../types';
 
 // JWT Secret 검증 - 앱 시작 시 확인
-const JWT_SECRET = process.env.JWT_SECRET;
-const JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET;
-
-if (!JWT_SECRET) {
+if (!process.env.JWT_SECRET) {
   throw new Error('JWT_SECRET environment variable is required');
 }
 
-if (!JWT_REFRESH_SECRET) {
+if (!process.env.JWT_REFRESH_SECRET) {
   throw new Error('JWT_REFRESH_SECRET environment variable is required');
 }
+
+const JWT_SECRET: string = process.env.JWT_SECRET;
+const JWT_REFRESH_SECRET: string = process.env.JWT_REFRESH_SECRET;
 
 // JWT Access Token 검증 미들웨어
 export function authenticateToken(req: AuthRequest, res: Response, next: NextFunction) {

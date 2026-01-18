@@ -33,8 +33,12 @@ interface PlayerState {
   preloadedUrls: Map<string, string>;
   preloadingTracks: Set<string>;
 
+  // 모바일 오디오 잠금 해제 상태
+  isAudioUnlocked: boolean;
+
   // 액션
   setAudio: (audio: HTMLAudioElement) => void;
+  unlockAudio: () => Promise<void>;
   preloadTrack: (track: Track) => Promise<void>;
   playTrack: (track: Track, playlist?: Track[]) => Promise<void>;
   togglePlay: () => void;
@@ -66,10 +70,35 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   isLibraryMode: false,
   preloadedUrls: new Map(),
   preloadingTracks: new Set(),
+  isAudioUnlocked: false,
 
   setAudio: (audio) => {
     console.log('🔊 Audio element registered in store');
     set({ audio });
+  },
+
+  // 모바일 브라우저 자동재생 정책 우회를 위한 오디오 잠금 해제
+  unlockAudio: async () => {
+    const state = get();
+    if (state.isAudioUnlocked || !state.audio) return;
+
+    try {
+      // 무음 재생으로 오디오 컨텍스트 활성화
+      state.audio.volume = 0;
+      state.audio.muted = true;
+      await state.audio.play();
+      state.audio.pause();
+      state.audio.currentTime = 0;
+      state.audio.muted = state.isMuted;
+      state.audio.volume = state.volume;
+
+      set({ isAudioUnlocked: true });
+      console.log('🔓 Audio unlocked for mobile autoplay');
+    } catch (error) {
+      console.log('⚠️ Audio unlock failed (may already be unlocked):', error);
+      // 에러가 나도 unlocked로 설정 (이미 활성화되어 있을 수 있음)
+      set({ isAudioUnlocked: true });
+    }
   },
 
   // 트랙 프리로드 (URL 캐싱 + Audio 버퍼링)

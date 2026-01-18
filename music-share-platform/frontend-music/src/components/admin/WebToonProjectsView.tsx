@@ -24,7 +24,7 @@ interface TrackMarker {
 export function WebToonProjectsView() {
   const { theme } = useThemeStore();
   const isDark = theme === 'dark';
-  const { playTrack, preloadTrack, currentTrack, stop, volume, isMuted, setVolume, toggleMute, isPlaying, togglePlay } = usePlayerStore();
+  const { playTrack, preloadTrack, currentTrack, stop, volume, isMuted, setVolume, toggleMute, isPlaying, togglePlay, unlockAudio, isAudioUnlocked } = usePlayerStore();
 
   // 프로젝트 목록
   const [projects, setProjects] = useState<WebToonProject[]>([]);
@@ -450,6 +450,11 @@ export function WebToonProjectsView() {
 
   // Long press 핸들러
   const handleTouchStart = (e: React.TouchEvent) => {
+    // 모바일 첫 터치 시 오디오 잠금 해제 (자동재생 정책 우회)
+    if (!isAudioUnlocked) {
+      unlockAudio();
+    }
+
     const touch = e.touches[0];
     longPressTimer.current = setTimeout(() => {
       setContextMenu({ x: touch.clientX, y: touch.clientY });
@@ -991,9 +996,11 @@ export function WebToonProjectsView() {
                         <img
                           src={scene.image_url}
                           alt={`Scene ${index + 1}`}
-                          className="w-full"
+                          className="w-full select-none"
                           loading="lazy"
                           decoding="async"
+                          draggable={false}
+                          onDragStart={(e) => e.preventDefault()}
                         />
                       </div>
                     ))}
@@ -1033,7 +1040,7 @@ export function WebToonProjectsView() {
                 <div className="fixed inset-0 z-40" onClick={closeContextMenu} />
                 <div
                   className={cn(
-                    'fixed z-50 rounded-lg shadow-lg border overflow-hidden',
+                    'fixed z-50 rounded-lg shadow-lg border overflow-hidden select-none',
                     isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
                   )}
                   style={{ left: contextMenu.x - 75, top: contextMenu.y - 10 }}
@@ -1041,7 +1048,7 @@ export function WebToonProjectsView() {
                   <button
                     onClick={() => { handleAddMemoNote(contextMenu); closeContextMenu(); }}
                     className={cn(
-                      'w-full flex items-center gap-3 px-4 py-3 transition-colors',
+                      'w-full flex items-center gap-3 px-4 py-3 transition-colors select-none',
                       isDark ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-700'
                     )}
                   >
@@ -1051,7 +1058,7 @@ export function WebToonProjectsView() {
                   <button
                     onClick={() => { setPendingTrackPosition(contextMenu); setShowTrackModal(true); closeContextMenu(); }}
                     className={cn(
-                      'w-full flex items-center gap-3 px-4 py-3 transition-colors',
+                      'w-full flex items-center gap-3 px-4 py-3 transition-colors select-none',
                       isDark ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-700'
                     )}
                   >
@@ -1141,9 +1148,11 @@ export function WebToonProjectsView() {
                           <img
                             src={scene.image_url}
                             alt={`Scene ${index + 1}`}
-                            className="w-full object-contain"
+                            className="w-full object-contain select-none"
                             loading="lazy"
                             decoding="async"
+                            draggable={false}
+                            onDragStart={(e) => e.preventDefault()}
                           />
                           {selectedScene?.id === scene.id && (
                             <div className="absolute top-2 left-2 px-2 py-1 bg-emerald-500 text-white text-xs font-bold rounded">

@@ -66,18 +66,24 @@ export const FinalCTA = () => {
         organization: '',
         email: '',
         workLink: '',
+        genre: '',
+        serialStatus: '' as '' | 'ongoing' | 'upcoming',
+        workTitle: '',
         message: '',
     });
     const [showMailOptions, setShowMailOptions] = useState(false);
     const [emailContent, setEmailContent] = useState({ subject: '', body: '' });
 
-    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value } = e.target;
         setFormData(prev => ({ ...prev, [name]: value }));
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
+
+        // 연재 상태 텍스트 변환
+        const serialStatusText = formData.serialStatus === 'ongoing' ? '연재 중' : '연재 예정';
 
         // 이메일 내용 구성
         const subject = `[웹툰 음악 문의] ${formData.name}${formData.organization ? ` (${formData.organization})` : ''}`;
@@ -87,8 +93,11 @@ export const FinalCTA = () => {
 ■ 소속: ${formData.organization || '(미입력)'}
 ■ 이메일: ${formData.email}
 ■ 작품 링크: ${formData.workLink}
+■ 장르: ${formData.genre}
+■ 연재 상태: ${serialStatusText}
+■ 작품명: ${formData.workTitle || '(미입력)'}
 
-■ 추가 메시지:
+■ 추가 문의사항:
 ${formData.message || '(없음)'}`;
 
         setEmailContent({ subject, body });
@@ -203,9 +212,59 @@ ${formData.message || '(없음)'}`;
                             />
                         </div>
 
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div>
+                                <label htmlFor="genre" className="block text-sm font-medium text-white/80 mb-2">
+                                    장르 <span className="text-emerald-500">*</span>
+                                </label>
+                                <input
+                                    type="text"
+                                    id="genre"
+                                    name="genre"
+                                    value={formData.genre}
+                                    onChange={handleChange}
+                                    placeholder="예: 로맨스, 판타지, 액션"
+                                    className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-emerald-500/50 focus:bg-black/70 transition-all"
+                                    required
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="serialStatus" className="block text-sm font-medium text-white/80 mb-2">
+                                    연재 상태 <span className="text-emerald-500">*</span>
+                                </label>
+                                <select
+                                    id="serialStatus"
+                                    name="serialStatus"
+                                    value={formData.serialStatus}
+                                    onChange={handleChange}
+                                    className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500/50 focus:bg-black/70 transition-all appearance-none cursor-pointer"
+                                    required
+                                >
+                                    <option value="" disabled className="bg-zinc-900">선택해주세요</option>
+                                    <option value="ongoing" className="bg-zinc-900">연재 중</option>
+                                    <option value="upcoming" className="bg-zinc-900">연재 예정</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label htmlFor="workTitle" className="block text-sm font-medium text-white/80 mb-2">
+                                작품명 (선택)
+                            </label>
+                            <input
+                                type="text"
+                                id="workTitle"
+                                name="workTitle"
+                                value={formData.workTitle}
+                                onChange={handleChange}
+                                placeholder="작품 제목"
+                                className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-emerald-500/50 focus:bg-black/70 transition-all"
+                            />
+                        </div>
+
                         <div>
                             <label htmlFor="message" className="block text-sm font-medium text-white/80 mb-2">
-                                추가 메시지 (선택)
+                                추가 문의사항 (선택)
                             </label>
                             <textarea
                                 id="message"

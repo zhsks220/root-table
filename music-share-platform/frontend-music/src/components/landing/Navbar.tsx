@@ -7,7 +7,7 @@ interface NavbarProps {
     onCTAClick?: () => void;
 }
 
-export const Navbar = ({ onCTAClick }: NavbarProps) => {
+export const Navbar = ({ onCTAClick: _onCTAClick }: NavbarProps) => {
     const [isScrolled, setIsScrolled] = useState(false);
     const navigate = useNavigate();
     const { isAuthenticated, user } = useAuthStore();

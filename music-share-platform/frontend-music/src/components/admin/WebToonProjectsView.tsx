@@ -12,7 +12,8 @@ import { useScrollBasedPlayback } from '../../hooks/useScrollBasedPlayback';
 import {
   ArrowLeft, Plus, Upload, Trash2, Music,
   Loader2, Image as ImageIcon, X, Smartphone, StickyNote,
-  Save, Volume2, VolumeX, Play, Pause, Menu, Maximize, Minimize
+  Save, Volume2, VolumeX, Play, Pause, Menu, Maximize, Minimize,
+  Eye, EyeOff
 } from 'lucide-react';
 
 interface TrackMarker {
@@ -69,6 +70,7 @@ export function WebToonProjectsView() {
 
   // 음원 마커 관리
   const [trackMarkers, setTrackMarkers] = useState<TrackMarker[]>([]);
+  const [hideMarkers, setHideMarkers] = useState(false);
 
   // 사이드바 이미지 blob 캐시
   const [cachedImages, setCachedImages] = useState<Record<string, string>>({});
@@ -798,6 +800,16 @@ export function WebToonProjectsView() {
                     <span>{isFullscreen ? '전체화면 해제' : '전체화면'}</span>
                   </button>
                   <button
+                    onClick={() => { setHideMarkers(!hideMarkers); setMenuOpen(false); }}
+                    className={cn(
+                      'w-full flex items-center gap-3 px-4 py-3 transition-colors',
+                      isDark ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-700'
+                    )}
+                  >
+                    {hideMarkers ? <Eye className="w-5 h-5" /> : <EyeOff className="w-5 h-5" />}
+                    <span>{hideMarkers ? '마커 표시' : '마커 숨김'}</span>
+                  </button>
+                  <button
                     onClick={() => { handleSaveProject(); setMenuOpen(false); }}
                     disabled={saving}
                     className={cn(
@@ -1056,7 +1068,7 @@ export function WebToonProjectsView() {
                   ))}
 
                   {/* 모바일 음원 마커들 */}
-                  {trackMarkers.map(marker => (
+                  {!hideMarkers && trackMarkers.map(marker => (
                     <DraggableTrackMarker
                       key={marker.id}
                       markerId={marker.id}
@@ -1213,7 +1225,7 @@ export function WebToonProjectsView() {
                     ))}
 
                     {/* 드래그 가능한 음원 마커들 */}
-                    {trackMarkers.map(marker => (
+                    {!hideMarkers && trackMarkers.map(marker => (
                       <DraggableTrackMarker
                         key={marker.id}
                         markerId={marker.id}
@@ -1276,6 +1288,22 @@ export function WebToonProjectsView() {
                 <VolumeX className="w-5 h-5" />
               ) : (
                 <Volume2 className="w-5 h-5" />
+              )}
+            </button>
+
+            {/* 마커 숨김 버튼 */}
+            <button
+              onClick={() => setHideMarkers(!hideMarkers)}
+              className={cn(
+                'p-2 rounded-lg transition-colors',
+                isDark ? 'hover:bg-gray-800 text-gray-300' : 'hover:bg-gray-100 text-gray-700'
+              )}
+              title={hideMarkers ? '마커 표시' : '마커 숨김'}
+            >
+              {hideMarkers ? (
+                <Eye className="w-5 h-5" />
+              ) : (
+                <EyeOff className="w-5 h-5" />
               )}
             </button>
 

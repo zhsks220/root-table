@@ -7,6 +7,7 @@ import { UploadView } from '../components/admin/UploadView';
 import { WebToonProjectsView } from '../components/admin/WebToonProjectsView';
 import { MobileLayout, MenuItem, QuickLink } from '../components/layout/MobileLayout';
 import { useThemeStore } from '../store/themeStore';
+import { usePlayerStore } from '../store/playerStore';
 import { AnimatePresence } from 'framer-motion';
 
 type Tab = 'tracks' | 'invitations' | 'users' | 'upload' | 'webtoon-projects';
@@ -29,7 +30,16 @@ const quickLinks: QuickLink[] = [
 export default function AdminPage() {
   const [activeTab, setActiveTab] = useState<Tab>('tracks');
   const { theme } = useThemeStore();
+  const { unlockAudio } = usePlayerStore();
   const isDark = theme === 'dark';
+
+  // 탭 변경 핸들러 - 웹툰 프로젝트 선택 시 오디오 잠금 해제
+  const handleTabChange = (tab: string) => {
+    if (tab === 'webtoon-projects') {
+      unlockAudio();
+    }
+    setActiveTab(tab as Tab);
+  };
 
   return (
     <MobileLayout
@@ -37,7 +47,7 @@ export default function AdminPage() {
       subtitle="관리자 콘솔"
       menuItems={menuItems}
       activeTab={activeTab}
-      onTabChange={(tab) => setActiveTab(tab as Tab)}
+      onTabChange={handleTabChange}
       quickLinks={quickLinks}
       logoImage="/images/wordmark_B.png"
       logoImageDark="/images/wordmark_W.png"

@@ -25,7 +25,7 @@ interface TrackMarker {
 export function WebToonProjectsView() {
   const { theme } = useThemeStore();
   const isDark = theme === 'dark';
-  const { playTrack, preloadTrack, currentTrack, stop, volume, isMuted, setVolume, toggleMute, isPlaying, togglePlay, unlockAudio, isAudioUnlocked } = usePlayerStore();
+  const { playTrack, preloadTrack, currentTrack, stop, volume, isMuted, setVolume, toggleMute, isPlaying, togglePlay } = usePlayerStore();
 
   // 프로젝트 목록
   const [projects, setProjects] = useState<WebToonProject[]>([]);
@@ -574,11 +574,7 @@ export function WebToonProjectsView() {
                         ? 'bg-gray-950 border-gray-800 hover:border-emerald-500'
                         : 'bg-white border-gray-200 hover:border-emerald-500'
                     )}
-                    onClick={() => {
-                      // 프로젝트 선택 시 오디오 잠금 해제 (모바일 자동재생 정책 우회)
-                      unlockAudio();
-                      setCurrentProject(project);
-                    }}
+                    onClick={() => setCurrentProject(project)}
                   >
                     {/* 삭제 버튼 */}
                     <button

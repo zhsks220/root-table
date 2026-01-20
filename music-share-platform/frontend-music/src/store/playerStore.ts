@@ -38,7 +38,7 @@ interface PlayerState {
 
   // 액션
   setAudio: (audio: HTMLAudioElement) => void;
-  unlockAudio: () => Promise<void>;
+  unlockAudio: () => void;
   preloadTrack: (track: Track) => Promise<void>;
   playTrack: (track: Track, playlist?: Track[]) => Promise<void>;
   togglePlay: () => void;
@@ -78,35 +78,38 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
   },
 
   // 모바일 브라우저 자동재생 정책 우회를 위한 오디오 잠금 해제
-  unlockAudio: async () => {
+  // 동기적으로 play() 호출해야 사용자 제스처 컨텍스트 유지됨
+  unlockAudio: () => {
     const state = get();
     if (state.isAudioUnlocked || !state.audio) return;
 
     // 무음 WAV 데이터 URL (0.1초 무음)
     const silentWav = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
 
-    try {
-      const originalSrc = state.audio.src;
+    const audio = state.audio;
+    const originalSrc = audio.src;
 
-      // 무음 파일로 재생하여 오디오 컨텍스트 활성화
-      state.audio.src = silentWav;
-      state.audio.volume = 0;
-      state.audio.muted = true;
-      await state.audio.play();
-      state.audio.pause();
-      state.audio.currentTime = 0;
+    // 무음 파일로 재생하여 오디오 컨텍스트 활성화
+    audio.src = silentWav;
+    audio.volume = 0;
+    audio.muted = true;
 
-      // 원래 상태로 복원
-      state.audio.src = originalSrc;
-      state.audio.muted = state.isMuted;
-      state.audio.volume = state.volume;
-
-      set({ isAudioUnlocked: true });
-      console.log('🔓 Audio unlocked for mobile autoplay');
-    } catch (error) {
-      console.log('⚠️ Audio unlock failed:', error);
-      // 실패하면 다시 시도할 수 있도록 unlocked 설정 안 함
-    }
+    // 동기적으로 play() 호출 (await 없이)
+    audio.play()
+      .then(() => {
+        audio.pause();
+        audio.currentTime = 0;
+        audio.src = originalSrc;
+        audio.muted = state.isMuted;
+        audio.volume = state.volume;
+        set({ isAudioUnlocked: true });
+      })
+      .catch(() => {
+        // 실패 시 원복
+        audio.src = originalSrc;
+        audio.muted = state.isMuted;
+        audio.volume = state.volume;
+      });
   },
 
   // 트랙 프리로드 (URL 캐싱 + Audio 버퍼링)

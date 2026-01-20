@@ -477,10 +477,10 @@ export function WebToonProjectsView() {
   };
 
   // Long press 핸들러
-  const handleTouchStart = (e: React.TouchEvent) => {
+  const handleTouchStart = async (e: React.TouchEvent) => {
     // 모바일 첫 터치 시 오디오 잠금 해제 (자동재생 정책 우회)
     if (!isAudioUnlocked) {
-      unlockAudio();
+      await unlockAudio();
     }
 
     const touch = e.touches[0];

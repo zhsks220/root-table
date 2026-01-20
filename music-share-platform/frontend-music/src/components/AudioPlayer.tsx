@@ -36,6 +36,7 @@ export default function AudioPlayer() {
     updateTime,
     updateDuration,
     setLoading,
+    pause,
   } = usePlayerStore();
 
   // Audio 엘리먼트 등록
@@ -55,12 +56,26 @@ export default function AudioPlayer() {
     const handleEnded = () => next();
     const handleLoadStart = () => setLoading(true);
     const handleCanPlay = () => setLoading(false);
+    const handleError = () => {
+      console.error('Audio error:', audio.error);
+      setLoading(false);
+      pause();
+    };
+    const handlePause = () => {
+      // 외부 요인(전화, 탭 전환 등)으로 일시정지된 경우 상태 동기화
+      // ended 이벤트가 아닌 경우에만 pause 상태로 변경
+      if (!audio.ended) {
+        pause();
+      }
+    };
 
     audio.addEventListener('timeupdate', handleTimeUpdate);
     audio.addEventListener('durationchange', handleDurationChange);
     audio.addEventListener('ended', handleEnded);
     audio.addEventListener('loadstart', handleLoadStart);
     audio.addEventListener('canplay', handleCanPlay);
+    audio.addEventListener('error', handleError);
+    audio.addEventListener('pause', handlePause);
 
     return () => {
       audio.removeEventListener('timeupdate', handleTimeUpdate);
@@ -68,8 +83,10 @@ export default function AudioPlayer() {
       audio.removeEventListener('ended', handleEnded);
       audio.removeEventListener('loadstart', handleLoadStart);
       audio.removeEventListener('canplay', handleCanPlay);
+      audio.removeEventListener('error', handleError);
+      audio.removeEventListener('pause', handlePause);
     };
-  }, [updateTime, updateDuration, next, setLoading]);
+  }, [updateTime, updateDuration, next, setLoading, pause]);
 
   // 시간 포맷팅
   const formatTime = (seconds: number) => {

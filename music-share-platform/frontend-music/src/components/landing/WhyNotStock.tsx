@@ -265,7 +265,7 @@ export const WhyNotStock = () => {
     };
 
     return (
-        <section ref={sectionRef} className="py-24 px-6 bg-black overflow-hidden">
+        <section id="genre-bgm" ref={sectionRef} className="py-24 px-6 bg-black overflow-hidden scroll-mt-0">
             {/* 오디오 요소 - 장르별 샘플 음악 (metadata만 프리로드하여 초기 로딩 최적화) */}
             <audio
                 ref={audioRef}

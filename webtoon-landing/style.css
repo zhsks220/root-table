@@ -1,0 +1,132 @@
+:root {
+    --white: #ffffff;
+    --black: #000000;
+    --gray-light: #f5f5f5;
+    --manga-border: 4px solid var(--black);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background-color: var(--white);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: var(--black);
+    overflow-x: hidden;
+}
+
+.scroll-container {
+    width: 100%;
+}
+
+.hero, .footer {
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 2rem;
+}
+
+.hero h1 {
+    font-size: 3rem;
+    font-weight: 900;
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: -1px;
+}
+
+.manga-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(4, auto);
+    gap: 10px;
+    padding: 20px;
+    max-width: 1200px;
+    margin: 0 auto;
+    background-color: var(--black); /* Gutters effect */
+    border: var(--manga-border);
+}
+
+.panel {
+    background: var(--white);
+    overflow: hidden;
+    position: relative;
+    opacity: 0;
+    transform: translateY(50px);
+    transition: transform 0.3s ease-out;
+}
+
+.panel img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+/* Reference image style layout */
+/* Panel 1: Top-left tall (2x2) */
+.panel-1 {
+    grid-column: 1 / 3;
+    grid-row: 1 / 3;
+    aspect-ratio: 1/1;
+}
+
+/* Panel 2: Top-right wide (2x1) */
+.panel-2 {
+    grid-column: 3 / 5;
+    grid-row: 1 / 2;
+}
+
+/* Panel 3: Square (1x1) */
+.panel-3 {
+    grid-column: 3 / 4;
+    grid-row: 2 / 3;
+    aspect-ratio: 1/1;
+}
+
+/* Panel 4: Vertical (1x2) on the side */
+.panel-4 {
+    grid-column: 4 / 5;
+    grid-row: 2 / 4;
+}
+
+/* Panel 5: Bottom wide (3x1) */
+.panel-5 {
+    grid-column: 1 / 4;
+    grid-row: 3 / 4;
+}
+
+.cta-button {
+    margin-top: 2rem;
+    padding: 1rem 2rem;
+    font-size: 1.2rem;
+    font-weight: 700;
+    background-color: var(--black);
+    color: var(--white);
+    border: none;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.cta-button:hover {
+    background-color: #333;
+    transform: scale(1.05);
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+    .manga-grid {
+        grid-template-columns: 1fr;
+        grid-template-rows: auto;
+    }
+    .panel {
+        grid-column: auto !important;
+        grid-row: auto !important;
+        aspect-ratio: auto !important;
+    }
+}

@@ -574,7 +574,11 @@ export function WebToonProjectsView() {
                         ? 'bg-gray-950 border-gray-800 hover:border-emerald-500'
                         : 'bg-white border-gray-200 hover:border-emerald-500'
                     )}
-                    onClick={() => setCurrentProject(project)}
+                    onClick={() => {
+                      // 프로젝트 선택 시 오디오 잠금 해제 (모바일 자동재생 정책 우회)
+                      unlockAudio();
+                      setCurrentProject(project);
+                    }}
                   >
                     {/* 삭제 버튼 */}
                     <button

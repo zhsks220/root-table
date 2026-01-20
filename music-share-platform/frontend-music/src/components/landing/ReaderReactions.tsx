@@ -689,7 +689,7 @@ export const ReaderReactions = () => {
     const centerCardPositions = centerPositionSets[currentPage];
 
     return (
-        <section id="testimonials" className="py-24 px-6 bg-[#0a0a0a] overflow-hidden relative min-h-[800px]">
+        <section id="testimonials" className="py-24 px-6 bg-[#0a0a0a] overflow-hidden relative min-h-[800px] scroll-mt-16">
             {/* 배경 댓글들 - 30개 항상 표시 (레이어별 깊이감 + floating 애니메이션) */}
             <div className="absolute inset-0 overflow-hidden">
                 {/* CSS keyframes for floating animation */}

@@ -64,7 +64,7 @@ export const Navbar = ({ onCTAClick }: NavbarProps) => {
             <div className="hidden md:flex items-center gap-8 text-sm lg:text-base font-medium text-white/60 absolute left-1/2 -translate-x-1/2">
                 <a href="#process" className="hover:text-white transition-colors">제작 프로세스</a>
                 <a href="#testimonials" className="hover:text-white transition-colors">독자 반응</a>
-                <button onClick={onCTAClick} className="hover:text-white transition-colors cursor-pointer">상담 신청</button>
+                <a href="#contact" className="hover:text-white transition-colors">문의하기</a>
             </div>
 
             <button

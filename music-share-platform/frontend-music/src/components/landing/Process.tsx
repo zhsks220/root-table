@@ -103,7 +103,7 @@ const StepCard = ({ step }: { step: typeof steps[0] }) => (
 
 export const Process = () => {
     return (
-        <section id="process" className="py-24 mt-16 px-6 bg-black overflow-hidden">
+        <section id="process" className="py-24 mt-16 px-6 bg-black overflow-hidden scroll-mt-16">
             <div className="max-w-6xl mx-auto">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-5xl 3xl:text-7xl font-black mb-6">

@@ -112,7 +112,7 @@ ${formData.message || '(없음)'}`;
 
     return (
         <>
-            <section id="contact" className="py-24 mt-16 px-6 bg-gradient-to-b from-black to-[#0a0a0a] relative overflow-hidden">
+            <section id="contact" className="py-24 mt-16 px-6 bg-gradient-to-b from-black to-[#0a0a0a] relative overflow-hidden -scroll-mt-14">
                 {/* Background Logo Watermark */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03]">
                     <img
@@ -146,11 +146,12 @@ ${formData.message || '(없음)'}`;
                         viewport={{ once: true }}
                         transition={{ delay: 0.1 }}
                         onSubmit={handleSubmit}
-                        className="space-y-4 bg-white/[0.03] backdrop-blur-sm border border-white/10 rounded-2xl p-6 md:p-8"
+                        className="space-y-3 bg-white/[0.03] backdrop-blur-sm border border-white/10 rounded-2xl p-6 md:p-8"
                     >
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* 1행: 이름 + 소속 */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                             <div>
-                                <label htmlFor="name" className="block text-sm font-medium text-white/80 mb-2">
+                                <label htmlFor="name" className="block text-sm font-medium text-white/80 mb-1.5">
                                     이름 <span className="text-emerald-500">*</span>
                                 </label>
                                 <input
@@ -160,12 +161,12 @@ ${formData.message || '(없음)'}`;
                                     value={formData.name}
                                     onChange={handleChange}
                                     placeholder="홍길동"
-                                    className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-emerald-500/50 focus:bg-black/70 transition-all"
+                                    className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder-white/40 focus:outline-none focus:border-emerald-500/50 focus:bg-black/70 transition-all"
                                     required
                                 />
                             </div>
                             <div>
-                                <label htmlFor="organization" className="block text-sm font-medium text-white/80 mb-2">
+                                <label htmlFor="organization" className="block text-sm font-medium text-white/80 mb-1.5">
                                     소속 (선택)
                                 </label>
                                 <input
@@ -175,13 +176,14 @@ ${formData.message || '(없음)'}`;
                                     value={formData.organization}
                                     onChange={handleChange}
                                     placeholder="회사명 또는 작가명"
-                                    className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-emerald-500/50 focus:bg-black/70 transition-all"
+                                    className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder-white/40 focus:outline-none focus:border-emerald-500/50 focus:bg-black/70 transition-all"
                                 />
                             </div>
                         </div>
 
+                        {/* 2행: 이메일 */}
                         <div>
-                            <label htmlFor="email" className="block text-sm font-medium text-white/80 mb-2">
+                            <label htmlFor="email" className="block text-sm font-medium text-white/80 mb-1.5">
                                 이메일 <span className="text-emerald-500">*</span>
                             </label>
                             <input
@@ -191,13 +193,14 @@ ${formData.message || '(없음)'}`;
                                 value={formData.email}
                                 onChange={handleChange}
                                 placeholder="example@email.com"
-                                className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-emerald-500/50 focus:bg-black/70 transition-all"
+                                className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder-white/40 focus:outline-none focus:border-emerald-500/50 focus:bg-black/70 transition-all"
                                 required
                             />
                         </div>
 
+                        {/* 3행: 작품 링크 */}
                         <div>
-                            <label htmlFor="workLink" className="block text-sm font-medium text-white/80 mb-2">
+                            <label htmlFor="workLink" className="block text-sm font-medium text-white/80 mb-1.5">
                                 작품 링크 (선택)
                             </label>
                             <input
@@ -207,13 +210,28 @@ ${formData.message || '(없음)'}`;
                                 value={formData.workLink}
                                 onChange={handleChange}
                                 placeholder="https://webtoon.com/..."
-                                className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-emerald-500/50 focus:bg-black/70 transition-all"
+                                className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder-white/40 focus:outline-none focus:border-emerald-500/50 focus:bg-black/70 transition-all"
                             />
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        {/* 3행: 작품명 + 장르 + 연재 상태 */}
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                             <div>
-                                <label htmlFor="genre" className="block text-sm font-medium text-white/80 mb-2">
+                                <label htmlFor="workTitle" className="block text-sm font-medium text-white/80 mb-1.5">
+                                    작품명 (선택)
+                                </label>
+                                <input
+                                    type="text"
+                                    id="workTitle"
+                                    name="workTitle"
+                                    value={formData.workTitle}
+                                    onChange={handleChange}
+                                    placeholder="작품 제목"
+                                    className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder-white/40 focus:outline-none focus:border-emerald-500/50 focus:bg-black/70 transition-all"
+                                />
+                            </div>
+                            <div>
+                                <label htmlFor="genre" className="block text-sm font-medium text-white/80 mb-1.5">
                                     장르 <span className="text-emerald-500">*</span>
                                 </label>
                                 <input
@@ -222,13 +240,13 @@ ${formData.message || '(없음)'}`;
                                     name="genre"
                                     value={formData.genre}
                                     onChange={handleChange}
-                                    placeholder="예: 로맨스, 판타지, 액션"
-                                    className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-emerald-500/50 focus:bg-black/70 transition-all"
+                                    placeholder="로맨스, 판타지 등"
+                                    className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder-white/40 focus:outline-none focus:border-emerald-500/50 focus:bg-black/70 transition-all"
                                     required
                                 />
                             </div>
                             <div>
-                                <label htmlFor="serialStatus" className="block text-sm font-medium text-white/80 mb-2">
+                                <label htmlFor="serialStatus" className="block text-sm font-medium text-white/80 mb-1.5">
                                     연재 상태 <span className="text-emerald-500">*</span>
                                 </label>
                                 <select
@@ -236,33 +254,19 @@ ${formData.message || '(없음)'}`;
                                     name="serialStatus"
                                     value={formData.serialStatus}
                                     onChange={handleChange}
-                                    className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-3 text-white focus:outline-none focus:border-emerald-500/50 focus:bg-black/70 transition-all appearance-none cursor-pointer"
+                                    className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-2.5 text-white focus:outline-none focus:border-emerald-500/50 focus:bg-black/70 transition-all appearance-none cursor-pointer"
                                     required
                                 >
-                                    <option value="" disabled className="bg-zinc-900">선택해주세요</option>
+                                    <option value="" disabled className="bg-zinc-900">선택</option>
                                     <option value="ongoing" className="bg-zinc-900">연재 중</option>
                                     <option value="upcoming" className="bg-zinc-900">연재 예정</option>
                                 </select>
                             </div>
                         </div>
 
+                        {/* 4행: 추가 문의사항 */}
                         <div>
-                            <label htmlFor="workTitle" className="block text-sm font-medium text-white/80 mb-2">
-                                작품명 (선택)
-                            </label>
-                            <input
-                                type="text"
-                                id="workTitle"
-                                name="workTitle"
-                                value={formData.workTitle}
-                                onChange={handleChange}
-                                placeholder="작품 제목"
-                                className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-emerald-500/50 focus:bg-black/70 transition-all"
-                            />
-                        </div>
-
-                        <div>
-                            <label htmlFor="message" className="block text-sm font-medium text-white/80 mb-2">
+                            <label htmlFor="message" className="block text-sm font-medium text-white/80 mb-1.5">
                                 추가 문의사항 (선택)
                             </label>
                             <textarea
@@ -271,8 +275,8 @@ ${formData.message || '(없음)'}`;
                                 value={formData.message}
                                 onChange={handleChange}
                                 placeholder="원하시는 음악 스타일이나 참고할 레퍼런스가 있다면 알려주세요."
-                                rows={4}
-                                className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-emerald-500/50 focus:bg-black/70 transition-all resize-none"
+                                rows={2}
+                                className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-2.5 text-white placeholder-white/40 focus:outline-none focus:border-emerald-500/50 focus:bg-black/70 transition-all resize-none"
                             />
                         </div>
 
@@ -280,13 +284,13 @@ ${formData.message || '(없음)'}`;
                             type="submit"
                             whileHover={{ scale: 1.02 }}
                             whileTap={{ scale: 0.98 }}
-                            className="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-8 py-4 rounded-xl text-lg transition-colors flex items-center justify-center gap-2"
+                            className="w-full bg-emerald-500 hover:bg-emerald-400 text-black font-bold px-8 py-3.5 rounded-xl text-lg transition-colors flex items-center justify-center gap-2"
                         >
                             문의하기
                             <Send className="w-5 h-5" />
                         </motion.button>
 
-                        <p className="text-white/50 text-sm text-center">
+                        <p className="text-white/50 text-xs text-center">
                             레퍼런스 없이 시작해도 괜찮습니다. 작품 링크만 보내주세요.
                         </p>
                     </motion.form>

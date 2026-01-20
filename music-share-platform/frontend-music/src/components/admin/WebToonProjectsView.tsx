@@ -12,7 +12,7 @@ import { useScrollBasedPlayback } from '../../hooks/useScrollBasedPlayback';
 import {
   ArrowLeft, Plus, Upload, Trash2, Music,
   Loader2, Image as ImageIcon, X, Smartphone, StickyNote,
-  Save, Volume2, VolumeX, Play, Pause, Menu
+  Save, Volume2, VolumeX, Play, Pause, Menu, Maximize, Minimize
 } from 'lucide-react';
 
 interface TrackMarker {
@@ -51,6 +51,9 @@ export function WebToonProjectsView() {
 
   // 모바일 메뉴 상태
   const [menuOpen, setMenuOpen] = useState(false);
+
+  // 전체화면 상태
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
   // Long press 컨텍스트 메뉴
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
@@ -130,6 +133,18 @@ export function WebToonProjectsView() {
   useEffect(() => {
     loadProjects();
   }, [loadProjects]);
+
+  // 전체화면 상태 감지
+  useEffect(() => {
+    const handleFullscreenChange = () => {
+      setIsFullscreen(!!document.fullscreenElement);
+    };
+
+    document.addEventListener('fullscreenchange', handleFullscreenChange);
+    return () => {
+      document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    };
+  }, []);
 
   // 프로젝트 데이터 로드
   const loadProject = useCallback(async () => {
@@ -419,6 +434,19 @@ export function WebToonProjectsView() {
     }
   };
 
+  // 전체화면 토글
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        await document.documentElement.requestFullscreen();
+      } else {
+        await document.exitFullscreen();
+      }
+    } catch (error) {
+      console.error('Fullscreen error:', error);
+    }
+  };
+
   // 프로젝트 데이터 저장 (마커, 메모)
   const handleSaveProject = async () => {
     if (!currentProject) return;
@@ -702,10 +730,10 @@ export function WebToonProjectsView() {
   // 프로젝트 작업 화면 (전체 화면 덮기)
   return (
     <PageTransition>
-      <div className={cn('fixed inset-0 z-50 flex flex-col h-dvh', isDark ? 'bg-black' : 'bg-gray-50')}>
+      <div className={cn('fixed inset-0 z-50 flex flex-col', isDark ? 'bg-black' : 'bg-gray-50')}>
         {/* 헤더 - 모바일 */}
         <header className={cn(
-          'md:hidden flex items-center justify-between px-4 py-3 border-b pt-safe',
+          'md:hidden flex items-center justify-between px-4 py-3 border-b',
           isDark ? 'bg-black border-gray-800' : 'bg-white border-gray-200'
         )}>
           {/* 왼쪽: 뒤로가기 */}
@@ -759,6 +787,16 @@ export function WebToonProjectsView() {
                       className="hidden"
                     />
                   </label>
+                  <button
+                    onClick={() => { toggleFullscreen(); setMenuOpen(false); }}
+                    className={cn(
+                      'w-full flex items-center gap-3 px-4 py-3 transition-colors',
+                      isDark ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-700'
+                    )}
+                  >
+                    {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
+                    <span>{isFullscreen ? '전체화면 해제' : '전체화면'}</span>
+                  </button>
                   <button
                     onClick={() => { handleSaveProject(); setMenuOpen(false); }}
                     disabled={saving}
@@ -1274,7 +1312,7 @@ export function WebToonProjectsView() {
 
         {/* 모바일 하단 재생바 */}
         <div className={cn(
-          'md:hidden flex items-center gap-3 px-4 py-3 border-t pb-safe',
+          'md:hidden flex items-center gap-3 px-4 py-3 border-t',
           isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'
         )}>
           {currentTrack ? (

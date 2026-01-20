@@ -11,13 +11,6 @@ export default {
         // 커스텀 브레이크포인트: 2560px 이상 (27인치 QHD, 4K 등)
         '3xl': '2560px',
       },
-      height: {
-        dvh: '100dvh',
-        svh: '100svh',
-      },
-      minHeight: {
-        dvh: '100dvh',
-      },
       colors: {
         // 주요 색상 - Blue 계열 (디자인 통합)
         primary: {

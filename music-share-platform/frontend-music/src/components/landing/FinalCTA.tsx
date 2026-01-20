@@ -92,7 +92,7 @@ export const FinalCTA = () => {
 ■ 이름: ${formData.name}
 ■ 소속: ${formData.organization || '(미입력)'}
 ■ 이메일: ${formData.email}
-■ 작품 링크: ${formData.workLink}
+■ 작품 링크: ${formData.workLink || '(미입력)'}
 ■ 장르: ${formData.genre}
 ■ 연재 상태: ${serialStatusText}
 ■ 작품명: ${formData.workTitle || '(미입력)'}
@@ -198,7 +198,7 @@ ${formData.message || '(없음)'}`;
 
                         <div>
                             <label htmlFor="workLink" className="block text-sm font-medium text-white/80 mb-2">
-                                작품 링크 <span className="text-emerald-500">*</span>
+                                작품 링크 (선택)
                             </label>
                             <input
                                 type="url"
@@ -208,7 +208,6 @@ ${formData.message || '(없음)'}`;
                                 onChange={handleChange}
                                 placeholder="https://webtoon.com/..."
                                 className="w-full bg-black/50 border border-white/20 rounded-xl px-4 py-3 text-white placeholder-white/40 focus:outline-none focus:border-emerald-500/50 focus:bg-black/70 transition-all"
-                                required
                             />
                         </div>
 

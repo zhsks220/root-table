@@ -101,7 +101,7 @@ const ThoughtBubble = ({
         >
             {/* 메인 말풍선 - 코믹북 스타일 */}
             <div
-                className="relative px-6 py-4 md:px-8 md:py-5"
+                className="relative px-6 py-4 md:px-10 md:py-6 3xl:px-12 3xl:py-8"
                 style={{
                     borderRadius: '30px',
                     transform: `rotate(${position.rotate}deg)`,
@@ -110,7 +110,7 @@ const ThoughtBubble = ({
                     boxShadow: '4px 4px 0 #fff',
                 }}
             >
-                <span className="text-base md:text-lg 3xl:text-2xl text-white font-bold leading-snug whitespace-pre-line text-center block">
+                <span className="text-base md:text-xl 3xl:text-3xl text-white font-bold leading-snug whitespace-pre-line text-center block">
                     {children}
                 </span>
             </div>

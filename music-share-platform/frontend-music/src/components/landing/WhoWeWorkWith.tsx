@@ -3,13 +3,13 @@ import { useRef } from 'react';
 
 // 애니메이션 타이밍 상수
 const ANIMATION = {
-    BUBBLE_START: 0.25,      // 더 늦게 시작 (0.15 → 0.25)
-    BUBBLE_INTERVAL: 0.10,   // 간격 조절 (0.14 → 0.10)
-    BUBBLE_DURATION: 0.08,   // 나타나는 시간 (0.10 → 0.08)
-    FADE_OUT_START: 0.80,    // 사라지기 시작 (0.85 → 0.80)
-    FADE_OUT_END: 0.90,      // 사라지기 완료 (0.95 → 0.90)
-    CONCLUSION_START: 0.85,  // 결론 시작 (0.88 → 0.85)
-    CONCLUSION_END: 0.95,    // 결론 완료 (0.98 → 0.95)
+    BUBBLE_START: 0.20,      // 말풍선 시작
+    BUBBLE_INTERVAL: 0.10,   // 말풍선 간격
+    BUBBLE_DURATION: 0.08,   // 나타나는 시간
+    FADE_OUT_START: 0.75,    // 사라지기 시작 (마지막 말풍선 후 충분한 여유)
+    FADE_OUT_END: 0.85,      // 사라지기 완료
+    CONCLUSION_START: 0.88,  // 결론 시작 (사라진 후 시작)
+    CONCLUSION_END: 0.95,    // 결론 완료
 } as const;
 
 const thoughts = [

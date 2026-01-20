@@ -1,23 +1,34 @@
+import panel1 from '../../assets/panels/panel1.png';
+import panel2 from '../../assets/panels/panel2.png';
+import panel3 from '../../assets/panels/panel3.png';
+import panel4 from '../../assets/panels/panel4.png';
+import panel5 from '../../assets/panels/panel5.png';
+
 const steps = [
     {
         title: "원고·콘티 분석",
-        description: "작품의 서사 구조와 장면 흐름을 면밀히 분석합니다."
+        description: "작품의 서사 구조와 장면 흐름을 면밀히 분석합니다.",
+        image: panel1,
     },
     {
         title: "감정선 & 캐릭터 매핑",
-        description: "회차별 감정의 고저와 캐릭터 관계를 음악적으로 해석합니다."
+        description: "회차별 감정의 고저와 캐릭터 관계를 음악적으로 해석합니다.",
+        image: panel2,
     },
     {
         title: "음악 플롯 설계",
-        description: "작품에 어울리는 음악 레퍼런스 방향도 역제안합니다."
+        description: "작품에 어울리는 음악 레퍼런스 방향도 역제안합니다.",
+        image: panel3,
     },
     {
         title: "제작 & 수정",
-        description: "현업 작곡진의 제작과 피드백 기반 수정을 진행합니다."
+        description: "현업 작곡진의 제작과 피드백 기반 수정을 진행합니다.",
+        image: panel4,
     },
     {
         title: "OST / 앨범 / 확장 고려",
-        description: "작품의 IP 확장까지 고려한 음악 설계를 완성합니다."
+        description: "작품의 IP 확장까지 고려한 음악 설계를 완성합니다.",
+        image: panel5,
     },
 ];
 
@@ -60,15 +71,33 @@ const FlowArrow = ({ type }: { type: 'right' | 'left' | 'down-left' | 'down-righ
     );
 };
 
-// 스텝 카드 컴포넌트
+// 스텝 카드 컴포넌트 - 이미지 배경 + 왼쪽 하단 텍스트
 const StepCard = ({ step }: { step: typeof steps[0] }) => (
-    <div className="bg-white/[0.03] border border-white/10 hover:border-emerald-500/30 rounded-2xl p-5 transition-all duration-300 group">
-        <h3 className="text-lg md:text-xl font-bold text-white mb-2 break-keep">
-            {step.title}
-        </h3>
-        <p className="text-sm md:text-base text-white/60 break-keep leading-relaxed">
-            {step.description}
-        </p>
+    <div className="relative bg-white/[0.03] border border-white/10 hover:border-emerald-500/30 rounded-2xl overflow-hidden transition-all duration-300 group aspect-[4/3] w-full">
+        {/* 배경 이미지 */}
+        {step.image ? (
+            <img
+                src={step.image}
+                alt={step.title}
+                className="absolute inset-0 w-full h-full object-cover brightness-50"
+            />
+        ) : (
+            // 이미지 없을 때 플레이스홀더
+            <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-white/[0.02]" />
+        )}
+
+        {/* 하단 그라데이션 오버레이 */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/20" />
+
+        {/* 텍스트 - 왼쪽 하단 */}
+        <div className="absolute bottom-0 left-0 right-0 p-5">
+            <h3 className="text-lg md:text-xl font-bold text-white mb-1 break-keep">
+                {step.title}
+            </h3>
+            <p className="text-sm md:text-base text-white/70 break-keep leading-relaxed">
+                {step.description}
+            </p>
+        </div>
     </div>
 );
 
@@ -87,11 +116,11 @@ export const Process = () => {
                 <div className="hidden md:block">
                     {/* 첫 번째 줄: 1 → 2 → 3 */}
                     <div className="grid grid-cols-[1fr_auto_1fr_auto_1fr] gap-4 items-center mb-4">
-                        <StepCard step={steps[0]} />
+                        <div className="w-[320px] justify-self-center"><StepCard step={steps[0]} /></div>
                         <FlowArrow type="right" />
-                        <StepCard step={steps[1]} />
+                        <div className="w-[320px] justify-self-center"><StepCard step={steps[1]} /></div>
                         <FlowArrow type="right" />
-                        <StepCard step={steps[2]} />
+                        <div className="w-[320px] justify-self-center"><StepCard step={steps[2]} /></div>
                     </div>
 
                     {/* 대각선 화살표 줄 (3번에서 4번으로) */}
@@ -103,12 +132,12 @@ export const Process = () => {
                         <FlowArrow type="down-left" />
                     </div>
 
-                    {/* 두 번째 줄: 4 ← 5 */}
+                    {/* 두 번째 줄: 5 ← 4 */}
                     <div className="grid grid-cols-[1fr_1fr_auto_1fr_1fr] gap-4 items-center">
                         <div />
-                        <StepCard step={steps[4]} />
+                        <div className="w-[320px] justify-self-center"><StepCard step={steps[4]} /></div>
                         <FlowArrow type="left" />
-                        <StepCard step={steps[3]} />
+                        <div className="w-[320px] justify-self-center"><StepCard step={steps[3]} /></div>
                         <div />
                     </div>
                 </div>

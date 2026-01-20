@@ -65,10 +65,7 @@ export function InvitationsView() {
     };
 
     const getInviteLink = (code: string) => {
-        const baseUrl = import.meta.env.PROD
-            ? 'https://frontend-music-livid.vercel.app'
-            : 'http://localhost:3002';
-        return `${baseUrl}/invite/${code}`;
+        return `${window.location.origin}/invite/${code}`;
     };
 
     const copyInviteLink = (code: string) => {

@@ -15,6 +15,7 @@ export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -26,7 +27,7 @@ export default function LoginPage() {
     try {
       const response = await authAPI.login(email, password);
       const { user, accessToken, refreshToken } = response.data;
-      setAuth(user, accessToken, refreshToken);
+      setAuth(user, accessToken, refreshToken, rememberMe);
 
       // 사용자 역할에 따라 적절한 페이지로 이동
       if (user.role === 'admin') {
@@ -111,6 +112,19 @@ export default function LoginPage() {
               </button>
             </div>
           </div>
+
+          {/* 로그인 상태 유지 체크박스 */}
+          <label className="flex items-center gap-2 cursor-pointer select-none">
+            <input
+              type="checkbox"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+              className="w-4 h-4 rounded border-gray-300 text-emerald-500 focus:ring-emerald-500/20 cursor-pointer"
+            />
+            <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
+              로그인 상태 유지
+            </span>
+          </label>
 
           {/* 에러 메시지 */}
           {error && (

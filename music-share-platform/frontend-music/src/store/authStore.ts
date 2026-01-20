@@ -16,10 +16,11 @@ interface AuthState {
   isAuthenticated: boolean;
   isLoading: boolean;
   error: string | null;
-  setAuth: (user: User, accessToken: string, refreshToken: string) => void;
+  rememberMe: boolean;
+  setAuth: (user: User, accessToken: string, refreshToken: string, rememberMe?: boolean) => void;
   setTokens: (accessToken: string, refreshToken: string) => void;
   logout: () => void;
-  login: (email: string, password: string) => Promise<void>;
+  login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
   refreshAccessToken: () => Promise<boolean>;
   clearError: () => void;
 }
@@ -33,11 +34,20 @@ export const useAuthStore = create<AuthState>()(
       isAuthenticated: false,
       isLoading: false,
       error: null,
+      rememberMe: true,
 
-      setAuth: (user, accessToken, refreshToken) => {
+      setAuth: (user, accessToken, refreshToken, rememberMe = true) => {
         // API 클라이언트에 토큰 설정
         api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-        set({ user, accessToken, refreshToken, isAuthenticated: true, error: null });
+        set({ user, accessToken, refreshToken, isAuthenticated: true, error: null, rememberMe });
+
+        // rememberMe가 false면 sessionStorage로 이동, localStorage에서 제거
+        if (!rememberMe) {
+          sessionStorage.setItem('auth-session', JSON.stringify({
+            state: { user, accessToken, refreshToken, isAuthenticated: true, rememberMe }
+          }));
+          localStorage.removeItem('auth-storage');
+        }
       },
 
       setTokens: (accessToken, refreshToken) => {
@@ -49,10 +59,12 @@ export const useAuthStore = create<AuthState>()(
       logout: () => {
         // API 클라이언트에서 토큰 제거
         delete api.defaults.headers.common['Authorization'];
-        set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false, error: null });
+        // sessionStorage도 정리
+        sessionStorage.removeItem('auth-session');
+        set({ user: null, accessToken: null, refreshToken: null, isAuthenticated: false, error: null, rememberMe: true });
       },
 
-      login: async (email: string, password: string) => {
+      login: async (email: string, password: string, rememberMe: boolean = true) => {
         set({ isLoading: true, error: null });
         try {
           const response = await api.post('/auth/login', { email, password });
@@ -60,7 +72,15 @@ export const useAuthStore = create<AuthState>()(
 
           // API 클라이언트에 토큰 설정
           api.defaults.headers.common['Authorization'] = `Bearer ${accessToken}`;
-          set({ user, accessToken, refreshToken, isAuthenticated: true, isLoading: false, error: null });
+          set({ user, accessToken, refreshToken, isAuthenticated: true, isLoading: false, error: null, rememberMe });
+
+          // rememberMe가 false면 sessionStorage로 이동, localStorage에서 제거
+          if (!rememberMe) {
+            sessionStorage.setItem('auth-session', JSON.stringify({
+              state: { user, accessToken, refreshToken, isAuthenticated: true, rememberMe }
+            }));
+            localStorage.removeItem('auth-storage');
+          }
         } catch (err: any) {
           const errorMessage = err.response?.data?.error || '로그인에 실패했습니다.';
           set({ isLoading: false, error: errorMessage });
@@ -104,12 +124,33 @@ export const useAuthStore = create<AuthState>()(
 );
 
 // 앱 시작 시 저장된 토큰으로 API 클라이언트 설정
+// localStorage (로그인 상태 유지) 또는 sessionStorage (세션 한정) 확인
 const storedAuth = localStorage.getItem('auth-storage');
+const sessionAuth = sessionStorage.getItem('auth-session');
+
 if (storedAuth) {
   try {
     const { state } = JSON.parse(storedAuth);
     if (state?.accessToken) {
       api.defaults.headers.common['Authorization'] = `Bearer ${state.accessToken}`;
+    }
+  } catch (e) {
+    // 파싱 실패 시 무시
+  }
+} else if (sessionAuth) {
+  // sessionStorage에 있으면 zustand store 복원
+  try {
+    const { state } = JSON.parse(sessionAuth);
+    if (state?.accessToken) {
+      api.defaults.headers.common['Authorization'] = `Bearer ${state.accessToken}`;
+      // zustand store에 상태 복원
+      useAuthStore.setState({
+        user: state.user,
+        accessToken: state.accessToken,
+        refreshToken: state.refreshToken,
+        isAuthenticated: state.isAuthenticated,
+        rememberMe: state.rememberMe ?? false,
+      });
     }
   } catch (e) {
     // 파싱 실패 시 무시

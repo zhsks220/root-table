@@ -82,22 +82,30 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const state = get();
     if (state.isAudioUnlocked || !state.audio) return;
 
+    // 무음 WAV 데이터 URL (0.1초 무음)
+    const silentWav = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
+
     try {
-      // 무음 재생으로 오디오 컨텍스트 활성화
+      const originalSrc = state.audio.src;
+
+      // 무음 파일로 재생하여 오디오 컨텍스트 활성화
+      state.audio.src = silentWav;
       state.audio.volume = 0;
       state.audio.muted = true;
       await state.audio.play();
       state.audio.pause();
       state.audio.currentTime = 0;
+
+      // 원래 상태로 복원
+      state.audio.src = originalSrc;
       state.audio.muted = state.isMuted;
       state.audio.volume = state.volume;
 
       set({ isAudioUnlocked: true });
       console.log('🔓 Audio unlocked for mobile autoplay');
     } catch (error) {
-      console.log('⚠️ Audio unlock failed (may already be unlocked):', error);
-      // 에러가 나도 unlocked로 설정 (이미 활성화되어 있을 수 있음)
-      set({ isAudioUnlocked: true });
+      console.log('⚠️ Audio unlock failed:', error);
+      // 실패하면 다시 시도할 수 있도록 unlocked 설정 안 함
     }
   },
 

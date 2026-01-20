@@ -702,10 +702,10 @@ export function WebToonProjectsView() {
   // 프로젝트 작업 화면 (전체 화면 덮기)
   return (
     <PageTransition>
-      <div className={cn('fixed inset-0 z-50 flex flex-col', isDark ? 'bg-black' : 'bg-gray-50')}>
+      <div className={cn('fixed inset-0 z-50 flex flex-col h-dvh', isDark ? 'bg-black' : 'bg-gray-50')}>
         {/* 헤더 - 모바일 */}
         <header className={cn(
-          'md:hidden flex items-center justify-between px-4 py-3 border-b',
+          'md:hidden flex items-center justify-between px-4 py-3 border-b pt-safe',
           isDark ? 'bg-black border-gray-800' : 'bg-white border-gray-200'
         )}>
           {/* 왼쪽: 뒤로가기 */}
@@ -1274,7 +1274,7 @@ export function WebToonProjectsView() {
 
         {/* 모바일 하단 재생바 */}
         <div className={cn(
-          'md:hidden flex items-center gap-3 px-4 py-3 border-t',
+          'md:hidden flex items-center gap-3 px-4 py-3 border-t pb-safe',
           isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'
         )}>
           {currentTrack ? (

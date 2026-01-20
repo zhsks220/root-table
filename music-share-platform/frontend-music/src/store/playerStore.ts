@@ -87,7 +87,6 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     const silentWav = 'data:audio/wav;base64,UklGRigAAABXQVZFZm10IBIAAAABAAEARKwAAIhYAQACABAAAABkYXRhAgAAAAEA';
 
     const audio = state.audio;
-    const originalSrc = audio.src;
 
     // 무음 파일로 재생하여 오디오 컨텍스트 활성화
     audio.src = silentWav;
@@ -95,18 +94,16 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     audio.muted = true;
 
     // 동기적으로 play() 호출 (await 없이)
+    // src 복원 안 함 - playTrack에서 새 URL 설정됨
     audio.play()
       .then(() => {
         audio.pause();
         audio.currentTime = 0;
-        audio.src = originalSrc;
         audio.muted = state.isMuted;
         audio.volume = state.volume;
         set({ isAudioUnlocked: true });
       })
       .catch(() => {
-        // 실패 시 원복
-        audio.src = originalSrc;
         audio.muted = state.isMuted;
         audio.volume = state.volume;
       });

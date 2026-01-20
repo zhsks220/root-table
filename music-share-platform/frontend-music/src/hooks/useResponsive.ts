@@ -37,9 +37,9 @@ export const useIsMobile = () => {
 export const useCardSize = () => {
     const getCardSize = (width: number) => {
         if (width < 640) {
-            return { width: 280, margin: 10, offset: 150 }; // 모바일
+            return { width: 240, margin: 8, offset: 128 }; // 모바일
         } else if (width < 768) {
-            return { width: 420, margin: 20, offset: 210 }; // 태블릿
+            return { width: 360, margin: 16, offset: 196 }; // 태블릿
         } else {
             return { width: 520, margin: 20, offset: 280 }; // PC
         }

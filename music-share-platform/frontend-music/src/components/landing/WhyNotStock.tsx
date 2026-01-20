@@ -1,8 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
-import { motion, useInView } from 'framer-motion';
-import { Play, Pause, Volume2, VolumeX, SkipBack, SkipForward, ExternalLink } from 'lucide-react';
-// Note: SkipBack, SkipForward are used in mobile controls
-import { useCardSize } from '../../hooks/useResponsive';
+import { motion, useInView, useAnimation } from 'framer-motion';
+import { Play, Pause, Volume2, VolumeX, SkipBack, SkipForward, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
+import { useCardSize, useIsMobile } from '../../hooks/useResponsive';
 
 // 장르별 카드 데이터
 const genreCards = [
@@ -98,6 +97,13 @@ export const WhyNotStock = () => {
     const isInView = useInView(sectionRef, { once: false, amount: 0.5 });
     const cardSize = useCardSize();
     const pendingPlayRef = useRef(false);
+    const skipNextEffectRef = useRef(false); // fromUserGesture에서 이미 처리한 경우 useEffect 스킵
+    const isMobile = useIsMobile();
+    const swipeHintControls = useAnimation();
+
+    // 모바일 스와이프 힌트 애니메이션 상태
+    const [showSwipeHint, setShowSwipeHint] = useState(true);
+    const hasShownHintRef = useRef(false);
 
     const minSwipeDistance = 50;
 
@@ -108,6 +114,22 @@ export const WhyNotStock = () => {
             setIsPlaying(false);
         }
     }, [isInView]);
+
+    // 모바일 스와이프 힌트: 섹션이 뷰에 들어오면 한 번만 힌트 애니메이션
+    useEffect(() => {
+        if (isInView && isMobile && !hasShownHintRef.current) {
+            hasShownHintRef.current = true;
+            swipeHintControls.start({
+                x: [0, -30, 30, -15, 15, 0],
+                transition: {
+                    duration: 1.2,
+                    ease: "easeInOut",
+                }
+            }).then(() => {
+                setShowSwipeHint(false);
+            });
+        }
+    }, [isInView, isMobile, swipeHintControls]);
 
     // 오디오 재생 함수
     const playCurrentTrack = () => {
@@ -158,19 +180,36 @@ export const WhyNotStock = () => {
     };
 
     // 트랙 변경 함수
-    const changeTrack = (newIndex: number, autoPlay: boolean) => {
+    // fromUserGesture: 버튼 클릭이나 스와이프 등 사용자 제스처에서 직접 호출된 경우 true
+    const changeTrack = (newIndex: number, autoPlay: boolean, fromUserGesture: boolean = false) => {
         const audio = audioRef.current;
         if (!audio) return;
 
         // 현재 재생 중지
         audio.pause();
 
-        // 인덱스 변경
-        setCurrentIndex(newIndex);
-
-        // 자동 재생 플래그 설정
-        if (autoPlay) {
+        // 자동 재생 처리 (setState 전에 audio.play() 호출해야 사용자 제스처 컨텍스트 유지)
+        if (autoPlay && fromUserGesture) {
+            // 모바일: 사용자 제스처 컨텍스트 내에서 즉시 재생 시도
+            skipNextEffectRef.current = true; // useEffect에서 중복 처리 방지
+            audio.src = genreCards[newIndex].audioSrc;
+            audio.load();
+            audio.play()
+                .then(() => {
+                    setIsPlaying(true);
+                    setCurrentIndex(newIndex); // play() 성공 후 인덱스 변경
+                })
+                .catch((err) => {
+                    console.error('Direct play failed:', err);
+                    setCurrentIndex(newIndex);
+                    // 실패해도 인덱스는 변경
+                });
+        } else if (autoPlay) {
+            // 일반적인 경우: useEffect에서 canplay 이벤트로 재생
             pendingPlayRef.current = true;
+            setCurrentIndex(newIndex);
+        } else {
+            setCurrentIndex(newIndex);
         }
     };
 
@@ -178,6 +217,12 @@ export const WhyNotStock = () => {
     useEffect(() => {
         const audio = audioRef.current;
         if (!audio) return;
+
+        // fromUserGesture에서 이미 처리한 경우 스킵
+        if (skipNextEffectRef.current) {
+            skipNextEffectRef.current = false;
+            return;
+        }
 
         // 소스 변경
         audio.src = genreCards[currentIndex].audioSrc;
@@ -206,13 +251,13 @@ export const WhyNotStock = () => {
     // 이전 트랙으로 이동 + 재생
     const goToPrevious = () => {
         const newIndex = currentIndex === 0 ? genreCards.length - 1 : currentIndex - 1;
-        changeTrack(newIndex, true);
+        changeTrack(newIndex, true, true);
     };
 
     // 다음 트랙으로 이동 + 재생
     const goToNext = () => {
         const newIndex = (currentIndex + 1) % genreCards.length;
-        changeTrack(newIndex, true);
+        changeTrack(newIndex, true, true);
     };
 
     // 특정 슬라이드로 이동 (페이지네이션)
@@ -234,8 +279,23 @@ export const WhyNotStock = () => {
         if (!touchStart || !touchEnd) return;
 
         const distance = touchStart - touchEnd;
-        if (distance > minSwipeDistance) goToNext();
-        if (distance < -minSwipeDistance) goToPrevious();
+        // 스와이프: 재생 중이면 다음 곡 재생, 아니면 트랙만 변경
+        if (distance > minSwipeDistance) {
+            const newIndex = (currentIndex + 1) % genreCards.length;
+            if (isPlaying) {
+                changeTrack(newIndex, true, true);
+            } else {
+                setCurrentIndex(newIndex);
+            }
+        }
+        if (distance < -minSwipeDistance) {
+            const newIndex = currentIndex === 0 ? genreCards.length - 1 : currentIndex - 1;
+            if (isPlaying) {
+                changeTrack(newIndex, true, true);
+            } else {
+                setCurrentIndex(newIndex);
+            }
+        }
     };
 
     // 오디오 끝났을 때 - 다음 곡 자동 재생
@@ -268,19 +328,44 @@ export const WhyNotStock = () => {
                 </motion.div>
 
                 {/* 캐러셀 컨테이너 */}
-                <div className="relative mb-8 mx-auto" style={{ maxWidth: '1400px' }}>
+                <div className="relative mb-3 md:mb-8 mx-auto" style={{ maxWidth: '1400px' }}>
                     {/* 슬라이드 영역 */}
                     <div
                         className="relative overflow-hidden mx-auto"
-                        style={{ maxWidth: '1200px', minHeight: '280px' }}
+                        style={{ maxWidth: '1200px', minHeight: '260px' }}
                     >
                         {/* 양쪽 그라데이션 오버레이 */}
-                        <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-black to-transparent z-10 pointer-events-none" />
-                        <div className="absolute right-0 top-0 bottom-0 w-20 bg-gradient-to-l from-black to-transparent z-10 pointer-events-none" />
+                        <div className="absolute left-0 top-0 bottom-0 w-12 md:w-20 bg-gradient-to-r from-black to-transparent z-10 pointer-events-none" />
+                        <div className="absolute right-0 top-0 bottom-0 w-12 md:w-20 bg-gradient-to-l from-black to-transparent z-10 pointer-events-none" />
+
+                        {/* 모바일 스와이프 힌트 화살표 */}
+                        {showSwipeHint && isMobile && (
+                            <>
+                                <motion.div
+                                    className="absolute left-2 top-1/2 -translate-y-1/2 z-20 pointer-events-none"
+                                    animate={{ x: [0, -8, 0], opacity: [0.7, 1, 0.7] }}
+                                    transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
+                                >
+                                    <ChevronLeft className="w-8 h-8 text-white/60" />
+                                </motion.div>
+                                <motion.div
+                                    className="absolute right-2 top-1/2 -translate-y-1/2 z-20 pointer-events-none"
+                                    animate={{ x: [0, 8, 0], opacity: [0.7, 1, 0.7] }}
+                                    transition={{ duration: 1, repeat: Infinity, ease: "easeInOut" }}
+                                >
+                                    <ChevronRight className="w-8 h-8 text-white/60" />
+                                </motion.div>
+                            </>
+                        )}
 
                         <motion.div
                             className="flex items-center"
-                            animate={{ x: `calc(50% - ${cardSize.offset}px - ${currentIndex * (cardSize.width + cardSize.margin * 2)}px)` }}
+                            animate={showSwipeHint && isMobile ? swipeHintControls : {
+                                x: `calc(50% - ${cardSize.offset}px - ${currentIndex * (cardSize.width + cardSize.margin * 2)}px)`,
+                            }}
+                            initial={{
+                                x: `calc(50% - ${cardSize.offset}px - ${currentIndex * (cardSize.width + cardSize.margin * 2)}px)`,
+                            }}
                             transition={{ duration: 0.5, ease: "easeInOut" }}
                             onTouchStart={onTouchStart}
                             onTouchMove={onTouchMove}
@@ -289,10 +374,10 @@ export const WhyNotStock = () => {
                             {genreCards.map((card, idx) => {
                                 const isActive = idx === currentIndex;
 
-                                // 비활성 카드 클릭 시 해당 트랙으로 이동 및 재생
+                                // 비활성 카드 클릭 시 해당 트랙으로 이동 및 재생 (사용자 제스처)
                                 const handleCardClick = () => {
                                     if (!isActive) {
-                                        changeTrack(idx, true);
+                                        changeTrack(idx, true, true);
                                     }
                                 };
 
@@ -300,12 +385,12 @@ export const WhyNotStock = () => {
                                     <div
                                         key={idx}
                                         onClick={handleCardClick}
-                                        className={`group relative flex-shrink-0 w-[280px] sm:w-[420px] md:w-[520px] mx-[10px] sm:mx-[20px] rounded-3xl transition-all duration-500 ${
+                                        className={`group relative flex-shrink-0 w-[240px] sm:w-[360px] md:w-[520px] mx-[8px] sm:mx-[16px] md:mx-[20px] rounded-3xl transition-all duration-500 ${
                                             isActive
                                                 ? 'scale-100 opacity-100'
                                                 : 'scale-[0.92] opacity-70 cursor-pointer md:hover:opacity-90 md:hover:scale-[0.94]'
                                         }`}
-                                        style={{ minHeight: '260px' }}
+                                        style={{ minHeight: '240px' }}
                                     >
                                         {/* 그라데이션 테두리 배경 (호버 시 표시) - 각 카드 고유 색상 */}
                                         {!isActive && (
@@ -322,12 +407,12 @@ export const WhyNotStock = () => {
 
                                         {/* 카드 내용 */}
                                         <div
-                                            className={`relative w-full h-full p-6 sm:p-8 rounded-3xl transition-all duration-500 ${
+                                            className={`relative w-full h-full p-5 sm:p-6 md:p-8 rounded-3xl transition-all duration-500 ${
                                                 isActive
                                                     ? `bg-white/[0.03] border-2 ${card.accentBorder}`
                                                     : 'bg-white/[0.02] border-2 border-white/20 md:group-hover:border-transparent'
                                             }`}
-                                            style={{ minHeight: '260px' }}
+                                            style={{ minHeight: '240px' }}
                                         >
                                         {/* PC: 재생 버튼 - 카드 정중앙 하단 (calc로 패딩 보정) */}
                                         {isActive && (
@@ -410,7 +495,7 @@ export const WhyNotStock = () => {
                 </div>
 
                 {/* 모바일 컨트롤 */}
-                <div className="md:hidden relative flex items-center justify-center gap-6 mb-4">
+                <div className="md:hidden relative flex items-center justify-center gap-6 mb-8">
                     {/* 이전 트랙 */}
                     <button
                         onClick={goToPrevious}

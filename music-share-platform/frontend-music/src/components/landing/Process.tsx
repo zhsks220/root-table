@@ -1,5 +1,3 @@
-import { motion } from 'framer-motion';
-
 const steps = [
     {
         title: "원고·콘티 분석",
@@ -63,48 +61,37 @@ const FlowArrow = ({ type }: { type: 'right' | 'left' | 'down-left' | 'down-righ
 };
 
 // 스텝 카드 컴포넌트
-const StepCard = ({ step, index }: { step: typeof steps[0]; index: number }) => (
-    <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
-        transition={{ delay: index * 0.1 }}
-        className="bg-white/[0.03] border border-white/10 hover:border-emerald-500/30 rounded-2xl p-5 transition-all duration-300 group"
-    >
+const StepCard = ({ step }: { step: typeof steps[0] }) => (
+    <div className="bg-white/[0.03] border border-white/10 hover:border-emerald-500/30 rounded-2xl p-5 transition-all duration-300 group">
         <h3 className="text-lg md:text-xl font-bold text-white mb-2 break-keep">
             {step.title}
         </h3>
         <p className="text-sm md:text-base text-white/60 break-keep leading-relaxed">
             {step.description}
         </p>
-    </motion.div>
+    </div>
 );
 
 export const Process = () => {
     return (
         <section id="process" className="py-24 mt-16 px-6 bg-black overflow-hidden">
             <div className="max-w-6xl mx-auto">
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true }}
-                    className="text-center mb-16"
-                >
+                <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-5xl 3xl:text-7xl font-black mb-6">
                         마감일까지, <br />
                         <span className="text-emerald-500">체계적으로.</span>
                     </h2>
-                </motion.div>
+                </div>
 
                 {/* 데스크탑 레이아웃: 화살표로 플로우 표시 */}
                 <div className="hidden md:block">
                     {/* 첫 번째 줄: 1 → 2 → 3 */}
                     <div className="grid grid-cols-[1fr_auto_1fr_auto_1fr] gap-4 items-center mb-4">
-                        <StepCard step={steps[0]} index={0} />
+                        <StepCard step={steps[0]} />
                         <FlowArrow type="right" />
-                        <StepCard step={steps[1]} index={1} />
+                        <StepCard step={steps[1]} />
                         <FlowArrow type="right" />
-                        <StepCard step={steps[2]} index={2} />
+                        <StepCard step={steps[2]} />
                     </div>
 
                     {/* 대각선 화살표 줄 (3번에서 4번으로) */}
@@ -119,9 +106,9 @@ export const Process = () => {
                     {/* 두 번째 줄: 4 ← 5 */}
                     <div className="grid grid-cols-[1fr_1fr_auto_1fr_1fr] gap-4 items-center">
                         <div />
-                        <StepCard step={steps[4]} index={4} />
+                        <StepCard step={steps[4]} />
                         <FlowArrow type="left" />
-                        <StepCard step={steps[3]} index={3} />
+                        <StepCard step={steps[3]} />
                         <div />
                     </div>
                 </div>
@@ -129,20 +116,15 @@ export const Process = () => {
                 {/* 모바일 레이아웃: 세로 리스트 */}
                 <div className="md:hidden space-y-4">
                     {steps.map((step, idx) => (
-                        <StepCard key={idx} step={step} index={idx} />
+                        <StepCard key={idx} step={step} />
                     ))}
                 </div>
 
                 {/* 하단 문장 */}
-                <motion.p
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    viewport={{ once: true }}
-                    className="text-center text-white/50 text-base md:text-lg 3xl:text-2xl max-w-2xl 3xl:max-w-4xl mx-auto mt-16"
-                >
+                <p className="text-center text-white/50 text-base md:text-lg 3xl:text-2xl max-w-2xl 3xl:max-w-4xl mx-auto mt-16">
                     이 방식으로, 작품의 흐름과 <br />
                     캐릭터 해석이 흔들리지 않게 음악을 설계합니다.
-                </motion.p>
+                </p>
             </div>
         </section>
     );

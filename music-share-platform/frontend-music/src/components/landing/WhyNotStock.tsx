@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, useInView } from 'framer-motion';
 import { Play, Pause, Volume2, VolumeX, SkipBack, SkipForward, ExternalLink } from 'lucide-react';
+// Note: SkipBack, SkipForward are used in mobile controls
 import { useCardSize } from '../../hooks/useResponsive';
 
 // 장르별 카드 데이터
@@ -12,6 +13,7 @@ const genreCards = [
         accentText: "text-red-400",
         accentBorder: "border-red-400",
         accentDot: "bg-red-400",
+        accentGradient: "linear-gradient(135deg, rgba(248,113,113,0.8), rgba(248,113,113,0.2), rgba(248,113,113,0.6))",
         audioSrc: "/audio/액션 테마.mp3",
         youtubeLink: "https://www.youtube.com/@routelabel",
     },
@@ -22,6 +24,7 @@ const genreCards = [
         accentText: "text-pink-400",
         accentBorder: "border-pink-400",
         accentDot: "bg-pink-400",
+        accentGradient: "linear-gradient(135deg, rgba(244,114,182,0.8), rgba(244,114,182,0.2), rgba(244,114,182,0.6))",
         audioSrc: "/audio/발라드 테마.mp3",
         youtubeLink: "https://www.youtube.com/@routelabel",
     },
@@ -32,6 +35,7 @@ const genreCards = [
         accentText: "text-purple-400",
         accentBorder: "border-purple-400",
         accentDot: "bg-purple-400",
+        accentGradient: "linear-gradient(135deg, rgba(192,132,252,0.8), rgba(192,132,252,0.2), rgba(192,132,252,0.6))",
         audioSrc: "/audio/공포 호러 테마.mp3",
         youtubeLink: "https://www.youtube.com/@routelabel",
     },
@@ -42,6 +46,7 @@ const genreCards = [
         accentText: "text-blue-400",
         accentBorder: "border-blue-400",
         accentDot: "bg-blue-400",
+        accentGradient: "linear-gradient(135deg, rgba(96,165,250,0.8), rgba(96,165,250,0.2), rgba(96,165,250,0.6))",
         audioSrc: "/audio/판타지 테마.mp3",
         youtubeLink: "https://www.youtube.com/@routelabel",
     },
@@ -52,6 +57,7 @@ const genreCards = [
         accentText: "text-lime-400",
         accentBorder: "border-lime-400",
         accentDot: "bg-lime-400",
+        accentGradient: "linear-gradient(135deg, rgba(163,230,53,0.8), rgba(163,230,53,0.2), rgba(163,230,53,0.6))",
         audioSrc: "/audio/스포츠 테마.mp3",
         youtubeLink: "https://www.youtube.com/@routelabel",
     },
@@ -62,6 +68,7 @@ const genreCards = [
         accentText: "text-amber-400",
         accentBorder: "border-amber-400",
         accentDot: "bg-amber-400",
+        accentGradient: "linear-gradient(135deg, rgba(251,191,36,0.8), rgba(251,191,36,0.2), rgba(251,191,36,0.6))",
         audioSrc: "/audio/일상-코믹 테마.mp3",
         youtubeLink: "https://www.youtube.com/@routelabel",
     },
@@ -72,6 +79,7 @@ const genreCards = [
         accentText: "text-amber-500",
         accentBorder: "border-amber-500",
         accentDot: "bg-amber-500",
+        accentGradient: "linear-gradient(135deg, rgba(245,158,11,0.8), rgba(245,158,11,0.2), rgba(245,158,11,0.6))",
         audioSrc: "/audio/국악-동양 테마.mp3",
         youtubeLink: "https://www.youtube.com/@routelabel",
     },
@@ -260,11 +268,11 @@ export const WhyNotStock = () => {
                 </motion.div>
 
                 {/* 캐러셀 컨테이너 */}
-                <div className="relative mb-8 mx-auto" style={{ maxWidth: '1100px' }}>
+                <div className="relative mb-8 mx-auto" style={{ maxWidth: '1400px' }}>
                     {/* 슬라이드 영역 */}
                     <div
                         className="relative overflow-hidden mx-auto"
-                        style={{ maxWidth: '900px', minHeight: '280px' }}
+                        style={{ maxWidth: '1200px', minHeight: '280px' }}
                     >
                         {/* 양쪽 그라데이션 오버레이 */}
                         <div className="absolute left-0 top-0 bottom-0 w-20 bg-gradient-to-r from-black to-transparent z-10 pointer-events-none" />
@@ -281,28 +289,80 @@ export const WhyNotStock = () => {
                             {genreCards.map((card, idx) => {
                                 const isActive = idx === currentIndex;
 
+                                // 비활성 카드 클릭 시 해당 트랙으로 이동 및 재생
+                                const handleCardClick = () => {
+                                    if (!isActive) {
+                                        changeTrack(idx, true);
+                                    }
+                                };
+
                                 return (
                                     <div
                                         key={idx}
-                                        className={`relative flex-shrink-0 w-[280px] sm:w-[420px] md:w-[520px] mx-[10px] sm:mx-[20px] p-6 sm:p-8 rounded-3xl transition-all duration-500 ${
+                                        onClick={handleCardClick}
+                                        className={`group relative flex-shrink-0 w-[280px] sm:w-[420px] md:w-[520px] mx-[10px] sm:mx-[20px] rounded-3xl transition-all duration-500 ${
                                             isActive
-                                                ? `bg-white/[0.03] border-2 ${card.accentBorder} scale-100 opacity-100`
-                                                : 'bg-white/[0.02] border-2 border-white/20 scale-95 opacity-50'
+                                                ? 'scale-100 opacity-100'
+                                                : 'scale-[0.92] opacity-70 cursor-pointer md:hover:opacity-90 md:hover:scale-[0.94]'
                                         }`}
                                         style={{ minHeight: '260px' }}
                                     >
+                                        {/* 그라데이션 테두리 배경 (호버 시 표시) - 각 카드 고유 색상 */}
+                                        {!isActive && (
+                                            <div
+                                                className="absolute inset-0 rounded-3xl opacity-0 md:group-hover:opacity-100 transition-opacity duration-500"
+                                                style={{
+                                                    background: card.accentGradient,
+                                                    padding: '2px',
+                                                }}
+                                            >
+                                                <div className="w-full h-full rounded-[22px] bg-black" />
+                                            </div>
+                                        )}
+
+                                        {/* 카드 내용 */}
+                                        <div
+                                            className={`relative w-full h-full p-6 sm:p-8 rounded-3xl transition-all duration-500 ${
+                                                isActive
+                                                    ? `bg-white/[0.03] border-2 ${card.accentBorder}`
+                                                    : 'bg-white/[0.02] border-2 border-white/20 md:group-hover:border-transparent'
+                                            }`}
+                                            style={{ minHeight: '260px' }}
+                                        >
+                                        {/* PC: 재생 버튼 - 카드 정중앙 하단 (calc로 패딩 보정) */}
+                                        {isActive && (
+                                            <motion.button
+                                                initial={{ opacity: 0, scale: 0.8 }}
+                                                animate={{ opacity: 1, scale: 1 }}
+                                                transition={{ delay: 0.1 }}
+                                                onClick={togglePlay}
+                                                className={`hidden md:flex absolute bottom-6 z-20 w-14 h-14 items-center justify-center rounded-full transition-all duration-300 ${
+                                                    isPlaying
+                                                        ? 'bg-emerald-500 hover:bg-emerald-400 text-black'
+                                                        : 'bg-white/10 hover:bg-white/20 text-white'
+                                                }`}
+                                                style={{ left: 'calc(50% - 28px)' }}
+                                                aria-label={isPlaying ? '일시정지' : '재생'}
+                                            >
+                                                {isPlaying ? (
+                                                    <Pause className="w-6 h-6" />
+                                                ) : (
+                                                    <Play className="w-6 h-6 ml-0.5" />
+                                                )}
+                                            </motion.button>
+                                        )}
 
                                         <div className="relative z-10">
                                             {/* 장르 타이틀 */}
                                             <h3 className={`text-2xl md:text-3xl 3xl:text-5xl font-bold mb-3 break-keep ${
-                                                isActive ? card.accentText : 'text-white/40'
+                                                isActive ? card.accentText : 'text-white/60'
                                             }`}>
                                                 {card.genre}
                                             </h3>
 
                                             {/* 설명 */}
                                             <p className={`text-sm md:text-base 3xl:text-xl mb-5 leading-relaxed transition-colors duration-500 break-keep ${
-                                                isActive ? 'text-white/70' : 'text-white/30'
+                                                isActive ? 'text-white/70' : 'text-white/50'
                                             }`}>
                                                 {card.description}
                                             </p>
@@ -323,7 +383,8 @@ export const WhyNotStock = () => {
                                                 </motion.ul>
                                             )}
 
-                                            {/* 더보기 버튼 - 오른쪽 하단 */}
+
+                                            {/* 더보기 버튼 - 오른쪽 하단 (원래 위치 유지) */}
                                             {isActive && (
                                                 <motion.a
                                                     initial={{ opacity: 0 }}
@@ -340,6 +401,7 @@ export const WhyNotStock = () => {
                                                 </motion.a>
                                             )}
                                         </div>
+                                        </div>
                                     </div>
                                 );
                             })}
@@ -347,8 +409,8 @@ export const WhyNotStock = () => {
                     </div>
                 </div>
 
-                {/* 유튜브 뮤직 스타일 컨트롤 */}
-                <div className="relative flex items-center justify-center gap-6 mb-4">
+                {/* 모바일 컨트롤 */}
+                <div className="md:hidden relative flex items-center justify-center gap-6 mb-4">
                     {/* 이전 트랙 */}
                     <button
                         onClick={goToPrevious}

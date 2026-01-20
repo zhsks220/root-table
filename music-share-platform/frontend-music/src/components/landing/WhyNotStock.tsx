@@ -97,7 +97,6 @@ export const WhyNotStock = () => {
     const isInView = useInView(sectionRef, { once: false, amount: 0.5 });
     const cardSize = useCardSize();
     const pendingPlayRef = useRef(false);
-    const skipNextEffectRef = useRef(false); // fromUserGesture에서 이미 처리한 경우 useEffect 스킵
     const isMobile = useIsMobile();
     const swipeHintControls = useAnimation();
 
@@ -180,36 +179,19 @@ export const WhyNotStock = () => {
     };
 
     // 트랙 변경 함수
-    // fromUserGesture: 버튼 클릭이나 스와이프 등 사용자 제스처에서 직접 호출된 경우 true
-    const changeTrack = (newIndex: number, autoPlay: boolean, fromUserGesture: boolean = false) => {
+    const changeTrack = (newIndex: number, autoPlay: boolean) => {
         const audio = audioRef.current;
         if (!audio) return;
 
         // 현재 재생 중지
         audio.pause();
 
-        // 자동 재생 처리 (setState 전에 audio.play() 호출해야 사용자 제스처 컨텍스트 유지)
-        if (autoPlay && fromUserGesture) {
-            // 모바일: 사용자 제스처 컨텍스트 내에서 즉시 재생 시도
-            skipNextEffectRef.current = true; // useEffect에서 중복 처리 방지
-            audio.src = genreCards[newIndex].audioSrc;
-            audio.load();
-            audio.play()
-                .then(() => {
-                    setIsPlaying(true);
-                    setCurrentIndex(newIndex); // play() 성공 후 인덱스 변경
-                })
-                .catch((err) => {
-                    console.error('Direct play failed:', err);
-                    setCurrentIndex(newIndex);
-                    // 실패해도 인덱스는 변경
-                });
-        } else if (autoPlay) {
-            // 일반적인 경우: useEffect에서 canplay 이벤트로 재생
+        // 인덱스 변경
+        setCurrentIndex(newIndex);
+
+        // 자동 재생 플래그 설정
+        if (autoPlay) {
             pendingPlayRef.current = true;
-            setCurrentIndex(newIndex);
-        } else {
-            setCurrentIndex(newIndex);
         }
     };
 
@@ -217,12 +199,6 @@ export const WhyNotStock = () => {
     useEffect(() => {
         const audio = audioRef.current;
         if (!audio) return;
-
-        // fromUserGesture에서 이미 처리한 경우 스킵
-        if (skipNextEffectRef.current) {
-            skipNextEffectRef.current = false;
-            return;
-        }
 
         // 소스 변경
         audio.src = genreCards[currentIndex].audioSrc;
@@ -251,13 +227,13 @@ export const WhyNotStock = () => {
     // 이전 트랙으로 이동 + 재생
     const goToPrevious = () => {
         const newIndex = currentIndex === 0 ? genreCards.length - 1 : currentIndex - 1;
-        changeTrack(newIndex, true, true);
+        changeTrack(newIndex, true);
     };
 
     // 다음 트랙으로 이동 + 재생
     const goToNext = () => {
         const newIndex = (currentIndex + 1) % genreCards.length;
-        changeTrack(newIndex, true, true);
+        changeTrack(newIndex, true);
     };
 
     // 특정 슬라이드로 이동 (페이지네이션)
@@ -279,23 +255,8 @@ export const WhyNotStock = () => {
         if (!touchStart || !touchEnd) return;
 
         const distance = touchStart - touchEnd;
-        // 스와이프: 재생 중이면 다음 곡 재생, 아니면 트랙만 변경
-        if (distance > minSwipeDistance) {
-            const newIndex = (currentIndex + 1) % genreCards.length;
-            if (isPlaying) {
-                changeTrack(newIndex, true, true);
-            } else {
-                setCurrentIndex(newIndex);
-            }
-        }
-        if (distance < -minSwipeDistance) {
-            const newIndex = currentIndex === 0 ? genreCards.length - 1 : currentIndex - 1;
-            if (isPlaying) {
-                changeTrack(newIndex, true, true);
-            } else {
-                setCurrentIndex(newIndex);
-            }
-        }
+        if (distance > minSwipeDistance) goToNext();
+        if (distance < -minSwipeDistance) goToPrevious();
     };
 
     // 오디오 끝났을 때 - 다음 곡 자동 재생
@@ -374,10 +335,10 @@ export const WhyNotStock = () => {
                             {genreCards.map((card, idx) => {
                                 const isActive = idx === currentIndex;
 
-                                // 비활성 카드 클릭 시 해당 트랙으로 이동 및 재생 (사용자 제스처)
+                                // 비활성 카드 클릭 시 해당 트랙으로 이동 및 재생
                                 const handleCardClick = () => {
                                     if (!isActive) {
-                                        changeTrack(idx, true, true);
+                                        changeTrack(idx, true);
                                     }
                                 };
 

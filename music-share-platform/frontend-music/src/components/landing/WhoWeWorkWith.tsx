@@ -29,6 +29,20 @@ const bubblePositions = [
     { x: -10, rotate: -1.5, tailDir: 'left' },
 ];
 
+// 헤드라인 컴포넌트 - 결론이 나타날 때 사라짐
+const Headline = ({ progress }: { progress: MotionValue<number> }) => {
+    const opacity = useTransform(progress, [ANIMATION.FADE_OUT_START, ANIMATION.FADE_OUT_END], [1, 0]);
+
+    return (
+        <motion.div className="text-center mb-8" style={{ opacity }}>
+            <h2 className="text-3xl md:text-5xl 3xl:text-7xl font-black mb-4">
+                <span className="whitespace-nowrap">잘 맞는 <span className="text-emerald-500">프로젝트</span>가</span> <br />
+                있습니다.
+            </h2>
+        </motion.div>
+    );
+};
+
 // 결론 텍스트 컴포넌트 - 말풍선 사라진 후 화면 중앙에 표시
 const ConclusionText = ({ progress }: { progress: MotionValue<number> }) => {
     const opacity = useTransform(progress, [ANIMATION.CONCLUSION_START, ANIMATION.CONCLUSION_END], [0, 1]);
@@ -176,13 +190,8 @@ export const WhoWeWorkWith = () => {
             <div ref={containerRef} className="relative h-[250vh]">
                 {/* Sticky 컨테이너 */}
                 <div className="sticky top-0 h-screen flex flex-col items-center justify-center px-6 overflow-hidden">
-                    {/* 헤드라인 - 항상 표시 */}
-                    <div className="text-center mb-8">
-                        <h2 className="text-3xl md:text-5xl 3xl:text-7xl font-black mb-4">
-                            <span className="whitespace-nowrap">잘 맞는 <span className="text-emerald-500">프로젝트</span>가</span> <br />
-                            있습니다.
-                        </h2>
-                    </div>
+                    {/* 헤드라인 - 스크롤 시 사라짐 */}
+                    <Headline progress={scrollYProgress} />
 
                     {/* 말풍선 컨테이너 - 좌우 교차 레이아웃 */}
                     <div className="max-w-3xl mx-auto space-y-3 w-full">

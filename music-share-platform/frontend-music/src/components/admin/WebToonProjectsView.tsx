@@ -12,7 +12,7 @@ import { useScrollBasedPlayback } from '../../hooks/useScrollBasedPlayback';
 import {
   ArrowLeft, Plus, Upload, Trash2, Music,
   Loader2, Image as ImageIcon, X, Smartphone, StickyNote,
-  Save, Volume2, VolumeX, Play, Pause, Menu, Maximize, Minimize,
+  Save, Volume2, VolumeX, Play, Pause, Menu,
   Eye, EyeOff
 } from 'lucide-react';
 
@@ -53,8 +53,9 @@ export function WebToonProjectsView() {
   // 모바일 메뉴 상태
   const [menuOpen, setMenuOpen] = useState(false);
 
-  // 전체화면 상태
-  const [isFullscreen, setIsFullscreen] = useState(false);
+  // 모바일 헤더 표시 상태 (스크롤 방향에 따라)
+  const [mobileHeaderVisible, setMobileHeaderVisible] = useState(true);
+  const lastScrollY = useRef(0);
 
   // Long press 컨텍스트 메뉴
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
@@ -135,18 +136,6 @@ export function WebToonProjectsView() {
   useEffect(() => {
     loadProjects();
   }, [loadProjects]);
-
-  // 전체화면 상태 감지
-  useEffect(() => {
-    const handleFullscreenChange = () => {
-      setIsFullscreen(!!document.fullscreenElement);
-    };
-
-    document.addEventListener('fullscreenchange', handleFullscreenChange);
-    return () => {
-      document.removeEventListener('fullscreenchange', handleFullscreenChange);
-    };
-  }, []);
 
   // 프로젝트 데이터 로드
   const loadProject = useCallback(async () => {
@@ -436,19 +425,6 @@ export function WebToonProjectsView() {
     }
   };
 
-  // 전체화면 토글
-  const toggleFullscreen = async () => {
-    try {
-      if (!document.fullscreenElement) {
-        await document.documentElement.requestFullscreen();
-      } else {
-        await document.exitFullscreen();
-      }
-    } catch (error) {
-      console.error('Fullscreen error:', error);
-    }
-  };
-
   // 프로젝트 데이터 저장 (마커, 메모)
   const handleSaveProject = async () => {
     if (!currentProject) return;
@@ -499,6 +475,40 @@ export function WebToonProjectsView() {
       longPressTimer.current = null;
     }
   };
+
+  // 모바일 스크롤 시 헤더 숨김/표시
+  const handleMobileScroll = useCallback(() => {
+    if (!mobileContainerRef.current) return;
+
+    const currentScrollY = mobileContainerRef.current.scrollTop;
+    const delta = currentScrollY - lastScrollY.current;
+
+    // 스크롤 양이 5px 이상일 때만 반응 (너무 민감하지 않게)
+    if (Math.abs(delta) > 5) {
+      if (delta > 0) {
+        // 아래로 스크롤 - 헤더 숨김
+        setMobileHeaderVisible(false);
+      } else {
+        // 위로 스크롤 - 헤더 표시
+        setMobileHeaderVisible(true);
+      }
+      lastScrollY.current = currentScrollY;
+    }
+
+    // 최상단이면 헤더 표시
+    if (currentScrollY <= 0) {
+      setMobileHeaderVisible(true);
+    }
+  }, []);
+
+  // 모바일 스크롤 이벤트 리스너 등록
+  useEffect(() => {
+    const container = mobileContainerRef.current;
+    if (!container || !currentProject) return;
+
+    container.addEventListener('scroll', handleMobileScroll, { passive: true });
+    return () => container.removeEventListener('scroll', handleMobileScroll);
+  }, [currentProject, handleMobileScroll]);
 
   const closeContextMenu = () => setContextMenu(null);
 
@@ -728,10 +738,11 @@ export function WebToonProjectsView() {
   return (
     <PageTransition>
       <div className={cn('fixed inset-0 z-50 flex flex-col', isDark ? 'bg-black' : 'bg-gray-50')}>
-        {/* 헤더 - 모바일 */}
+        {/* 헤더 - 모바일 (스크롤 시 숨김) */}
         <header className={cn(
-          'md:hidden flex items-center justify-between px-4 py-3 border-b',
-          isDark ? 'bg-black border-gray-800' : 'bg-white border-gray-200'
+          'md:hidden flex items-center justify-between px-4 py-3 border-b transition-transform duration-300 absolute top-0 left-0 right-0 z-10',
+          isDark ? 'bg-black border-gray-800' : 'bg-white border-gray-200',
+          mobileHeaderVisible ? 'translate-y-0' : '-translate-y-full'
         )}>
           {/* 왼쪽: 뒤로가기 */}
           <button
@@ -784,16 +795,6 @@ export function WebToonProjectsView() {
                       className="hidden"
                     />
                   </label>
-                  <button
-                    onClick={() => { toggleFullscreen(); setMenuOpen(false); }}
-                    className={cn(
-                      'w-full flex items-center gap-3 px-4 py-3 transition-colors',
-                      isDark ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-700'
-                    )}
-                  >
-                    {isFullscreen ? <Minimize className="w-5 h-5" /> : <Maximize className="w-5 h-5" />}
-                    <span>{isFullscreen ? '전체화면 해제' : '전체화면'}</span>
-                  </button>
                   <button
                     onClick={() => { setHideMarkers(!hideMarkers); setMenuOpen(false); }}
                     className={cn(
@@ -1011,7 +1012,7 @@ export function WebToonProjectsView() {
             <div
               ref={mobileContainerRef}
               className={cn(
-                'md:hidden w-full h-full overflow-y-auto relative',
+                'md:hidden w-full h-full overflow-y-auto relative pt-14',
                 isDark ? 'bg-black' : 'bg-white'
               )}
               onTouchStart={handleTouchStart}

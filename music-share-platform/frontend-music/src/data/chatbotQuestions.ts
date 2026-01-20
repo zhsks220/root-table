@@ -64,7 +64,7 @@ export const chatbotQuestions: Question[] = [
     id: 'musicTypes',
     step: 5,
     type: 'multi-select',
-    message: '어떤 음악이 필요하신가요?',
+    message: '어떤 BGM이 필요하신가요?',
     subMessage: '여러 개 선택 가능해요',
     required: true,
     options: [

@@ -3,88 +3,47 @@ import { motion, useInView, useAnimation } from 'framer-motion';
 import { Play, Pause, Volume2, VolumeX, SkipBack, SkipForward, ExternalLink, ChevronLeft, ChevronRight } from 'lucide-react';
 import { useCardSize, useIsMobile } from '../../hooks/useResponsive';
 
-// 장르별 카드 데이터
-const genreCards = [
+// OST 카드 데이터 - 나중에 실제 데이터로 교체
+const ostCards = [
     {
-        genre: "액션 / 배틀",
-        description: "전투와 각성의 순간을 음악으로 극대화합니다.",
-        features: ["고조되는 텐션 설계", "캐릭터 각성 테마", "임팩트 있는 타이밍"],
-        accentText: "text-red-400",
-        accentBorder: "border-red-400",
-        accentDot: "bg-red-400",
-        accentGradient: "linear-gradient(135deg, rgba(248,113,113,0.8), rgba(248,113,113,0.2), rgba(248,113,113,0.6))",
-        audioSrc: "/audio/액션 테마.mp3",
+        workTitle: "작품명 1",
+        trackTitle: "OST 타이틀 1",
+        description: "OST 설명이 들어갑니다.",
+        accentText: "text-emerald-400",
+        accentBorder: "border-emerald-400",
+        accentDot: "bg-emerald-400",
+        accentGradient: "linear-gradient(135deg, rgba(52,211,153,0.8), rgba(52,211,153,0.2), rgba(52,211,153,0.6))",
+        audioSrc: "/audio/ost-sample-1.mp3",
         youtubeLink: "https://www.youtube.com/@routelabel",
+        coverImage: "/images/ost-cover-1.jpg",
     },
     {
-        genre: "로맨스",
-        description: "설렘과 애틋함, 그리고 이별의 감정선을 섬세하게 담아냅니다.",
-        features: ["감정선 따라가는 멜로디", "캐릭터 케미 표현", "클라이맥스 연출"],
-        accentText: "text-pink-400",
-        accentBorder: "border-pink-400",
-        accentDot: "bg-pink-400",
-        accentGradient: "linear-gradient(135deg, rgba(244,114,182,0.8), rgba(244,114,182,0.2), rgba(244,114,182,0.6))",
-        audioSrc: "/audio/발라드 테마.mp3",
+        workTitle: "작품명 2",
+        trackTitle: "OST 타이틀 2",
+        description: "OST 설명이 들어갑니다.",
+        accentText: "text-cyan-400",
+        accentBorder: "border-cyan-400",
+        accentDot: "bg-cyan-400",
+        accentGradient: "linear-gradient(135deg, rgba(34,211,238,0.8), rgba(34,211,238,0.2), rgba(34,211,238,0.6))",
+        audioSrc: "/audio/ost-sample-2.mp3",
         youtubeLink: "https://www.youtube.com/@routelabel",
+        coverImage: "/images/ost-cover-2.jpg",
     },
     {
-        genre: "공포 / 호러",
-        description: "반전과 긴장, 공포의 순간을 청각적으로 완성합니다.",
-        features: ["불안감 조성", "반전 포인트 강조", "심리적 압박감"],
-        accentText: "text-purple-400",
-        accentBorder: "border-purple-400",
-        accentDot: "bg-purple-400",
-        accentGradient: "linear-gradient(135deg, rgba(192,132,252,0.8), rgba(192,132,252,0.2), rgba(192,132,252,0.6))",
-        audioSrc: "/audio/공포 호러 테마.mp3",
+        workTitle: "작품명 3",
+        trackTitle: "OST 타이틀 3",
+        description: "OST 설명이 들어갑니다.",
+        accentText: "text-violet-400",
+        accentBorder: "border-violet-400",
+        accentDot: "bg-violet-400",
+        accentGradient: "linear-gradient(135deg, rgba(167,139,250,0.8), rgba(167,139,250,0.2), rgba(167,139,250,0.6))",
+        audioSrc: "/audio/ost-sample-3.mp3",
         youtubeLink: "https://www.youtube.com/@routelabel",
-    },
-    {
-        genre: "판타지 / 이세계",
-        description: "웅장한 세계관과 마법의 순간을 음악으로 구현합니다.",
-        features: ["세계관 몰입도 강화", "마법/스킬 효과음", "에픽한 스케일"],
-        accentText: "text-blue-400",
-        accentBorder: "border-blue-400",
-        accentDot: "bg-blue-400",
-        accentGradient: "linear-gradient(135deg, rgba(96,165,250,0.8), rgba(96,165,250,0.2), rgba(96,165,250,0.6))",
-        audioSrc: "/audio/판타지 테마.mp3",
-        youtubeLink: "https://www.youtube.com/@routelabel",
-    },
-    {
-        genre: "스포츠",
-        description: "승리를 향한 열정과 도전의 순간을 음악으로 담아냅니다.",
-        features: ["긴장감 고조", "승리의 순간 강조", "팀워크와 열정 표현"],
-        accentText: "text-lime-400",
-        accentBorder: "border-lime-400",
-        accentDot: "bg-lime-400",
-        accentGradient: "linear-gradient(135deg, rgba(163,230,53,0.8), rgba(163,230,53,0.2), rgba(163,230,53,0.6))",
-        audioSrc: "/audio/스포츠 테마.mp3",
-        youtubeLink: "https://www.youtube.com/@routelabel",
-    },
-    {
-        genre: "일상 / 코믹",
-        description: "유쾌하고 편안한 분위기로 독자에게 휴식을 선사합니다.",
-        features: ["개그 타이밍 강조", "편안한 배경 음악", "상황별 효과음"],
-        accentText: "text-amber-400",
-        accentBorder: "border-amber-400",
-        accentDot: "bg-amber-400",
-        accentGradient: "linear-gradient(135deg, rgba(251,191,36,0.8), rgba(251,191,36,0.2), rgba(251,191,36,0.6))",
-        audioSrc: "/audio/일상-코믹 테마.mp3",
-        youtubeLink: "https://www.youtube.com/@routelabel",
-    },
-    {
-        genre: "국악 / 동양",
-        description: "동양적 정서와 전통의 멋을 현대적으로 재해석합니다.",
-        features: ["전통악기 활용", "동양적 선율", "역사/무협 장르 특화"],
-        accentText: "text-amber-500",
-        accentBorder: "border-amber-500",
-        accentDot: "bg-amber-500",
-        accentGradient: "linear-gradient(135deg, rgba(245,158,11,0.8), rgba(245,158,11,0.2), rgba(245,158,11,0.6))",
-        audioSrc: "/audio/국악-동양 테마.mp3",
-        youtubeLink: "https://www.youtube.com/@routelabel",
+        coverImage: "/images/ost-cover-3.jpg",
     },
 ];
 
-export const WhyNotStock = () => {
+export const OSTShowcase = () => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isPlaying, setIsPlaying] = useState(false);
     const [volume, setVolume] = useState(0.7);
@@ -201,7 +160,7 @@ export const WhyNotStock = () => {
         if (!audio) return;
 
         // 소스 변경
-        audio.src = genreCards[currentIndex].audioSrc;
+        audio.src = ostCards[currentIndex].audioSrc;
         audio.load();
 
         // 자동 재생이 필요한 경우
@@ -226,13 +185,13 @@ export const WhyNotStock = () => {
 
     // 이전 트랙으로 이동 + 재생
     const goToPrevious = () => {
-        const newIndex = currentIndex === 0 ? genreCards.length - 1 : currentIndex - 1;
+        const newIndex = currentIndex === 0 ? ostCards.length - 1 : currentIndex - 1;
         changeTrack(newIndex, true);
     };
 
     // 다음 트랙으로 이동 + 재생
     const goToNext = () => {
-        const newIndex = (currentIndex + 1) % genreCards.length;
+        const newIndex = (currentIndex + 1) % ostCards.length;
         changeTrack(newIndex, true);
     };
 
@@ -266,7 +225,7 @@ export const WhyNotStock = () => {
 
     return (
         <section ref={sectionRef} className="py-24 px-6 bg-black overflow-hidden">
-            {/* 오디오 요소 - 장르별 샘플 음악 (metadata만 프리로드하여 초기 로딩 최적화) */}
+            {/* 오디오 요소 - OST 샘플 음악 */}
             <audio
                 ref={audioRef}
                 preload="metadata"
@@ -281,10 +240,10 @@ export const WhyNotStock = () => {
                     className="text-center mb-16"
                 >
                     <h2 className="text-3xl md:text-5xl 3xl:text-7xl font-black mb-6">
-                        어떤 <span className="text-emerald-500">BGM</span>이 필요하신가요?
+                        어떤 <span className="text-emerald-500">OST</span>가 필요하신가요?
                     </h2>
                     <p className="text-white/50 text-base md:text-lg 3xl:text-2xl">
-                        작품의 감동을 극대화 시킬 수 있는 음악을 만듭니다.
+                        작품의 세계관을 완성하는 OST를 제작합니다.
                     </p>
                 </motion.div>
 
@@ -332,7 +291,7 @@ export const WhyNotStock = () => {
                             onTouchMove={onTouchMove}
                             onTouchEnd={onTouchEnd}
                         >
-                            {genreCards.map((card, idx) => {
+                            {ostCards.map((card, idx) => {
                                 const isActive = idx === currentIndex;
 
                                 // 비활성 카드 클릭 시 해당 트랙으로 이동 및 재생
@@ -375,7 +334,7 @@ export const WhyNotStock = () => {
                                             }`}
                                             style={{ minHeight: '240px' }}
                                         >
-                                        {/* PC: 재생 버튼 - 카드 정중앙 하단 (calc로 패딩 보정) */}
+                                        {/* PC: 재생 버튼 - 카드 정중앙 하단 */}
                                         {isActive && (
                                             <motion.button
                                                 initial={{ opacity: 0, scale: 0.8 }}
@@ -399,11 +358,18 @@ export const WhyNotStock = () => {
                                         )}
 
                                         <div className="relative z-10">
-                                            {/* 장르 타이틀 */}
+                                            {/* 작품명 */}
+                                            <p className={`text-sm md:text-base 3xl:text-lg mb-1 transition-colors duration-500 ${
+                                                isActive ? 'text-white/60' : 'text-white/40'
+                                            }`}>
+                                                {card.workTitle}
+                                            </p>
+
+                                            {/* OST 타이틀 */}
                                             <h3 className={`text-2xl md:text-3xl 3xl:text-5xl font-bold mb-3 break-keep ${
                                                 isActive ? card.accentText : 'text-white/60'
                                             }`}>
-                                                {card.genre}
+                                                {card.trackTitle}
                                             </h3>
 
                                             {/* 설명 */}
@@ -413,24 +379,7 @@ export const WhyNotStock = () => {
                                                 {card.description}
                                             </p>
 
-                                            {/* 특징 리스트 */}
-                                            {isActive && (
-                                                <motion.ul
-                                                    initial={{ opacity: 0, y: 10 }}
-                                                    animate={{ opacity: 1, y: 0 }}
-                                                    className="space-y-2"
-                                                >
-                                                    {card.features.map((feature, fidx) => (
-                                                        <li key={fidx} className="flex items-center gap-2 text-sm text-white/50">
-                                                            <span className={`w-1.5 h-1.5 rounded-full ${card.accentDot}`} />
-                                                            {feature}
-                                                        </li>
-                                                    ))}
-                                                </motion.ul>
-                                            )}
-
-
-                                            {/* 더보기 버튼 - 오른쪽 하단 (원래 위치 유지) */}
+                                            {/* 더보기 버튼 - 오른쪽 하단 */}
                                             {isActive && (
                                                 <motion.a
                                                     initial={{ opacity: 0 }}
@@ -442,7 +391,7 @@ export const WhyNotStock = () => {
                                                     className={`absolute -bottom-3 -right-2 sm:-bottom-5 sm:-right-4 inline-flex items-center gap-1 sm:gap-2 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 ${card.accentText} bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20`}
                                                 >
                                                     <span className="sm:hidden">더보기</span>
-                                                    <span className="hidden sm:inline">다른 작품 보기</span>
+                                                    <span className="hidden sm:inline">YouTube에서 보기</span>
                                                     <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                                                 </motion.a>
                                             )}
@@ -461,7 +410,7 @@ export const WhyNotStock = () => {
                     <button
                         onClick={goToPrevious}
                         className="w-12 h-12 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all duration-300"
-                        aria-label="이전 장르"
+                        aria-label="이전 OST"
                     >
                         <SkipBack className="w-5 h-5 text-white/70" />
                     </button>
@@ -487,7 +436,7 @@ export const WhyNotStock = () => {
                     <button
                         onClick={goToNext}
                         className="w-12 h-12 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20 transition-all duration-300"
-                        aria-label="다음 장르"
+                        aria-label="다음 OST"
                     >
                         <SkipForward className="w-5 h-5 text-white/70" />
                     </button>
@@ -531,7 +480,7 @@ export const WhyNotStock = () => {
 
                 {/* 페이지네이션 인디케이터 */}
                 <div className="flex justify-center gap-2 mb-12">
-                    {genreCards.map((_, idx) => (
+                    {ostCards.map((_, idx) => (
                         <button
                             key={idx}
                             onClick={() => goToSlide(idx)}
@@ -540,21 +489,10 @@ export const WhyNotStock = () => {
                                     ? 'bg-emerald-500 w-8'
                                     : 'bg-white/30 w-2 hover:w-3'
                             }`}
-                            aria-label={`${idx + 1}번 장르로 이동`}
+                            aria-label={`${idx + 1}번 OST로 이동`}
                         />
                     ))}
                 </div>
-
-                {/* 하단 문장 */}
-                <motion.p
-                    initial={{ opacity: 0 }}
-                    whileInView={{ opacity: 1 }}
-                    viewport={{ once: true }}
-                    className="text-center text-white/50 text-base md:text-lg 3xl:text-2xl max-w-2xl 3xl:max-w-4xl mx-auto leading-relaxed"
-                >
-                    우리는 음악을 만드는 팀이 아니라, <br />
-                    웹툰의 흐름을 함께 설계하는 팀입니다.
-                </motion.p>
             </div>
         </section>
     );

@@ -5,6 +5,7 @@ import {
     SocialProof,
     Process,
     WhyNotStock,
+    OSTShowcase,
     ReaderReactions,
     WhoWeWorkWith,
     FinalCTA,
@@ -25,6 +26,7 @@ const LandingPage = () => {
             <SocialProof />
             <Process />
             <WhyNotStock />
+            <OSTShowcase />
             <ReaderReactions />
             <WhoWeWorkWith />
             <FinalCTA />

@@ -48,8 +48,10 @@ api.interceptors.response.use(
   async (error) => {
     const originalRequest = error.config;
 
-    // 401 에러이고 재시도하지 않은 요청인 경우
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    // 401 또는 403 에러이고 재시도하지 않은 요청인 경우
+    // 403: 토큰 만료 (Invalid or expired token)
+    const status = error.response?.status;
+    if ((status === 401 || status === 403) && !originalRequest._retry) {
       // 토큰 갱신 요청 자체가 실패한 경우는 바로 로그아웃
       if (originalRequest.url === '/auth/refresh') {
         localStorage.removeItem('auth-storage');

@@ -41,9 +41,9 @@ interface PlayerState {
   unlockAudio: () => Promise<void>;
   preloadTrack: (track: Track) => Promise<void>;
   playTrack: (track: Track, playlist?: Track[]) => Promise<void>;
-  togglePlay: () => Promise<void>;
+  togglePlay: () => void;
   pause: () => void;
-  resume: () => Promise<void>;
+  resume: () => void;
   stop: () => void;
   next: () => void;
   previous: () => void;
@@ -212,20 +212,15 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     }
   },
 
-  togglePlay: async () => {
+  togglePlay: () => {
     const state = get();
     if (state.audio) {
       if (state.isPlaying) {
         state.audio.pause();
         set({ isPlaying: false });
       } else {
-        try {
-          await state.audio.play();
-          set({ isPlaying: true });
-        } catch (error) {
-          console.error('Play failed:', error);
-          set({ isPlaying: false });
-        }
+        state.audio.play();
+        set({ isPlaying: true });
       }
     }
   },
@@ -238,16 +233,11 @@ export const usePlayerStore = create<PlayerState>((set, get) => ({
     }
   },
 
-  resume: async () => {
+  resume: () => {
     const state = get();
     if (state.audio) {
-      try {
-        await state.audio.play();
-        set({ isPlaying: true });
-      } catch (error) {
-        console.error('Resume failed:', error);
-        set({ isPlaying: false });
-      }
+      state.audio.play();
+      set({ isPlaying: true });
     }
   },
 

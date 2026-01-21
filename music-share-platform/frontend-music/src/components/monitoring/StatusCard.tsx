@@ -1,4 +1,3 @@
-import { useThemeStore } from '../../store/themeStore';
 import { cn } from '../../lib/utils';
 import { CheckCircle, AlertTriangle, XCircle, LucideIcon } from 'lucide-react';
 
@@ -19,7 +18,8 @@ export default function StatusCard({
   subtitle,
   className
 }: StatusCardProps) {
-  const { isDark } = useThemeStore();
+  // 모니터링 대시보드는 항상 다크모드
+  const isDark = true;
 
   const statusColors = {
     healthy: {

@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { useThemeStore } from '../store/themeStore';
 import { useAuthStore } from '../store/authStore';
 import { cn } from '../lib/utils';
 import {
@@ -33,7 +32,6 @@ const tabs: { id: TabType; label: string; icon: React.ElementType }[] = [
 
 export default function MonitoringDashboardPage() {
   const navigate = useNavigate();
-  const { isDark } = useThemeStore();
   const { user } = useAuthStore();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -79,9 +77,6 @@ export default function MonitoringDashboardPage() {
         return null;
     }
   };
-
-  // 항상 다크모드 스타일 사용
-  const darkMode = true;
 
   return (
     <motion.div

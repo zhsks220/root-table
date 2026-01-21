@@ -225,25 +225,36 @@ export function WebToonProjectsView() {
     setSelectedScene(scene);
   };
 
+  // 파일명에서 숫자 추출 (예: "01_scene.jpg" → 1, "10_image.png" → 10)
+  const extractNumberFromFilename = (filename: string): number => {
+    const match = filename.match(/^(\d+)/);
+    return match ? parseInt(match[1], 10) : Infinity;
+  };
+
   // 장면 업로드
   const handleUploadScene = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0 || !currentProject) return;
 
+    // 파일명의 숫자 순서대로 정렬
+    const sortedFiles = Array.from(files).sort((a, b) =>
+      extractNumberFromFilename(a.name) - extractNumberFromFilename(b.name)
+    );
+
     setUploading(true);
     try {
-      for (let i = 0; i < files.length; i++) {
-        const file = files[i];
+      for (let i = 0; i < sortedFiles.length; i++) {
+        const file = sortedFiles[i];
         const formData = new FormData();
         formData.append('image', file);
         formData.append('display_order', String(scenes.length + i));
 
         await webToonProjectAPI.uploadScene(currentProject.id, formData);
-        setUploadProgress(((i + 1) / files.length) * 100);
+        setUploadProgress(((i + 1) / sortedFiles.length) * 100);
       }
 
       await loadProject();
-      alert(`${files.length}개의 장면이 업로드되었습니다.`);
+      alert(`${sortedFiles.length}개의 장면이 업로드되었습니다.`);
     } catch (error) {
       console.error('Failed to upload scenes:', error);
       alert('장면 업로드에 실패했습니다.');

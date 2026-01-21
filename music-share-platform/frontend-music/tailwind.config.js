@@ -11,6 +11,15 @@ export default {
         // 커스텀 브레이크포인트: 2560px 이상 (27인치 QHD, 4K 등)
         '3xl': '2560px',
       },
+      keyframes: {
+        'scale-in': {
+          '0%': { transform: 'scale(0)', opacity: '0' },
+          '100%': { transform: 'scale(1)', opacity: '1' },
+        },
+      },
+      animation: {
+        'scale-in': 'scale-in 0.15s ease-out',
+      },
       colors: {
         // 주요 색상 - Blue 계열 (디자인 통합)
         primary: {

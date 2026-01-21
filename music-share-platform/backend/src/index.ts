@@ -15,8 +15,12 @@ import settingsRoutes from './routes/settings';
 import contactRoutes from './routes/contact';
 import webtoonRoutes from './routes/webtoon';
 import libraryRoutes from './routes/library';
+import monitoringRoutes from './routes/monitoring';
 import { pool } from './db';
 import { ensureWebtoonBucketExists } from './services/supabaseStorage';
+import { requestLogger, slowRequestLogger } from './middleware/requestLogger';
+import { errorLogger } from './middleware/errorLogger';
+import { startAlertChecker, stopAlertChecker } from './services/alertChecker';
 
 dotenv.config();
 
@@ -87,6 +91,10 @@ app.use(cors({
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// 요청 로깅 미들웨어 (모니터링용)
+app.use(requestLogger);
+app.use(slowRequestLogger);
+
 // 헬스체크
 app.get('/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
@@ -120,21 +128,16 @@ app.use('/api/admin', webtoonRoutes);
 // 라이브러리 관리 라우트 (관리자 전용)
 app.use('/api/library', libraryRoutes);
 
+// 모니터링 라우트 (개발자 전용)
+app.use('/api/monitoring', monitoringRoutes);
+
 // 404 처리
 app.use((req, res) => {
   res.status(404).json({ error: 'Not found' });
 });
 
-// 에러 핸들러
-app.use((err: any, req: express.Request, res: express.Response, next: express.NextFunction) => {
-  // 프로덕션에서는 err.message만 로깅
-  if (isProduction) {
-    console.error('Error:', err.message);
-  } else {
-    console.error('Error:', err);
-  }
-  res.status(500).json({ error: 'Internal server error' });
-});
+// 에러 핸들러 (에러 로깅 포함)
+app.use(errorLogger);
 
 // 서버 시작
 console.log(`🔧 Attempting to start server on 0.0.0.0:${PORT}...`);
@@ -150,6 +153,9 @@ const server = app.listen(Number(PORT), '0.0.0.0', async () => {
 
     // 웹툰 이미지 버킷 확인 및 생성
     await ensureWebtoonBucketExists();
+
+    // 알림 체커 시작 (백그라운드에서 1분마다 실행)
+    startAlertChecker();
   } catch (error) {
     console.error('❌ Failed to connect to database:', error);
     // Don't exit, just log the error - server is still running
@@ -164,6 +170,7 @@ server.on('error', (err) => {
 // Graceful shutdown
 process.on('SIGTERM', async () => {
   console.log('SIGTERM signal received: closing HTTP server');
+  stopAlertChecker();
   await pool.end();
   process.exit(0);
 });

@@ -22,9 +22,9 @@ const registerSchema = z.object({
   invitationCode: z.string().min(1),
 });
 
-// 로그인 스키마
+// 로그인 스키마 (이메일 또는 사용자명 허용)
 const loginSchema = z.object({
-  email: z.string().email(),
+  email: z.string().min(1),
   password: z.string(),
 });
 

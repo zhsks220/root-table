@@ -47,6 +47,33 @@ export function requireAdmin(req: AuthRequest, res: Response, next: NextFunction
   next();
 }
 
+// 개발자 권한 검증 미들웨어
+export function requireDeveloper(req: AuthRequest, res: Response, next: NextFunction) {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+
+  if (req.user.role !== 'developer') {
+    return res.status(403).json({ error: 'Developer access required' });
+  }
+
+  next();
+}
+
+// 관리자 또는 개발자 권한 검증 미들웨어
+// developer는 admin 권한도 포함
+export function requireAdminOrDeveloper(req: AuthRequest, res: Response, next: NextFunction) {
+  if (!req.user) {
+    return res.status(401).json({ error: 'Not authenticated' });
+  }
+
+  if (req.user.role !== 'admin' && req.user.role !== 'developer') {
+    return res.status(403).json({ error: 'Admin or Developer access required' });
+  }
+
+  next();
+}
+
 // JWT Access Token 생성 헬퍼 (15분 만료)
 export function generateToken(user: JWTPayload): string {
   return jwt.sign(user, JWT_SECRET, {

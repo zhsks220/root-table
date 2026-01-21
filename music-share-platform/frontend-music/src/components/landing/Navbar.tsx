@@ -19,6 +19,8 @@ export const Navbar = ({ onCTAClick: _onCTAClick }: NavbarProps) => {
             // 로그인 상태면 역할에 따라 적절한 페이지로 이동
             if (user?.role === 'admin') {
                 navigate('/admin');
+            } else if (user?.role === 'developer') {
+                navigate('/admin/monitoring');
             } else if (user?.role === 'partner') {
                 navigate('/partner/dashboard');
             } else {

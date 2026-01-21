@@ -5,7 +5,7 @@ import crypto from 'crypto';
 import { fromBuffer as fileTypeFromBuffer } from 'file-type';
 import { pool } from '../db';
 import { AuthRequest } from '../types';
-import { authenticateToken, requireAdmin } from '../middleware/auth';
+import { authenticateToken, requireAdminOrDeveloper } from '../middleware/auth';
 import { uploadFile, deleteFile, getStreamUrl, downloadFile } from '../services/supabaseStorage';
 import { transcodeToFlac, transcodeToMp3, getAudioMetadata, checkFfmpegInstalled } from '../services/transcoder';
 
@@ -26,8 +26,8 @@ const upload = multer({
   },
 });
 
-// 모든 라우트에 인증 + 관리자 권한 필요
-router.use(authenticateToken, requireAdmin);
+// 모든 라우트에 인증 + 관리자/개발자 권한 필요
+router.use(authenticateToken, requireAdminOrDeveloper);
 
 // 음원 업로드 (카테고리 지원 + FLAC 트랜스코딩)
 router.post('/tracks', upload.single('file'), async (req: AuthRequest, res: Response) => {

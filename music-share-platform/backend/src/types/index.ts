@@ -1,10 +1,13 @@
 import { Request } from 'express';
 
+// 사용자 역할 타입
+export type UserRole = 'user' | 'admin' | 'partner' | 'developer';
+
 // JWT Access Token 페이로드
 export interface JWTPayload {
   id: string;
   email: string;
-  role: 'user' | 'admin' | 'partner';
+  role: UserRole;
   partnerId?: string;
 }
 
@@ -12,7 +15,7 @@ export interface JWTPayload {
 export interface RefreshTokenPayload {
   id: string;
   email: string;
-  role: 'user' | 'admin' | 'partner';
+  role: UserRole;
   partnerId?: string;
   tokenType: 'refresh';
 }
@@ -34,7 +37,7 @@ export interface User {
   email: string;
   password_hash: string;
   name: string;
-  role: 'user' | 'admin' | 'partner';
+  role: UserRole;
   invitation_code?: string;
   created_at: Date;
   updated_at: Date;

@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
 import { useAuthStore } from './store/authStore';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
@@ -16,6 +17,10 @@ import MyTracksPage from './pages/MyTracksPage';
 import AlbumDetailPage from './pages/AlbumDetailPage';
 import AudioPlayer from './components/AudioPlayer';
 
+// 모니터링 페이지 lazy load
+const MonitoringDashboardPage = lazy(() => import('./pages/MonitoringDashboardPage'));
+
+// 관리자 또는 개발자 권한 체크 (developer는 admin 기능도 사용 가능)
 function AdminRoute({ children }: { children: React.ReactNode }) {
   const { isAuthenticated, user } = useAuthStore();
 
@@ -23,12 +28,34 @@ function AdminRoute({ children }: { children: React.ReactNode }) {
     return <Navigate to="/login" />;
   }
 
-  if (user?.role !== 'admin') {
+  if (user?.role !== 'admin' && user?.role !== 'developer') {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-100">
         <div className="bg-white p-8 rounded-lg shadow-lg text-center">
           <h1 className="text-2xl font-bold text-red-600 mb-4">접근 거부</h1>
           <p className="text-gray-600">관리자 권한이 필요합니다.</p>
+        </div>
+      </div>
+    );
+  }
+
+  return <>{children}</>;
+}
+
+// 개발자 전용 권한 체크 (모니터링 페이지용)
+function DeveloperRoute({ children }: { children: React.ReactNode }) {
+  const { isAuthenticated, user } = useAuthStore();
+
+  if (!isAuthenticated) {
+    return <Navigate to="/login" />;
+  }
+
+  if (user?.role !== 'developer') {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gray-100">
+        <div className="bg-white p-8 rounded-lg shadow-lg text-center">
+          <h1 className="text-2xl font-bold text-red-600 mb-4">접근 거부</h1>
+          <p className="text-gray-600">개발자 권한이 필요합니다.</p>
         </div>
       </div>
     );
@@ -125,6 +152,15 @@ function App() {
           <AdminRoute>
             <AdminSettingsPage />
           </AdminRoute>
+        } />
+
+        {/* 개발자 모니터링 대시보드 */}
+        <Route path="/admin/monitoring" element={
+          <DeveloperRoute>
+            <Suspense fallback={<div className="min-h-screen flex items-center justify-center">Loading...</div>}>
+              <MonitoringDashboardPage />
+            </Suspense>
+          </DeveloperRoute>
         } />
 
         {/* 파트너 페이지 */}

@@ -32,6 +32,8 @@ export default function LoginPage() {
       // 사용자 역할에 따라 적절한 페이지로 이동
       if (user.role === 'admin') {
         navigate('/admin');
+      } else if (user.role === 'developer') {
+        navigate('/admin/monitoring');
       } else if (user.role === 'partner') {
         navigate('/partner/dashboard');
       } else {
@@ -70,10 +72,10 @@ export default function LoginPage() {
         {/* 로그인 폼 */}
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-3 sm:space-y-4">
-            {/* 이메일 입력 */}
+            {/* 이메일/사용자명 입력 */}
             <div>
               <input
-                type="email"
+                type="text"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
@@ -82,9 +84,8 @@ export default function LoginPage() {
                     ? 'bg-white/5 border-white/10 text-white'
                     : 'bg-white border-gray-200 text-gray-900'
                 }`}
-                placeholder="이메일 주소"
-                autoComplete="email"
-                inputMode="email"
+                placeholder="이메일 또는 사용자명"
+                autoComplete="username"
               />
             </div>
 

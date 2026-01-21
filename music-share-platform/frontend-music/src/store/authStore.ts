@@ -2,11 +2,14 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 import api from '../services/api';
 
+// 사용자 역할 타입
+type UserRole = 'user' | 'admin' | 'partner' | 'developer';
+
 interface User {
   id: string;
   email: string;
   name: string;
-  role: 'user' | 'admin' | 'partner';
+  role: UserRole;
 }
 
 interface AuthState {

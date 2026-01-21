@@ -24,10 +24,10 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const isProduction = process.env.NODE_ENV === 'production';
 
-// Rate Limiters
+// Rate Limiters (개발 환경에서는 제한 완화)
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15분
-  max: 60, // 15분에 60요청 (보안 강화)
+  max: isProduction ? 100 : 1000, // 프로덕션: 100, 개발: 1000
   message: { error: 'Too many requests, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,
@@ -35,7 +35,7 @@ const globalLimiter = rateLimit({
 
 const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15분
-  max: 5, // 15분에 5요청
+  max: isProduction ? 10 : 100, // 프로덕션: 10, 개발: 100
   message: { error: 'Too many authentication attempts, please try again later.' },
   standardHeaders: true,
   legacyHeaders: false,

@@ -13,6 +13,7 @@ import PartnerRegisterPage from './pages/PartnerRegisterPage';
 import PartnerDashboardPage from './pages/PartnerDashboardPage';
 import PartnerSettingsPage from './pages/PartnerSettingsPage';
 import MyTracksPage from './pages/MyTracksPage';
+import AlbumDetailPage from './pages/AlbumDetailPage';
 import AudioPlayer from './components/AudioPlayer';
 
 function AdminRoute({ children }: { children: React.ReactNode }) {
@@ -76,6 +77,9 @@ function App() {
       <Routes>
         {/* 랜딩 페이지 (메인) */}
         <Route path="/" element={<LandingPage />} />
+
+        {/* 앨범 상세 페이지 */}
+        <Route path="/albums/:slug" element={<AlbumDetailPage />} />
 
         <Route path="/login" element={<LoginPage />} />
         <Route path="/invite/:code" element={<InvitePage />} />

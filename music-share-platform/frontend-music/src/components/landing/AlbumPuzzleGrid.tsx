@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 
@@ -26,38 +27,38 @@ interface Album {
 const albumsData: Album[] = [
     // 외모지상주의 (3개)
     { id: '1', title: 'Lookism', artist: '외모지상주의', coverImage: '/images/albums/외지주_Lookism.webp', size: 'large', slug: 'lookism' },
-    { id: '2', title: '부산', artist: '외모지상주의', coverImage: '/images/albums/외지주_부산.webp', size: 'medium', slug: 'lookism-busan' },
+    { id: '2', title: '부산', artist: '외모지상주의', coverImage: '/images/albums/외지주_부산.webp', size: 'small', slug: 'lookism-busan' },
     { id: '3', title: '인천', artist: '외모지상주의', coverImage: '/images/albums/외지주_인천.webp', size: 'small', slug: 'lookism-incheon' },
 
     // 연애혁명 (11개)
     { id: '4', title: '연애혁명 OST', artist: '연애혁명', coverImage: '/images/albums/연애혁명 OST.webp', size: 'large', slug: 'love-revolution-ost' },
     { id: '5', title: 'The Memory', artist: '연애혁명', coverImage: '/images/albums/연애혁명_The Memory.webp', size: 'small', slug: 'love-revolution-memory' },
-    { id: '6', title: '내가 모르는 뒷모습', artist: '연애혁명', coverImage: '/images/albums/연애혁명_내가 모르는 뒷모습.webp', size: 'medium', slug: 'love-revolution-back' },
+    { id: '6', title: '내가 모르는 뒷모습', artist: '연애혁명', coverImage: '/images/albums/연애혁명_내가 모르는 뒷모습.webp', size: 'small', slug: 'love-revolution-back' },
     { id: '7', title: '딜레마', artist: '연애혁명', coverImage: '/images/albums/연애혁명_딜레마.webp', size: 'small', slug: 'love-revolution-dilemma' },
     { id: '8', title: '망가져', artist: '연애혁명', coverImage: '/images/albums/연애혁명_망가져.webp', size: 'small', slug: 'love-revolution-broken' },
-    { id: '9', title: '모래성', artist: '연애혁명', coverImage: '/images/albums/연애혁명_모래성.webp', size: 'medium', slug: 'love-revolution-sandcastle' },
+    { id: '9', title: '모래성', artist: '연애혁명', coverImage: '/images/albums/연애혁명_모래성.webp', size: 'small', slug: 'love-revolution-sandcastle' },
     { id: '10', title: '연애혁명', artist: '연애혁명', coverImage: '/images/albums/연애혁명_연애혁명.webp', size: 'small', slug: 'love-revolution-title' },
     { id: '11', title: '이클립스', artist: '연애혁명', coverImage: '/images/albums/연애혁명_이클립스.webp', size: 'small', slug: 'love-revolution-eclipse' },
-    { id: '12', title: '트와일라잇', artist: '연애혁명', coverImage: '/images/albums/연애혁명_트와일라잇.webp', size: 'medium', slug: 'love-revolution-twilight' },
+    { id: '12', title: '트와일라잇', artist: '연애혁명', coverImage: '/images/albums/연애혁명_트와일라잇.webp', size: 'small', slug: 'love-revolution-twilight' },
     { id: '13', title: '헤어지기 싫어', artist: '연애혁명', coverImage: '/images/albums/연애혁명_헤어지기 싫어.webp', size: 'small', slug: 'love-revolution-dont-leave' },
     { id: '14', title: '할로우드', artist: '연애혁명', coverImage: '/images/albums/연애혁명_할로우드.webp', size: 'small', slug: 'love-revolution-hallowed' },
 
     // 개짓 (5개)
-    { id: '15', title: 'Florette', artist: '개짓', coverImage: '/images/albums/개짓_Florette.webp', size: 'medium', slug: 'gaejit-florette' },
+    { id: '15', title: 'Florette', artist: '개짓', coverImage: '/images/albums/개짓_Florette.webp', size: 'large', slug: 'gaejit-florette' },
     { id: '16', title: 'Burned', artist: '개짓', coverImage: '/images/albums/개짓_Burned.webp', size: 'small', slug: 'gaejit-burned' },
-    { id: '17', title: '새 신발을 신고', artist: '개짓', coverImage: '/images/albums/개짓_새 신발을 신고.webp', size: 'medium', slug: 'gaejit-new-shoes' },
+    { id: '17', title: '새 신발을 신고', artist: '개짓', coverImage: '/images/albums/개짓_새 신발을 신고.webp', size: 'small', slug: 'gaejit-new-shoes' },
     { id: '18', title: 'If only', artist: '개짓', coverImage: '/images/albums/개짓_If only.webp', size: 'small', slug: 'gaejit-if-only' },
-    { id: '19', title: '솔직하게 말했으면 됐잖아', artist: '개짓', coverImage: '/images/albums/개짓_솔직하게 말했으면 됐잖아.webp', size: 'medium', slug: 'gaejit-honest' },
+    { id: '19', title: '솔직하게 말했으면 됐잖아', artist: '개짓', coverImage: '/images/albums/개짓_솔직하게 말했으면 됐잖아.webp', size: 'small', slug: 'gaejit-honest' },
 
     // 백XX (1개)
-    { id: '20', title: 'Throne', artist: '백XX', coverImage: '/images/albums/백XX_Throne.webp', size: 'medium', slug: 'baekxx-throne' },
+    { id: '20', title: 'Throne', artist: '백XX', coverImage: '/images/albums/백XX_Throne.webp', size: 'small', slug: 'baekxx-throne' },
 
     // 작두 (2개)
     { id: '21', title: '악귀', artist: '작두', coverImage: '/images/albums/작두_악귀.webp', size: 'large', slug: 'jakdu-evil-spirit' },
     { id: '22', title: '풍수지탄', artist: '작두', coverImage: '/images/albums/작두_풍수지탄.webp', size: 'small', slug: 'jakdu-pungsujitan' },
 
     // 퀘스트지상주의 (1개)
-    { id: '23', title: '퀘스트지상주의 OST', artist: '퀘스트지상주의', coverImage: '/images/albums/퀘스트지상주의 OST.webp', size: 'medium', slug: 'quest-supremacy-ost' },
+    { id: '23', title: '퀘스트지상주의 OST', artist: '퀘스트지상주의', coverImage: '/images/albums/퀘스트지상주의 OST.webp', size: 'large', slug: 'quest-supremacy-ost' },
 ];
 
 // 초기 표시 개수
@@ -65,6 +66,7 @@ const INITIAL_DISPLAY_COUNT = 12;
 const LOAD_MORE_COUNT = 8;
 
 export const AlbumPuzzleGrid = () => {
+    const navigate = useNavigate();
     const [displayCount, setDisplayCount] = useState(INITIAL_DISPLAY_COUNT);
     const [hoveredId, setHoveredId] = useState<string | null>(null);
 
@@ -80,7 +82,7 @@ export const AlbumPuzzleGrid = () => {
 
     const handleAlbumClick = (album: Album) => {
         // 앨범 상세 페이지로 이동
-        window.location.href = `/albums/${album.slug}`;
+        navigate(`/albums/${album.slug}`);
     };
 
     // 사이즈에 따른 그리드 클래스
@@ -158,10 +160,10 @@ export const AlbumPuzzleGrid = () => {
                                     src={album.coverImage}
                                     alt={album.title}
                                     className={`absolute inset-0 w-full h-full object-cover transition-all duration-500 ${
-                                        hoveredId === album.id
-                                            ? 'opacity-100 scale-110 brightness-110'
-                                            : 'opacity-50 scale-100'
-                                    }`}
+                                        hoveredId === null || hoveredId === album.id
+                                            ? 'opacity-100 scale-100'
+                                            : 'opacity-30 scale-100'
+                                    } ${hoveredId === album.id ? 'scale-110' : ''}`}
                                     loading="lazy"
                                     onError={(e) => {
                                         // 이미지 로드 실패 시 플레이스홀더 표시

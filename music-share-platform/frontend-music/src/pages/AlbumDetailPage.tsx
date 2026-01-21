@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ArrowLeft, Disc3, ChevronDown } from 'lucide-react';
 import { SiSpotify, SiApplemusic, SiYoutubemusic } from 'react-icons/si';
 import { getAlbumBySlug } from '../data/albumsData';

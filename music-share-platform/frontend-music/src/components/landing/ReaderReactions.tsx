@@ -4,11 +4,13 @@ import { ThumbsUp, ThumbsDown } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useResponsive';
 
 // 욕설 패턴 목록 (blur 처리할 단어들)
+// 주의: 긴 패턴을 먼저 배치해야 짧은 패턴에 먼저 매칭되지 않음
 const profanityPatterns = [
-    'ㅅㅂ', 'ㅆㅂ', 'ㅈㄴ', 'ㅂㅅ', 'ㅄ', 'ㅁㅊ', 'ㄲㅈ',
+    '조오오오오온나', '개새끼', 'ㄱㅅㄲ', 'ㄱㅅㅋ',
     '시발', '씨발', '존나', '병신', '미친', '꺼져',
-    '지랄', '새끼', 'ㅅㅋ', 'ㄱㅅㄲ',
-    '좆', '씹', 'ㅈ같', '개새끼', 'ㄱㅅㅋ',
+    '지랄', '새끼', 'ㅅㅋ',
+    'ㅅㅂ', 'ㅆㅂ', 'ㅈㄴ', 'ㅂㅅ', 'ㅄ', 'ㅁㅊ', 'ㄲㅈ',
+    '좆', '씹', 'ㅈ같', 'ㅈ',
 ];
 
 // 텍스트에서 욕설을 blur 처리된 span으로 변환
@@ -38,7 +40,7 @@ const renderTextWithBlur = (text: string): ReactNode => {
 // 실제 독자 반응 데이터 - 랜덤 닉네임 적용, 원문 기반
 // 출처: DC인사이드 박태준 유니버스 갤러리, 네이버 카페, YouTube
 const comments = [
-    // === DC인사이드 반응들 (1-29번) ===
+    // === DC인사이드 반응들 ===
     {
         nickname: "@밤하늘_독자",
         avatar: "밤",
@@ -51,7 +53,7 @@ const comments = [
         nickname: "@webtoon_fan92",
         avatar: "W",
         avatarColor: "bg-blue-500",
-        text: "종건을 생각하면 자연스럽게 백귀와 캐치미, 준구를 생각하면 칼의 춤. 브금 자체가 캐릭터를 완성시킴",
+        text: "브금 자체가 캐릭터를 완성시킴",
         likes: 189,
         time: "2주 전",
     },
@@ -59,7 +61,7 @@ const comments = [
         nickname: "@헌신과_애정",
         avatar: "헌",
         avatarColor: "bg-rose-500",
-        text: "박만사 이상으로 작품에 대한 헌신과 애정이 컸음. 유튜브에 브금 올라오는 걸 그 날 웹툰 올라오는 거 마냥 기대함",
+        text: "작품에 대한 헌신과 애정이 컸음. 유튜브에 브금 올라오는 걸 그 날 웹툰 올라오는 거 마냥 기대함",
         likes: 267,
         time: "3주 전",
     },
@@ -71,7 +73,6 @@ const comments = [
         likes: 312,
         time: "1개월 전",
     },
-    // 네이버 카페 반응 (3번)
     {
         nickname: "@정주행러",
         avatar: "정",
@@ -80,7 +81,6 @@ const comments = [
         likes: 156,
         time: "3주 전",
     },
-    // DC인사이드 반응들 계속
     {
         nickname: "@캐릭터_해석가",
         avatar: "캐",
@@ -98,18 +98,10 @@ const comments = [
         time: "1주 전",
     },
     {
-        nickname: "@진랑_기태",
-        avatar: "진",
-        avatarColor: "bg-cyan-500",
-        text: "하운드스로 진랑 풀각성 밀어붙이다가 기태 맨손으로 도끼 막으면서 킹슬레이어로 바뀌는 거 ㅈㄴ 소름",
-        likes: 423,
-        time: "2주 전",
-    },
-    {
         nickname: "@브금_감상러",
         avatar: "브",
         avatarColor: "bg-pink-500",
-        text: "캐릭터 하나하나에 알맞고 어울리게 브금을 만드는 능력이 쌔오짐. 다른 업체가 이만큼 할 수 있을까",
+        text: "캐릭터 하나하나에 알맞고 어울리게 브금을 만드는 능력이 쌔오짐",
         likes: 356,
         time: "1주 전",
     },
@@ -133,17 +125,9 @@ const comments = [
         nickname: "@테마곡_분석가",
         avatar: "테",
         avatarColor: "bg-teal-500",
-        text: "백귀 종건, 디에고 이지훈, 칼의춤 김준구, 킹슬2 김기태, war4 성요한, 울프 진랑. 전용 테마곡이란게 확실히 느껴짐",
+        text: "전용 테마곡이란게 확실히 느껴짐",
         likes: 234,
         time: "2주 전",
-    },
-    {
-        nickname: "@브금빨_체감",
-        avatar: "빨",
-        avatarColor: "bg-slate-500",
-        text: "브금빨이 ㅈㄴ크긴하네. 브금키고봤을땐 호감될뻔했는데 브금끄고보니까 다시 별로임",
-        likes: 312,
-        time: "1개월 전",
     },
     {
         nickname: "@hounds_fan",
@@ -154,26 +138,10 @@ const comments = [
         time: "2주 전",
     },
     {
-        nickname: "@소름파",
-        avatar: "소",
-        avatarColor: "bg-fuchsia-500",
-        text: "Hounds 처음 나왔을때 사이렌 울리면서 이목 집중시키더니 코러스 개 쩔게 잡고 진랑 회상장면으로 브금 시작. 소름",
-        likes: 267,
-        time: "1주 전",
-    },
-    {
-        nickname: "@도파민_분비",
-        avatar: "도",
-        avatarColor: "bg-sky-500",
-        text: "Now he's glowing in the color of the wolves 하면서 진랑 극경 펀치 날릴때 도파민 분비",
-        likes: 345,
-        time: "3주 전",
-    },
-    {
         nickname: "@킹슬레이어_러버",
         avatar: "킹",
         avatarColor: "bg-rose-400",
-        text: "킹슬2로 넘어갈 때 진랑 브금이랑 섞어서 어레인지한게 미친놈같음. 진랑의 처절함까지 같이 보여줌",
+        text: "타이밍 맞게 다른 브금이랑 섞어서 어레인지한게 미친놈같음. 캐릭터의 처절함까지 같이 보여줌",
         likes: 289,
         time: "2주 전",
     },
@@ -181,7 +149,7 @@ const comments = [
         nickname: "@명곡_수집가",
         avatar: "명",
         avatarColor: "bg-blue-400",
-        text: "브금 5개가 하나같이 미쳐돌아감. 하운즈가 브금중 제일 좋은듯. 울프랑 바로크도 잘뽑혔고",
+        text: "브금 5개가 하나같이 미쳐돌아감.",
         likes: 178,
         time: "1주 전",
     },
@@ -189,7 +157,7 @@ const comments = [
         nickname: "@느와르_팬",
         avatar: "느",
         avatarColor: "bg-green-500",
-        text: "진짜 완벽한 느와르 브금. 훈태가 진짜 악역이라고 느끼게 해준 최고의 브금. Diego 2년만에 재탕나와서 전율",
+        text: "진짜 완벽한 느와르 브금. 진짜 악역이라고 느끼게 해준 최고의 브금",
         likes: 234,
         time: "2주 전",
     },
@@ -197,7 +165,7 @@ const comments = [
         nickname: "@몰입_중독자",
         avatar: "몰",
         avatarColor: "bg-orange-400",
-        text: "외지주는 브금빨이 ㅈㄴ 큰듯. 브금틀고 보는지 그냥 보는지에 따라 차이 은근 큼",
+        text: "브금빨이 ㅈㄴ 큰듯. 브금틀고 보는지 그냥 보는지에 따라 차이 은근 큼",
         likes: 156,
         time: "3일 전",
     },
@@ -205,7 +173,7 @@ const comments = [
         nickname: "@탑5_선정단",
         avatar: "탑",
         avatarColor: "bg-purple-400",
-        text: "브금이 ㄹㅇ 조오오오오온나 잘뽑힘. 개인적으로 외지주 브금 탑 5안에 들어갈듯",
+        text: "브금이 ㄹㅇ 조오오오오온나 잘뽑힘.",
         likes: 423,
         time: "1주 전",
     },
@@ -213,55 +181,31 @@ const comments = [
         nickname: "@절반은_브금",
         avatar: "절",
         avatarColor: "bg-indigo-400",
-        text: "외지주는 브금이 절반은 하는거 같다. 브금 있고 없고 차이가 진짜 심해",
+        text: "브금이 절반은 하는거 같다. 브금 있고 없고 차이가 진짜 심해",
         likes: 289,
         time: "2주 전",
-    },
-    {
-        nickname: "@유일한_구원",
-        avatar: "유",
-        avatarColor: "bg-red-400",
-        text: "유일하게 외지주 살리는 장본인인데. 역대급 천량편도 덕분에 그나마 재밌게 봄",
-        likes: 312,
-        time: "3주 전",
     },
     {
         nickname: "@쿠키값",
         avatar: "쿠",
         avatarColor: "bg-cyan-400",
-        text: "토끼로 불법 안보고 쿠키로 돈내고 보는 가장 큰 이유가 브금 때문",
+        text: "쿠키로 돈내고 보는 가장 큰 이유가 브금 때문",
         likes: 198,
         time: "1주 전",
-    },
-    {
-        nickname: "@먹여살림",
-        avatar: "먹",
-        avatarColor: "bg-emerald-400",
-        text: "진짜 루트레이블이 먹여살리는구나. 추모브금 어레인지 깔리니까 죽는 장면 생각나면서 대가리 깨질뻔함",
-        likes: 134,
-        time: "2주 전",
     },
     {
         nickname: "@브금_GOAT",
         avatar: "G",
         avatarColor: "bg-pink-400",
-        text: "브금이 진짜 GOAT인 이유. 오랜만에 육성지 + 주마등 브금 나오니까 뭔가 아련하면서 슬픔",
+        text: "브금이 진짜 GOAT인 이유. 브금 나오니까 뭔가 아련하면서 슬픔",
         likes: 267,
         time: "1개월 전",
-    },
-    {
-        nickname: "@안틀면_노잼",
-        avatar: "안",
-        avatarColor: "bg-violet-400",
-        text: "이번화 브금 안틀고 보니까 개씹노잼이노. 루트레이블은 언제나 신이다",
-        likes: 189,
-        time: "3주 전",
     },
     {
         nickname: "@캐릭터_브금",
         avatar: "캐",
         avatarColor: "bg-amber-400",
-        text: "캐릭터들 전용브금은 진짜 기깔나게 잘 뽑는듯. 백귀 칼의춤 war4 seize 토라오니 빌런 다 ㅅㅌㅊ고 킹슬레이어2는 역대급",
+        text: "캐릭터들 전용브금은 진짜 기깔나게 잘 뽑는듯.",
         likes: 356,
         time: "2주 전",
     },
@@ -269,7 +213,7 @@ const comments = [
         nickname: "@역대급",
         avatar: "역",
         avatarColor: "bg-teal-400",
-        text: "이번주 킹슬레이어2 브금 역대급으로 좋지않냐? 10번 넘게 들음",
+        text: "이번주 브금 역대급으로 좋지않냐? 10번 넘게 들음",
         likes: 423,
         time: "1주 전",
     },
@@ -277,7 +221,7 @@ const comments = [
         nickname: "@절망감",
         avatar: "절",
         avatarColor: "bg-slate-400",
-        text: "오늘 기태임팩트에 브금도 크게 한몫한듯. 중간에 브금 바뀌는데 ㄹㅇ 절망적이라는 느낌",
+        text: "오늘 브금도 크게 한몫한듯. 중간에 브금 바뀌는데 ㄹㅇ 절망적이라는 느낌",
         likes: 289,
         time: "2주 전",
     },
@@ -285,7 +229,7 @@ const comments = [
         nickname: "@경고신호",
         avatar: "경",
         avatarColor: "bg-lime-400",
-        text: "Kingslayer2브금 나올때 진짜 ㅈ됐구나 느낌받음. 도망가라는 경고신호처럼 들림. 급박한 분위기 연출 지렸음",
+        text: "브금 나올때 진짜 ㅈ됐구나 느낌받음. 도망가라는 경고 신호처럼 들림. 급박한 분위기 연출 지렸음",
         likes: 312,
         time: "3주 전",
     },
@@ -293,19 +237,11 @@ const comments = [
         nickname: "@전율_올라옴",
         avatar: "전",
         avatarColor: "bg-fuchsia-400",
-        text: "이번화 브금타이밍 나만 전율 올라왔냐? 캐치미 하이라이트 부분에서 김갑룡 막컷 겹쳐서 싸버림 ㅆㅂ",
+        text: "이번화 브금 타이밍 나만 전율 올라왔냐?",
         likes: 198,
         time: "1주 전",
     },
-    // === YouTube 댓글들 (30-36번) ===
-    {
-        nickname: "@3년_애독자",
-        avatar: "3",
-        avatarColor: "bg-sky-400",
-        text: "22년 9월부터 25년 12월까지 3년동안 외지주 음악 만들어주셔서 감사. 제 24살~27살까지 삶에 녹아들어있습니다",
-        likes: 36,
-        time: "1개월 전",
-    },
+    // === YouTube 댓글들 ===
     {
         nickname: "@플레이리스트",
         avatar: "플",
@@ -313,62 +249,6 @@ const comments = [
         text: "유튜브 재생목록 따로 만들어서 운동할때 들음. Epic, war, dark change, puppet, data, asap 다 명곡",
         likes: 32,
         time: "1개월 전",
-    },
-    {
-        nickname: "@80퍼센트",
-        avatar: "8",
-        avatarColor: "bg-blue-300",
-        text: "외지주 보는 이유중 80%는 브금때문에 보는건데",
-        likes: 5,
-        time: "1개월 전",
-    },
-    {
-        nickname: "@음악이_만화를",
-        avatar: "음",
-        avatarColor: "bg-green-400",
-        text: "뛰어넘었다는겁니다... 음악이 만화를!!!!!",
-        likes: 11,
-        time: "1개월 전",
-    },
-    {
-        nickname: "@몰입감_증인",
-        avatar: "몰",
-        avatarColor: "bg-purple-300",
-        text: "루트레이블의 진귀한 브금 덕분에 작품을 더욱 몰입감 있게 즐길 수 있었습니다. 끝까지 함께 못하는게 아쉽지만 응원합니다",
-        likes: 9,
-        time: "1개월 전",
-    },
-    {
-        nickname: "@허망한_기분",
-        avatar: "허",
-        avatarColor: "bg-orange-300",
-        text: "와... 왤케 허망하지.. ㅈㄴ우울하네... 뭔가 ㅈㄴ 좋아하는 연예인 사망 소식 듣는 기분임...",
-        likes: 17,
-        time: "1개월 전",
-    },
-    {
-        nickname: "@환영해요",
-        avatar: "환",
-        avatarColor: "bg-indigo-300",
-        text: "김기명 과거편부터 인천편까지 덕분에 웹툰 더 몰입해서 볼 수 있었습니다. 언제든 다시 돌아와도 환영할게요",
-        likes: 6,
-        time: "1개월 전",
-    },
-    {
-        nickname: "@버틸수없어",
-        avatar: "버",
-        avatarColor: "bg-cyan-300",
-        text: "외지주 질질 끌때도 브금때문에 봤는데 당신이 사라진다면 버틸수 없어",
-        likes: 2,
-        time: "1개월 전",
-    },
-    {
-        nickname: "@쌉고트",
-        avatar: "쌉",
-        avatarColor: "bg-emerald-300",
-        text: "개인적으로 부산편때 나온 1세대2, wolf, hounds 쌉고트였음",
-        likes: 4,
-        time: "5일 전",
     },
     {
         nickname: "@과거의_위로",
@@ -382,23 +262,15 @@ const comments = [
         nickname: "@매일_듣는중",
         avatar: "매",
         avatarColor: "bg-violet-300",
-        text: "원래 노래에 댓글 잘 안다는데 이 곡은 진짜 매일 들을 정도로 넘 좋음...ㅠㅠ",
+        text: "원래 노래에 댓글 잘 안다는데 이 곡은 진짜 매일 들을 정도로 넘 좋음…ㅠㅠ",
         likes: 5,
         time: "1년 전",
-    },
-    {
-        nickname: "@MASTERPIECE",
-        avatar: "M",
-        avatarColor: "bg-amber-300",
-        text: "수고하셨어요 ㅠㅠ MASTERPIECE 진짜 명곡이었습니다",
-        likes: 11,
-        time: "1개월 전",
     },
     {
         nickname: "@용기를_주셨어요",
         avatar: "용",
         avatarColor: "bg-teal-300",
-        text: "덕분에 힘든 일이 있을 때도 늘 자신감을 가지고 일어설 수 있었습니다. 진심으로 감사했습니다",
+        text: "덕분에 힘든 일이 있을 때도 늘 자신감을 가지고 일어설 수 있었습니다.",
         likes: 6,
         time: "1개월 전",
     },
@@ -422,7 +294,7 @@ const comments = [
         nickname: "@왕자림_팬",
         avatar: "왕",
         avatarColor: "bg-fuchsia-300",
-        text: "왕자림이 갈수록 감성충만해지니 노래도 절절하네",
+        text: "왕자림이 갈수록 감성 충만해지니 노래도 절절하네",
         likes: 3,
         time: "2년 전",
     },
@@ -615,9 +487,9 @@ export const ReaderReactions = () => {
     // 모바일 여부 감지
     const isMobile = useIsMobile();
 
-    // PC: 메인 댓글 페이지 상태 (0-7, 8페이지 = 48개/6개씩)
+    // PC: 메인 댓글 페이지 상태 (0-5, 6페이지 = 32개/6개씩)
     const [currentPage, setCurrentPage] = useState(0);
-    // 모바일: 개별 카드 인덱스 (0-47)
+    // 모바일: 개별 카드 인덱스 (0-31)
     const [mobileIndex, setMobileIndex] = useState(0);
     // 메인 카드 hover 시 자동 순환 멈춤
     const [isHovering, setIsHovering] = useState(false);
@@ -626,7 +498,16 @@ export const ReaderReactions = () => {
     const [touchEnd, setTouchEnd] = useState<number | null>(null);
     const [isTouching, setIsTouching] = useState(false);
 
+    // 처음 마운트 시 한 번만 셔플된 인덱스 생성 (중복 없이 랜덤)
+    const [shuffledOrder] = useState(() =>
+        shuffleArray(
+            Array.from({ length: comments.length }, (_, i) => i),
+            Date.now() // 페이지 로드 시점 기반 랜덤
+        )
+    );
+
     const minSwipeDistance = 50;
+    const totalPages = Math.ceil(comments.length / 6);
 
     // 3초마다 자동 순환 (PC: hover 시 멈춤, 모바일: 터치 중 멈춤)
     useEffect(() => {
@@ -635,15 +516,15 @@ export const ReaderReactions = () => {
 
         const interval = setInterval(() => {
             if (isMobile) {
-                // 모바일: 개별 카드 순환
-                setMobileIndex((prev) => (prev + 1) % comments.length);
+                // 모바일: 셔플된 순서대로 순환
+                setMobileIndex((prev) => (prev + 1) % shuffledOrder.length);
             } else {
-                // PC: 페이지 단위 순환 (48개 댓글 / 6개씩 = 8페이지)
-                setCurrentPage((prev) => (prev + 1) % 8);
+                // PC: 페이지 단위 순환 (셔플된 순서에서 6개씩)
+                setCurrentPage((prev) => (prev + 1) % totalPages);
             }
         }, 3000);
         return () => clearInterval(interval);
-    }, [isHovering, isMobile, isTouching]);
+    }, [isHovering, isMobile, isTouching, shuffledOrder.length, totalPages]);
 
     // 모바일 터치 핸들러
     const onTouchStart = (e: React.TouchEvent) => {
@@ -663,26 +544,23 @@ export const ReaderReactions = () => {
         const distance = touchStart - touchEnd;
         if (distance > minSwipeDistance) {
             // 왼쪽으로 스와이프 → 다음 카드
-            setMobileIndex((prev) => (prev + 1) % comments.length);
+            setMobileIndex((prev) => (prev + 1) % shuffledOrder.length);
         }
         if (distance < -minSwipeDistance) {
             // 오른쪽으로 스와이프 → 이전 카드
-            setMobileIndex((prev) => (prev - 1 + comments.length) % comments.length);
+            setMobileIndex((prev) => (prev - 1 + shuffledOrder.length) % shuffledOrder.length);
         }
     };
 
-    // 현재 페이지 기반으로 셔플된 댓글 인덱스
-    const shuffledIndices = shuffleArray(
-        Array.from({ length: comments.length }, (_, i) => i),
-        currentPage * 100
+    // 현재 페이지에 표시될 6개 댓글 (셔플된 순서에서 순환하여 항상 6개 채움)
+    const startIdx = currentPage * 6;
+    const mainCommentIndices = Array.from({ length: 6 }, (_, i) =>
+        shuffledOrder[(startIdx + i) % shuffledOrder.length]
     );
-
-    // 메인에 표시될 6개 댓글 (랜덤 셔플에서 앞 6개)
-    const mainCommentIndices = shuffledIndices.slice(0, 6);
     const mainComments = mainCommentIndices.map(idx => comments[idx]);
 
-    // 배경에 표시될 30개 댓글 (나머지)
-    const backgroundCommentIndices = shuffledIndices.slice(6);
+    // 배경에 표시될 댓글 (현재 페이지에 표시되지 않는 나머지)
+    const backgroundCommentIndices = shuffledOrder.filter((_, i) => i < startIdx || i >= startIdx + 6);
     const backgroundComments = backgroundCommentIndices.map(idx => comments[idx]);
 
     // 현재 페이지의 중앙 카드 위치
@@ -832,25 +710,25 @@ export const ReaderReactions = () => {
                             >
                                 <div className="bg-white rounded-xl shadow-2xl p-4 border border-gray-100">
                                     <div className="flex gap-3">
-                                        <div className={`flex-shrink-0 w-10 h-10 rounded-full ${comments[mobileIndex].avatarColor} flex items-center justify-center text-white font-bold text-sm`}>
-                                            {comments[mobileIndex].avatar}
+                                        <div className={`flex-shrink-0 w-10 h-10 rounded-full ${comments[shuffledOrder[mobileIndex]].avatarColor} flex items-center justify-center text-white font-bold text-sm`}>
+                                            {comments[shuffledOrder[mobileIndex]].avatar}
                                         </div>
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-1">
                                                 <span className="text-gray-900 font-medium text-[13px] truncate">
-                                                    {comments[mobileIndex].nickname}
+                                                    {comments[shuffledOrder[mobileIndex]].nickname}
                                                 </span>
                                                 <span className="text-gray-400 text-xs flex-shrink-0">
-                                                    {comments[mobileIndex].time}
+                                                    {comments[shuffledOrder[mobileIndex]].time}
                                                 </span>
                                             </div>
                                             <p className="text-gray-800 text-[14px] leading-relaxed mb-3 line-clamp-3">
-                                                {renderTextWithBlur(comments[mobileIndex].text)}
+                                                {renderTextWithBlur(comments[shuffledOrder[mobileIndex]].text)}
                                             </p>
                                             <div className="flex items-center gap-4">
                                                 <div className="flex items-center gap-1">
                                                     <ThumbsUp className="w-4 h-4 text-gray-500" />
-                                                    <span className="text-gray-500 text-xs">{comments[mobileIndex].likes}</span>
+                                                    <span className="text-gray-500 text-xs">{comments[shuffledOrder[mobileIndex]].likes}</span>
                                                 </div>
                                                 <ThumbsDown className="w-4 h-4 text-gray-500" />
                                                 <span className="text-gray-500 text-xs font-medium">답글</span>

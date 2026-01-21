@@ -112,7 +112,9 @@ export const AlbumPuzzleGrid = () => {
     };
 
     return (
-        <section className="py-24 px-6 bg-[#0a0a0a] overflow-hidden">
+        <section className="relative py-24 px-6 bg-[#0a0a0a] overflow-hidden">
+            {/* 상단 그라데이션 - WhyNotStock에서 자연스럽게 연결 */}
+            <div className="absolute top-0 left-0 right-0 h-40 bg-gradient-to-b from-black to-transparent pointer-events-none z-10" />
             <div className="max-w-7xl mx-auto">
                 {/* 섹션 헤더 */}
                 <motion.div

@@ -6,7 +6,7 @@ import { cn } from '../lib/utils';
 import {
   ArrowLeft, Activity, Server, AlertTriangle, Database,
   BarChart3, Users, Bell, RefreshCw, CheckCircle, XCircle,
-  Clock
+  Clock, LogOut, Settings
 } from 'lucide-react';
 
 // 탭 컴포넌트들
@@ -32,7 +32,7 @@ const tabs: { id: TabType; label: string; icon: React.ElementType }[] = [
 
 export default function MonitoringDashboardPage() {
   const navigate = useNavigate();
-  const { user } = useAuthStore();
+  const { user, logout } = useAuthStore();
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [lastRefresh, setLastRefresh] = useState(new Date());
@@ -127,6 +127,27 @@ export default function MonitoringDashboardPage() {
               className="p-2 rounded-xl bg-gray-800/50 hover:bg-gray-700/50 text-gray-400 hover:text-white transition-all disabled:opacity-50"
             >
               <RefreshCw className={cn('w-5 h-5', isRefreshing && 'animate-spin')} />
+            </button>
+
+            {/* Admin Page */}
+            <button
+              onClick={() => navigate('/admin')}
+              className="p-2 rounded-xl bg-gray-800/50 hover:bg-gray-700/50 text-gray-400 hover:text-white transition-all"
+              title="관리자 페이지"
+            >
+              <Settings className="w-5 h-5" />
+            </button>
+
+            {/* Logout */}
+            <button
+              onClick={() => {
+                logout();
+                navigate('/login');
+              }}
+              className="p-2 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400 hover:text-red-300 transition-all"
+              title="로그아웃"
+            >
+              <LogOut className="w-5 h-5" />
             </button>
           </div>
         </div>

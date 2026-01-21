@@ -7,9 +7,11 @@ type UserRole = 'user' | 'admin' | 'partner' | 'developer';
 
 interface User {
   id: string;
+  username?: string;
   email: string;
   name: string;
   role: UserRole;
+  forcePasswordChange?: boolean;
 }
 
 interface AuthState {
@@ -26,6 +28,7 @@ interface AuthState {
   login: (email: string, password: string, rememberMe?: boolean) => Promise<void>;
   refreshAccessToken: () => Promise<boolean>;
   clearError: () => void;
+  clearForcePasswordChange: () => void;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -113,6 +116,13 @@ export const useAuthStore = create<AuthState>()(
       },
 
       clearError: () => set({ error: null }),
+
+      clearForcePasswordChange: () => {
+        const { user } = get();
+        if (user) {
+          set({ user: { ...user, forcePasswordChange: false } });
+        }
+      },
     }),
     {
       name: 'auth-storage',

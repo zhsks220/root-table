@@ -214,110 +214,122 @@ export default function AdminSettingsPage() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
-            className="p-4 sm:p-6 lg:p-8"
+            className="p-4 sm:p-6 lg:p-8 max-w-2xl mx-auto"
           >
-            <div className="mb-4 sm:mb-6">
-              <h1 className={`text-xl sm:text-2xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>계정 설정</h1>
-              <p className={`text-xs sm:text-sm mt-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>비밀번호 변경 및 계정 정보를 관리합니다</p>
+            {/* 프로필 카드 */}
+            <div className={`rounded-xl p-5 mb-4 ${isDark ? 'bg-[#0a0a0a] border border-white/10' : 'bg-white border border-gray-100'}`}>
+              <div className="flex items-center gap-4">
+                <div className={`w-14 h-14 rounded-full flex items-center justify-center text-xl font-bold ${isDark ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-600'}`}>
+                  {user?.name?.[0] || 'U'}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h2 className={`text-lg font-semibold truncate ${isDark ? 'text-white' : 'text-gray-900'}`}>{user?.name}</h2>
+                  <p className={`text-sm truncate ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{user?.email}</p>
+                </div>
+                <span className={`px-3 py-1 rounded-full text-xs font-medium ${isDark ? 'bg-emerald-500/20 text-emerald-400' : 'bg-emerald-100 text-emerald-700'}`}>
+                  {user?.role === 'developer' ? '개발자' : user?.role === 'admin' ? '관리자' : user?.role === 'partner' ? '파트너' : '일반 사용자'}
+                </span>
+              </div>
             </div>
 
-            <div className={`rounded-xl p-4 sm:p-6 ${isDark ? 'bg-[#0a0a0a] border border-white/10' : 'bg-white border border-gray-100'}`}>
-              <h2 className={`text-lg font-semibold mb-6 ${isDark ? 'text-white' : 'text-gray-900'}`}>비밀번호 변경</h2>
+            {/* 계정 정보 */}
+            <div className={`rounded-xl p-5 mb-4 ${isDark ? 'bg-[#0a0a0a] border border-white/10' : 'bg-white border border-gray-100'}`}>
+              <h3 className={`text-sm font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>계정 정보</h3>
+              <div className="space-y-3">
+                <div className="flex items-center justify-between py-2">
+                  <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>유저 ID</span>
+                  <span className={`font-mono text-sm font-medium ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>{(user as any)?.username || '-'}</span>
+                </div>
+                <div className={`border-t ${isDark ? 'border-white/5' : 'border-gray-100'}`} />
+                <div className="flex items-center justify-between py-2">
+                  <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>이메일</span>
+                  <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{user?.email}</span>
+                </div>
+                <div className={`border-t ${isDark ? 'border-white/5' : 'border-gray-100'}`} />
+                <div className="flex items-center justify-between py-2">
+                  <span className={`text-sm ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>이름</span>
+                  <span className={`text-sm font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{user?.name}</span>
+                </div>
+              </div>
+            </div>
 
-              <form onSubmit={handlePasswordChange} className="space-y-4 max-w-md">
+            {/* 비밀번호 변경 */}
+            <div className={`rounded-xl p-5 ${isDark ? 'bg-[#0a0a0a] border border-white/10' : 'bg-white border border-gray-100'}`}>
+              <h3 className={`text-sm font-semibold mb-4 ${isDark ? 'text-white' : 'text-gray-900'}`}>비밀번호 변경</h3>
+              <form onSubmit={handlePasswordChange} className="space-y-4">
                 <div>
-                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>현재 비밀번호</label>
+                  <label className={`block text-xs font-medium mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>현재 비밀번호</label>
                   <div className="relative">
                     <input
                       type={showCurrentPassword ? 'text' : 'password'}
                       value={passwordForm.currentPassword}
                       onChange={(e) => setPasswordForm({ ...passwordForm, currentPassword: e.target.value })}
-                      className={`w-full px-4 py-3 pr-12 rounded-lg outline-none transition-all ${isDark ? 'bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500' : 'border border-gray-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500'}`}
+                      className={`w-full px-3 py-2.5 pr-10 rounded-lg text-sm outline-none transition-all ${isDark ? 'bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:border-emerald-500/50' : 'border border-gray-200 focus:border-emerald-500'}`}
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                      className={`absolute right-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'}`}
+                      className={`absolute right-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}
                     >
-                      {showCurrentPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      {showCurrentPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>새 비밀번호</label>
+                  <label className={`block text-xs font-medium mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>새 비밀번호</label>
                   <div className="relative">
                     <input
                       type={showNewPassword ? 'text' : 'password'}
                       value={passwordForm.newPassword}
                       onChange={(e) => setPasswordForm({ ...passwordForm, newPassword: e.target.value })}
                       placeholder="8자 이상"
-                      className={`w-full px-4 py-3 pr-12 rounded-lg outline-none transition-all ${isDark ? 'bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500' : 'border border-gray-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500'}`}
+                      className={`w-full px-3 py-2.5 pr-10 rounded-lg text-sm outline-none transition-all ${isDark ? 'bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:border-emerald-500/50' : 'border border-gray-200 focus:border-emerald-500'}`}
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowNewPassword(!showNewPassword)}
-                      className={`absolute right-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'}`}
+                      className={`absolute right-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}
                     >
-                      {showNewPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      {showNewPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                 </div>
 
                 <div>
-                  <label className={`block text-sm font-medium mb-2 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>새 비밀번호 확인</label>
+                  <label className={`block text-xs font-medium mb-1.5 ${isDark ? 'text-gray-400' : 'text-gray-600'}`}>새 비밀번호 확인</label>
                   <div className="relative">
                     <input
                       type={showConfirmPassword ? 'text' : 'password'}
                       value={passwordForm.confirmPassword}
                       onChange={(e) => setPasswordForm({ ...passwordForm, confirmPassword: e.target.value })}
-                      className={`w-full px-4 py-3 pr-12 rounded-lg outline-none transition-all ${isDark ? 'bg-white/5 border border-white/10 text-white placeholder-gray-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500' : 'border border-gray-200 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500'}`}
+                      className={`w-full px-3 py-2.5 pr-10 rounded-lg text-sm outline-none transition-all ${isDark ? 'bg-white/5 border border-white/10 text-white placeholder-gray-500 focus:border-emerald-500/50' : 'border border-gray-200 focus:border-emerald-500'}`}
                       required
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className={`absolute right-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-gray-400 hover:text-gray-200' : 'text-gray-400 hover:text-gray-600'}`}
+                      className={`absolute right-3 top-1/2 -translate-y-1/2 ${isDark ? 'text-gray-500 hover:text-gray-300' : 'text-gray-400 hover:text-gray-600'}`}
                     >
-                      {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                     </button>
                   </div>
                   {passwordForm.confirmPassword && passwordForm.newPassword !== passwordForm.confirmPassword && (
-                    <p className="mt-1 text-xs text-red-500">비밀번호가 일치하지 않습니다.</p>
+                    <p className="mt-1.5 text-xs text-red-500">비밀번호가 일치하지 않습니다.</p>
                   )}
                 </div>
 
                 <button
                   type="submit"
                   disabled={loading || (!!passwordForm.confirmPassword && passwordForm.newPassword !== passwordForm.confirmPassword)}
-                  className="flex items-center gap-2 px-6 py-3 bg-emerald-500 text-white font-medium rounded-lg hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                  className="w-full flex items-center justify-center gap-2 px-4 py-2.5 bg-emerald-500 text-white text-sm font-medium rounded-lg hover:bg-emerald-600 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save className="w-4 h-4" />}
                   비밀번호 변경
                 </button>
               </form>
-
-              <div className={`mt-8 pt-6 border-t ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
-                <h3 className={`text-sm font-medium mb-3 ${isDark ? 'text-gray-300' : 'text-gray-700'}`}>계정 정보</h3>
-                <div className={`rounded-lg p-4 space-y-2 ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
-                  <div className="flex justify-between text-sm">
-                    <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>이메일</span>
-                    <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{user?.email}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>이름</span>
-                    <span className={`font-medium ${isDark ? 'text-white' : 'text-gray-900'}`}>{user?.name}</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span className={isDark ? 'text-gray-400' : 'text-gray-500'}>역할</span>
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${isDark ? 'bg-emerald-900/50 text-emerald-400' : 'bg-emerald-100 text-emerald-700'}`}>
-                      {user?.role === 'admin' ? '관리자' : user?.role}
-                    </span>
-                  </div>
-                </div>
-              </div>
             </div>
           </motion.div>
         )}

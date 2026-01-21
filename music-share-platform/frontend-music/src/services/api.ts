@@ -128,6 +128,8 @@ export const authAPI = {
     api.post('/auth/login', { email, password }),
   register: (email: string, password: string, name: string, invitationCode: string) =>
     api.post('/auth/register', { email, password, name, invitationCode }),
+  changePassword: (currentPassword: string, newPassword: string) =>
+    api.post('/auth/change-password', { currentPassword, newPassword }),
 };
 
 // Invitation API
@@ -209,6 +211,15 @@ export const adminAPI = {
     api.post('/admin/invitations', { trackIds, expiresInDays }),
   getInvitations: () => api.get('/admin/invitations'),
   getUsers: () => api.get('/admin/users'),
+  // 사용자 관리
+  createUser: (data: { name: string; email?: string; role: 'user' | 'admin' | 'partner' | 'developer' }) =>
+    api.post('/admin/users', data),
+  updateUserRole: (userId: string, role: 'user' | 'admin' | 'partner' | 'developer') =>
+    api.patch(`/admin/users/${userId}/role`, { role }),
+  resetUserPassword: (userId: string) =>
+    api.patch(`/admin/users/${userId}/reset-password`),
+  deleteUser: (userId: string) =>
+    api.delete(`/admin/users/${userId}`),
 };
 
 // WebToon Project API

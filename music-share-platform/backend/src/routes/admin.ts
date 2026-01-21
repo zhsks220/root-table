@@ -2,6 +2,7 @@ import { Router, Response } from 'express';
 import { z } from 'zod';
 import multer from 'multer';
 import crypto from 'crypto';
+import bcrypt from 'bcrypt';
 import { fromBuffer as fileTypeFromBuffer } from 'file-type';
 import { pool } from '../db';
 import { AuthRequest } from '../types';
@@ -620,7 +621,7 @@ router.get('/invitations', async (req: AuthRequest, res: Response) => {
 router.get('/users', async (req: AuthRequest, res: Response) => {
   try {
     const result = await pool.query(
-      `SELECT u.id, u.email, u.name, u.role, u.created_at,
+      `SELECT u.id, u.username, u.email, u.name, u.role, u.force_password_change, u.created_at,
          (SELECT COUNT(*) FROM user_tracks WHERE user_id = u.id) as track_count
        FROM users u
        ORDER BY u.created_at DESC`
@@ -629,6 +630,212 @@ router.get('/users', async (req: AuthRequest, res: Response) => {
     res.json({ users: result.rows });
   } catch (error) {
     console.error('Get users error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 역할별 접두어 반환
+function getPrefixByRole(role: string): string {
+  switch (role) {
+    case 'developer': return 'deve';
+    case 'admin': return 'route';
+    case 'partner': return 'cp';
+    case 'user':
+    default: return 'cu';
+  }
+}
+
+// 다음 username 번호 조회
+async function getNextUsername(role: string): Promise<string> {
+  const prefix = getPrefixByRole(role);
+  const result = await pool.query(
+    `SELECT username FROM users WHERE username LIKE $1 ORDER BY username DESC LIMIT 1`,
+    [`${prefix}%`]
+  );
+
+  let nextNum = 1;
+  if (result.rows.length > 0) {
+    const lastUsername = result.rows[0].username;
+    const numPart = lastUsername.replace(prefix, '');
+    nextNum = parseInt(numPart, 10) + 1;
+  }
+
+  return `${prefix}${nextNum.toString().padStart(4, '0')}`;
+}
+
+// 초기 비밀번호 생성 (12자, 대소문자+숫자+특수문자)
+function generateInitialPassword(): string {
+  const upper = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
+  const lower = 'abcdefghjkmnpqrstuvwxyz';
+  const numbers = '23456789';
+  const special = '!@#$%';
+
+  let password = '';
+  // 필수 문자 1개씩
+  password += upper[Math.floor(Math.random() * upper.length)];
+  password += lower[Math.floor(Math.random() * lower.length)];
+  password += numbers[Math.floor(Math.random() * numbers.length)];
+  password += special[Math.floor(Math.random() * special.length)];
+
+  // 나머지 8자 랜덤
+  const all = upper + lower + numbers + special;
+  for (let i = 0; i < 8; i++) {
+    password += all[Math.floor(Math.random() * all.length)];
+  }
+
+  // 섞기
+  return password.split('').sort(() => Math.random() - 0.5).join('');
+}
+
+// 사용자 생성 스키마
+const createUserSchema = z.object({
+  name: z.string().min(1, '이름을 입력해주세요'),
+  email: z.string().email('올바른 이메일 형식이 아닙니다').optional(),
+  role: z.enum(['user', 'admin', 'partner', 'developer']),
+});
+
+// 사용자 생성
+router.post('/users', async (req: AuthRequest, res: Response) => {
+  try {
+    const { name, email, role } = createUserSchema.parse(req.body);
+
+    // username 자동 생성
+    const username = await getNextUsername(role);
+
+    // 초기 비밀번호 생성
+    const initialPassword = generateInitialPassword();
+    const passwordHash = await bcrypt.hash(initialPassword, 12);
+
+    // 이메일 중복 체크 (있는 경우)
+    if (email) {
+      const existing = await pool.query('SELECT id FROM users WHERE email = $1', [email]);
+      if (existing.rows.length > 0) {
+        return res.status(400).json({ error: '이미 등록된 이메일입니다' });
+      }
+    }
+
+    // 사용자 생성
+    const result = await pool.query(
+      `INSERT INTO users (username, email, password_hash, name, role, force_password_change)
+       VALUES ($1, $2, $3, $4, $5, true)
+       RETURNING id, username, email, name, role, force_password_change, created_at`,
+      [username, email || `${username}@routelabel.local`, passwordHash, name, role]
+    );
+
+    const user = result.rows[0];
+
+    res.status(201).json({
+      success: true,
+      user,
+      initialPassword, // 이 비밀번호를 사용자에게 전달해야 함
+      message: `계정이 생성되었습니다. 초기 비밀번호: ${initialPassword}`
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid input', details: error.errors });
+    }
+    console.error('Create user error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 역할 변경 스키마
+const updateRoleSchema = z.object({
+  role: z.enum(['user', 'admin', 'partner', 'developer']),
+});
+
+// 사용자 역할 변경
+router.patch('/users/:userId/role', async (req: AuthRequest, res: Response) => {
+  try {
+    const { userId } = req.params;
+    const { role } = updateRoleSchema.parse(req.body);
+
+    // 자기 자신의 역할은 변경 불가
+    if (userId === req.user!.id) {
+      return res.status(400).json({ error: '자신의 역할은 변경할 수 없습니다' });
+    }
+
+    // 개발자만 developer 역할 부여 가능
+    if (role === 'developer' && req.user!.role !== 'developer') {
+      return res.status(403).json({ error: 'developer 역할은 개발자만 부여할 수 있습니다' });
+    }
+
+    const result = await pool.query(
+      `UPDATE users SET role = $1, updated_at = NOW()
+       WHERE id = $2
+       RETURNING id, username, email, name, role`,
+      [role, userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: '사용자를 찾을 수 없습니다' });
+    }
+
+    res.json({ success: true, user: result.rows[0] });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      return res.status(400).json({ error: 'Invalid input', details: error.errors });
+    }
+    console.error('Update role error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 비밀번호 초기화
+router.patch('/users/:userId/reset-password', async (req: AuthRequest, res: Response) => {
+  try {
+    const { userId } = req.params;
+
+    // 사용자 존재 확인
+    const userCheck = await pool.query('SELECT id, username FROM users WHERE id = $1', [userId]);
+    if (userCheck.rows.length === 0) {
+      return res.status(404).json({ error: '사용자를 찾을 수 없습니다' });
+    }
+
+    // 새 초기 비밀번호 생성
+    const newPassword = generateInitialPassword();
+    const passwordHash = await bcrypt.hash(newPassword, 12);
+
+    await pool.query(
+      `UPDATE users SET password_hash = $1, force_password_change = true, updated_at = NOW()
+       WHERE id = $2`,
+      [passwordHash, userId]
+    );
+
+    res.json({
+      success: true,
+      username: userCheck.rows[0].username,
+      newPassword,
+      message: `비밀번호가 초기화되었습니다. 새 비밀번호: ${newPassword}`
+    });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// 사용자 삭제
+router.delete('/users/:userId', async (req: AuthRequest, res: Response) => {
+  try {
+    const { userId } = req.params;
+
+    // 자기 자신은 삭제 불가
+    if (userId === req.user!.id) {
+      return res.status(400).json({ error: '자신의 계정은 삭제할 수 없습니다' });
+    }
+
+    const result = await pool.query(
+      'DELETE FROM users WHERE id = $1 RETURNING id, username',
+      [userId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: '사용자를 찾을 수 없습니다' });
+    }
+
+    res.json({ success: true, message: '사용자가 삭제되었습니다' });
+  } catch (error) {
+    console.error('Delete user error:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });

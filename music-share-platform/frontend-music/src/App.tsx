@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { useAuthStore } from './store/authStore';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
@@ -16,6 +16,7 @@ import PartnerSettingsPage from './pages/PartnerSettingsPage';
 import MyTracksPage from './pages/MyTracksPage';
 import AlbumDetailPage from './pages/AlbumDetailPage';
 import AudioPlayer from './components/AudioPlayer';
+import PasswordChangeModal from './components/PasswordChangeModal';
 
 // 모니터링 페이지 lazy load
 const MonitoringDashboardPage = lazy(() => import('./pages/MonitoringDashboardPage'));
@@ -96,8 +97,20 @@ function UserRoute({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
+  const { user, isAuthenticated } = useAuthStore();
+  const [passwordChangeSuccess, setPasswordChangeSuccess] = useState(false);
+
+  // 비밀번호 변경 필요 여부
+  const needsPasswordChange = isAuthenticated && user?.forcePasswordChange && !passwordChangeSuccess;
+
   return (
     <BrowserRouter>
+      {/* 비밀번호 변경 모달 - 첫 로그인 시 강제 표시 */}
+      <PasswordChangeModal
+        isOpen={needsPasswordChange}
+        onSuccess={() => setPasswordChangeSuccess(true)}
+      />
+
       {/* 글로벌 오디오 플레이어 */}
       <AudioPlayer />
 

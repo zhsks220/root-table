@@ -138,14 +138,14 @@ router.post('/register', async (req: Request, res: Response) => {
   }
 });
 
-// 로그인
+// 로그인 (이메일 또는 username으로 로그인 가능)
 router.post('/login', async (req: Request, res: Response) => {
   try {
     const { email, password } = loginSchema.parse(req.body);
 
-    // 사용자 조회 (계정 잠금 정보 포함)
+    // 사용자 조회 (이메일 또는 username으로 검색, 계정 잠금 정보 포함)
     const result = await pool.query(
-      'SELECT id, email, password_hash, name, role, login_attempts, locked_until FROM users WHERE email = $1',
+      'SELECT id, username, email, password_hash, name, role, force_password_change, login_attempts, locked_until FROM users WHERE email = $1 OR username = $1',
       [email]
     );
 
@@ -221,9 +221,11 @@ router.post('/login', async (req: Request, res: Response) => {
       success: true,
       user: {
         id: user.id,
+        username: user.username,
         email: user.email,
         name: user.name,
         role: user.role,
+        forcePasswordChange: user.force_password_change || false,
       },
       accessToken,
       refreshToken,
@@ -310,6 +312,85 @@ router.post('/logout', async (req: Request, res: Response) => {
     success: true,
     message: 'Logged out successfully. Please remove tokens from client.',
   });
+});
+
+// 비밀번호 변경 스키마
+const changePasswordSchema = z.object({
+  currentPassword: z.string().min(1, '현재 비밀번호를 입력해주세요'),
+  newPassword: passwordSchema,
+});
+
+// 비밀번호 변경 (인증된 사용자만)
+router.post('/change-password', async (req: Request, res: Response) => {
+  try {
+    // Authorization 헤더에서 토큰 추출
+    const authHeader = req.headers.authorization;
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return res.status(401).json({ error: '인증이 필요합니다' });
+    }
+
+    const token = authHeader.split(' ')[1];
+
+    // 토큰 검증
+    const jwt = require('jsonwebtoken');
+    let decoded: any;
+    try {
+      decoded = jwt.verify(token, process.env.JWT_SECRET);
+    } catch {
+      return res.status(401).json({ error: '유효하지 않은 토큰입니다' });
+    }
+
+    const { currentPassword, newPassword } = changePasswordSchema.parse(req.body);
+
+    // 사용자 조회
+    const result = await pool.query(
+      'SELECT id, password_hash FROM users WHERE id = $1',
+      [decoded.id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: '사용자를 찾을 수 없습니다' });
+    }
+
+    const user = result.rows[0];
+
+    // 현재 비밀번호 확인
+    const isValid = await bcrypt.compare(currentPassword, user.password_hash);
+    if (!isValid) {
+      return res.status(400).json({ error: '현재 비밀번호가 일치하지 않습니다' });
+    }
+
+    // 새 비밀번호가 현재 비밀번호와 같은지 확인
+    const isSame = await bcrypt.compare(newPassword, user.password_hash);
+    if (isSame) {
+      return res.status(400).json({ error: '새 비밀번호는 현재 비밀번호와 달라야 합니다' });
+    }
+
+    // 새 비밀번호 해싱
+    const newPasswordHash = await bcrypt.hash(newPassword, 12);
+
+    // 비밀번호 업데이트 및 force_password_change를 false로 설정
+    await pool.query(
+      `UPDATE users SET password_hash = $1, force_password_change = false, updated_at = NOW()
+       WHERE id = $2`,
+      [newPasswordHash, decoded.id]
+    );
+
+    res.json({
+      success: true,
+      message: '비밀번호가 변경되었습니다',
+    });
+  } catch (error) {
+    if (error instanceof z.ZodError) {
+      const isProduction = process.env.NODE_ENV === 'production';
+      return res.status(400).json({
+        error: 'Invalid input',
+        ...(isProduction ? {} : { details: error.errors })
+      });
+    }
+    console.error('Change password error:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
 });
 
 export default router;

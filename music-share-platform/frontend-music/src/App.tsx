@@ -107,7 +107,7 @@ function App() {
     <BrowserRouter>
       {/* 비밀번호 변경 모달 - 첫 로그인 시 강제 표시 */}
       <PasswordChangeModal
-        isOpen={needsPasswordChange}
+        isOpen={!!needsPasswordChange}
         onSuccess={() => setPasswordChangeSuccess(true)}
       />
 

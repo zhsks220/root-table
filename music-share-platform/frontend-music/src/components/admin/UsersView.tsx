@@ -36,7 +36,7 @@ export function UsersView() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
   // 생성 폼
-  const [createForm, setCreateForm] = useState({ name: '', email: '', role: 'user' as const });
+  const [createForm, setCreateForm] = useState<{ name: string; email: string; role: 'user' | 'admin' | 'partner' | 'developer' }>({ name: '', email: '', role: 'user' });
   const [createLoading, setCreateLoading] = useState(false);
   const [createdUser, setCreatedUser] = useState<{ username: string; password: string } | null>(null);
   const [copied, setCopied] = useState<'username' | 'password' | null>(null);
@@ -131,10 +131,8 @@ export function UsersView() {
 
   const formatDate = (date: string) => new Date(date).toLocaleDateString('ko-KR');
 
-  const getRoleStyle = (role: string) => {
+  const getRoleStyle = (role: string): { bg: string; text: string; border: string } => {
     const roleInfo = ROLES.find(r => r.value === role);
-    if (!roleInfo) return {};
-
     const colors: Record<string, { bg: string; text: string; border: string }> = {
       gray: {
         bg: isDark ? 'bg-gray-500/20' : 'bg-gray-100',
@@ -158,7 +156,7 @@ export function UsersView() {
       },
     };
 
-    return colors[roleInfo.color] || colors.gray;
+    return colors[roleInfo?.color || 'gray'] || colors.gray;
   };
 
   const closeCreateModal = () => {

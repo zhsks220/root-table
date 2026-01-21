@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ArrowLeft, Disc3, ChevronDown } from 'lucide-react';
@@ -51,6 +51,11 @@ const AlbumDetailPage = () => {
     const navigate = useNavigate();
     const [isCreditsExpanded, setIsCreditsExpanded] = useState(false);
 
+    // 페이지 진입 시 스크롤 맨 위로
+    useEffect(() => {
+        window.scrollTo(0, 0);
+    }, [slug]);
+
     const album = slug ? getAlbumBySlug(slug) : undefined;
 
     if (!album) {
@@ -76,7 +81,7 @@ const AlbumDetailPage = () => {
             <header className="fixed top-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-sm border-b border-white/10">
                 <div className="max-w-5xl mx-auto px-4 py-4">
                     <button
-                        onClick={() => navigate('/')}
+                        onClick={() => navigate(-1)}
                         className="flex items-center gap-2 text-white/70 hover:text-white transition-colors"
                     >
                         <ArrowLeft className="w-5 h-5" />

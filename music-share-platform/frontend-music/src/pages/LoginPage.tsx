@@ -167,11 +167,6 @@ export default function LoginPage() {
             내부 음악 공유 플랫폼 • v1.0.0
           </p>
 
-          {/* 테스트 계정 정보 */}
-          <div className={`p-3 rounded-lg border ${isDark ? 'bg-white/5 border-white/10' : 'bg-gray-50 border-gray-100'}`}>
-            <span className={`text-xs font-semibold block mb-1 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>테스트 계정</span>
-            <code className={`text-xs font-mono break-all ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>admin@test.com / admin123</code>
-          </div>
         </div>
       </motion.div>
 

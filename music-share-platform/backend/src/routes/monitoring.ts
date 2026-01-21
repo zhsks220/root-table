@@ -450,8 +450,8 @@ router.post('/telegram/test', async (req: AuthRequest, res: Response) => {
     if (response.ok) {
       res.json({ success: true, message: '텔레그램 테스트 메시지 전송 완료' });
     } else {
-      const error = await response.json();
-      res.status(500).json({ success: false, error: error.description || '전송 실패' });
+      const errorData = await response.json() as { description?: string };
+      res.status(500).json({ success: false, error: errorData.description || '전송 실패' });
     }
   } catch (error) {
     console.error('Telegram test error:', error);

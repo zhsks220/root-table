@@ -35,11 +35,12 @@ export function requestLogger(req: AuthRequest, res: Response, next: NextFunctio
     const userAgent = req.headers['user-agent'] || null;
 
     try {
+      // request_logs에 기록
       await pool.query(
         `INSERT INTO request_logs (endpoint, method, status_code, response_time, user_id, ip_address, user_agent)
          VALUES ($1, $2, $3, $4, $5, $6, $7)`,
         [
-          req.path.substring(0, 255), // 최대 길이 제한
+          req.path.substring(0, 255),
           req.method,
           res.statusCode,
           responseTime,
@@ -48,6 +49,24 @@ export function requestLogger(req: AuthRequest, res: Response, next: NextFunctio
           userAgent ? userAgent.substring(0, 500) : null
         ]
       );
+
+      // 5xx 에러면 error_logs에도 자동 기록
+      if (res.statusCode >= 500) {
+        await pool.query(
+          `INSERT INTO error_logs (error_type, message, endpoint, method, status_code, user_id, ip_address, user_agent)
+           VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
+          [
+            'ServerError',
+            `${res.statusCode} error on ${req.method} ${req.path}`,
+            req.path.substring(0, 255),
+            req.method,
+            res.statusCode,
+            userId,
+            typeof ipAddress === 'string' ? ipAddress.substring(0, 45) : null,
+            userAgent ? userAgent.substring(0, 500) : null
+          ]
+        );
+      }
     } catch (error) {
       // 로깅 실패해도 서비스에 영향 없도록
       console.error('Failed to log request:', error);

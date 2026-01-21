@@ -4,11 +4,18 @@ import { pool } from '../db';
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN;
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
-// 알림 쿨다운 시간 (분)
+// 알림 쿨다운 시간 (분) - 같은 규칙 재발동 방지
 const ALERT_COOLDOWN_MINUTES = 5;
 
 // 체크 사이클당 최대 알림 전송 수 (스팸 방지)
-const MAX_ALERTS_PER_CYCLE = 3;
+const MAX_ALERTS_PER_CYCLE = 2;
+
+// 시간당 최대 알림 전송 수 (텔레그램 rate limit 방지)
+const MAX_ALERTS_PER_HOUR = 10;
+
+// 시간당 알림 카운터
+let hourlyAlertCount = 0;
+let hourlyResetTime = Date.now();
 
 interface AlertRule {
   id: string;
@@ -25,12 +32,12 @@ interface AlertRule {
 async function getMetricValue(metric: string): Promise<number> {
   switch (metric) {
     case 'error_rate': {
-      // 최근 1시간 에러율 (%)
+      // 최근 10분 에러율 (%)
       const result = await pool.query(`
         SELECT
           COUNT(*) FILTER (WHERE status_code >= 500) * 100.0 / NULLIF(COUNT(*), 0) as error_rate
         FROM request_logs
-        WHERE created_at > NOW() - INTERVAL '1 hour'
+        WHERE created_at > NOW() - INTERVAL '10 minutes'
       `);
       return parseFloat(result.rows[0]?.error_rate || '0');
     }
@@ -46,11 +53,11 @@ async function getMetricValue(metric: string): Promise<number> {
     }
 
     case 'error_count': {
-      // 최근 1시간 에러 수
+      // 최근 10분 에러 수 (빠른 감지)
       const result = await pool.query(`
         SELECT COUNT(*) as count
         FROM error_logs
-        WHERE created_at > NOW() - INTERVAL '1 hour'
+        WHERE created_at > NOW() - INTERVAL '10 minutes'
       `);
       return parseInt(result.rows[0]?.count || '0');
     }
@@ -200,6 +207,19 @@ async function saveAlertHistory(
 // 메인 체커 함수
 async function checkAlerts(): Promise<void> {
   try {
+    // 시간당 카운터 리셋 (1시간 지났으면)
+    const now = Date.now();
+    if (now - hourlyResetTime > 60 * 60 * 1000) {
+      hourlyAlertCount = 0;
+      hourlyResetTime = now;
+    }
+
+    // 시간당 최대 알림 수 체크
+    if (hourlyAlertCount >= MAX_ALERTS_PER_HOUR) {
+      console.log(`⚠️ Hourly alert limit (${MAX_ALERTS_PER_HOUR}) reached, skipping check`);
+      return;
+    }
+
     // 활성화된 알림 규칙 조회 (last_triggered_at 포함)
     const result = await pool.query(`
       SELECT id, name, metric, operator, threshold, webhook_url, enabled, last_triggered_at
@@ -212,13 +232,19 @@ async function checkAlerts(): Promise<void> {
 
     for (const alert of alerts) {
       try {
-        // 최대 전송 수 체크 (스팸 방지)
+        // 사이클당 최대 전송 수 체크
         if (alertsSentThisCycle >= MAX_ALERTS_PER_CYCLE) {
           console.log(`⚠️ Max alerts per cycle (${MAX_ALERTS_PER_CYCLE}) reached, skipping remaining`);
           break;
         }
 
-        // 쿨다운 체크 (5분 이내 재발송 방지)
+        // 시간당 최대 알림 수 재체크
+        if (hourlyAlertCount >= MAX_ALERTS_PER_HOUR) {
+          console.log(`⚠️ Hourly alert limit reached during cycle`);
+          break;
+        }
+
+        // 쿨다운 체크 (같은 규칙 재발동 방지)
         if (isInCooldown(alert.last_triggered_at)) {
           continue; // 쿨다운 중이면 스킵
         }
@@ -256,6 +282,7 @@ async function checkAlerts(): Promise<void> {
 
           // 알림 전송 카운트 증가
           alertsSentThisCycle++;
+          hourlyAlertCount++;
         }
       } catch (error) {
         console.error(`Error checking alert ${alert.name}:`, error);
@@ -263,7 +290,7 @@ async function checkAlerts(): Promise<void> {
     }
 
     if (alertsSentThisCycle > 0) {
-      console.log(`📬 ${alertsSentThisCycle} alert(s) sent this cycle`);
+      console.log(`📬 ${alertsSentThisCycle} alert(s) sent this cycle (hourly: ${hourlyAlertCount}/${MAX_ALERTS_PER_HOUR})`);
     }
   } catch (error) {
     console.error('Alert checker error:', error);

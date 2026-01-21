@@ -5,7 +5,7 @@ import {
     SocialProof,
     Process,
     WhyNotStock,
-    OSTShowcase,
+    AlbumPuzzleGrid,
     ReaderReactions,
     WhoWeWorkWith,
     FinalCTA,
@@ -26,7 +26,7 @@ const LandingPage = () => {
             <SocialProof />
             <Process />
             <WhyNotStock />
-            <OSTShowcase />
+            <AlbumPuzzleGrid />
             <ReaderReactions />
             <WhoWeWorkWith />
             <FinalCTA />

@@ -3,7 +3,7 @@ export { Navbar } from './Navbar';
 export { SocialProof } from './SocialProof';
 export { Process } from './Process';
 export { WhyNotStock } from './WhyNotStock';
-export { OSTShowcase } from './OSTShowcase';
+export { AlbumPuzzleGrid } from './AlbumPuzzleGrid';
 export { ReaderReactions } from './ReaderReactions';
 export { WhoWeWorkWith } from './WhoWeWorkWith';
 export { FinalCTA } from './FinalCTA';

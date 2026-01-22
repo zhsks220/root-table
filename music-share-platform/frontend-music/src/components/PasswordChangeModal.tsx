@@ -10,13 +10,11 @@ interface PasswordChangeModalProps {
   onSuccess: () => void;
 }
 
-// 비밀번호 정책 체크
+// 비밀번호 정책 체크 (6자 이상 + 영어/숫자 조합)
 const checkPasswordPolicy = (password: string) => ({
-  minLength: password.length >= 12,
-  hasUpper: /[A-Z]/.test(password),
-  hasLower: /[a-z]/.test(password),
+  minLength: password.length >= 6,
+  hasLetter: /[a-zA-Z]/.test(password),
   hasNumber: /[0-9]/.test(password),
-  hasSpecial: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(password),
 });
 
 export default function PasswordChangeModal({ isOpen, onSuccess }: PasswordChangeModalProps) {
@@ -136,13 +134,11 @@ export default function PasswordChangeModal({ isOpen, onSuccess }: PasswordChang
                 </div>
 
                 {/* 비밀번호 정책 */}
-                {newPassword.length > 0 && (
+                {newPassword.length > 0 && !allPolicyMet && (
                   <div className="mt-3 p-3 rounded-lg bg-white/5 space-y-1.5">
-                    <PolicyItem met={policy.minLength} text="12자 이상" />
-                    <PolicyItem met={policy.hasUpper} text="대문자 포함" />
-                    <PolicyItem met={policy.hasLower} text="소문자 포함" />
+                    <PolicyItem met={policy.minLength} text="6자 이상" />
+                    <PolicyItem met={policy.hasLetter} text="영문자 포함" />
                     <PolicyItem met={policy.hasNumber} text="숫자 포함" />
-                    <PolicyItem met={policy.hasSpecial} text="특수문자 포함" />
                   </div>
                 )}
               </div>

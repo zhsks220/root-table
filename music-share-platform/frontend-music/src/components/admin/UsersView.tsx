@@ -273,7 +273,7 @@ export function UsersView() {
                               }
                             }}
                             className={cn(
-                              "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-all",
+                              "flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-medium border transition-all whitespace-nowrap",
                               roleStyle.bg, roleStyle.text, roleStyle.border
                             )}
                           >
@@ -283,7 +283,7 @@ export function UsersView() {
                         </div>
                       ) : (
                         <span className={cn(
-                          "px-2.5 py-1 rounded-full text-xs font-medium border",
+                          "px-2.5 py-1 rounded-full text-xs font-medium border whitespace-nowrap",
                           roleStyle.bg, roleStyle.text, roleStyle.border
                         )}>
                           {ROLES.find(r => r.value === u.role)?.label}
@@ -293,14 +293,14 @@ export function UsersView() {
                     <td className="px-6 py-4">
                       {u.force_password_change ? (
                         <span className={cn(
-                          "px-2.5 py-1 rounded-full text-xs font-medium",
+                          "px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap",
                           isDark ? "bg-yellow-500/20 text-yellow-400" : "bg-yellow-50 text-yellow-700"
                         )}>
                           비번 변경 필요
                         </span>
                       ) : (
                         <span className={cn(
-                          "px-2.5 py-1 rounded-full text-xs font-medium",
+                          "px-2.5 py-1 rounded-full text-xs font-medium whitespace-nowrap",
                           isDark ? "bg-green-500/20 text-green-400" : "bg-green-50 text-green-700"
                         )}>
                           활성

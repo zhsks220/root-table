@@ -303,4 +303,29 @@ export const webToonProjectAPI = {
 
   getProjectTrackStreamUrl: (projectId: string, trackId: string) =>
     api.get(`/admin/webtoon-projects/${projectId}/project-tracks/${trackId}/stream`),
+
+  // 공유 관련 API
+  createShare: (projectId: string, expiresInDays?: number) =>
+    api.post(`/admin/webtoon-projects/${projectId}/share`, { expiresInDays }),
+
+  getShares: (projectId: string) =>
+    api.get(`/admin/webtoon-projects/${projectId}/shares`),
+
+  deactivateShare: (projectId: string, shareId: string) =>
+    api.delete(`/admin/webtoon-projects/${projectId}/share/${shareId}`),
+
+  getCollaborators: (projectId: string) =>
+    api.get(`/admin/webtoon-projects/${projectId}/collaborators`),
+
+  removeCollaborator: (projectId: string, collaboratorId: string) =>
+    api.delete(`/admin/webtoon-projects/${projectId}/collaborators/${collaboratorId}`),
+};
+
+// 프로젝트 공유 API (공유 링크 접속용)
+export const projectShareAPI = {
+  getShareInfo: (token: string) =>
+    api.get(`/project/share/${token}`),
+
+  joinProject: (token: string) =>
+    api.post(`/project/share/${token}/join`),
 };

@@ -14,6 +14,7 @@ import partnerRoutes from './routes/partner';
 import settingsRoutes from './routes/settings';
 import contactRoutes from './routes/contact';
 import webtoonRoutes from './routes/webtoon';
+import projectShareRoutes from './routes/project-share';
 import libraryRoutes from './routes/library';
 import monitoringRoutes from './routes/monitoring';
 import { pool } from './db';
@@ -124,6 +125,9 @@ app.use('/api/contact', contactRoutes);
 
 // 웹툰 프로젝트 라우트 (관리자 + 파트너)
 app.use('/api/admin', webtoonRoutes);
+
+// 프로젝트 공유 라우트 (공유 링크 접속용)
+app.use('/api/project', projectShareRoutes);
 
 // 라이브러리 관리 라우트 (관리자 전용)
 app.use('/api/library', libraryRoutes);

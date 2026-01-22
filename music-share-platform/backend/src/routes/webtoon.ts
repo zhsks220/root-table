@@ -161,6 +161,17 @@ const requireAdminOrPartner = (req: AuthRequest, res: Response, next: any) => {
 
 router.use(requireAdminOrPartner);
 
+// 파트너 프로젝트 접근 권한 체크 함수
+async function canPartnerAccessProject(userId: string, projectId: string): Promise<boolean> {
+  const result = await pool.query(
+    `SELECT 1 FROM project_collaborators pc
+     JOIN partners p ON pc.partner_id = p.id
+     WHERE p.user_id = $1 AND pc.project_id = $2`,
+    [userId, projectId]
+  );
+  return result.rows.length > 0;
+}
+
 // ===== 프로젝트 CRUD =====
 
 // 프로젝트 목록 조회 (검색, 필터, 페이지네이션)
@@ -192,9 +203,13 @@ router.get('/webtoon-projects', async (req: AuthRequest, res: Response) => {
     const params: any[] = [];
     let paramIndex = 1;
 
-    // 파트너는 본인 프로젝트만 조회
+    // 파트너는 collaborator로 등록된 프로젝트만 조회
     if (req.user?.role === 'partner') {
-      query += ` AND wp.created_by = $${paramIndex}`;
+      query += ` AND wp.id IN (
+        SELECT pc.project_id FROM project_collaborators pc
+        JOIN partners p ON pc.partner_id = p.id
+        WHERE p.user_id = $${paramIndex}
+      )`;
       params.push(req.user.id);
       paramIndex++;
     }
@@ -322,9 +337,12 @@ router.get('/webtoon-projects/:projectId', async (req: AuthRequest, res: Respons
 
     const project = projectResult.rows[0];
 
-    // 권한 체크 (파트너는 본인 것만)
-    if (req.user?.role === 'partner' && project.created_by !== req.user.id) {
-      return res.status(403).json({ error: 'Access denied' });
+    // 권한 체크 (파트너는 collaborator로 등록된 프로젝트만)
+    if (req.user?.role === 'partner') {
+      const hasAccess = await canPartnerAccessProject(req.user.id, projectId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
     }
 
     // 장면 조회
@@ -409,9 +427,12 @@ router.patch('/webtoon-projects/:projectId', imageUpload.single('cover_image'), 
 
     const project = projectResult.rows[0];
 
-    // 권한 체크
-    if (req.user?.role === 'partner' && project.created_by !== req.user.id) {
-      return res.status(403).json({ error: 'Access denied' });
+    // 권한 체크 (파트너는 collaborator로 등록된 프로젝트만)
+    if (req.user?.role === 'partner') {
+      const hasAccess = await canPartnerAccessProject(req.user.id, projectId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
     }
 
     let coverImageKey = project.cover_image_key;
@@ -504,9 +525,12 @@ router.delete('/webtoon-projects/:projectId', async (req: AuthRequest, res: Resp
 
     const project = projectResult.rows[0];
 
-    // 권한 체크
-    if (req.user?.role === 'partner' && project.created_by !== req.user.id) {
-      return res.status(403).json({ error: 'Access denied' });
+    // 권한 체크 (파트너는 collaborator로 등록된 프로젝트만)
+    if (req.user?.role === 'partner') {
+      const hasAccess = await canPartnerAccessProject(req.user.id, projectId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
     }
 
     // 장면 이미지들 삭제
@@ -568,8 +592,12 @@ router.post('/webtoon-projects/:projectId/scenes', imageUpload.single('image'), 
 
     const project = projectResult.rows[0];
 
-    if (req.user?.role === 'partner' && project.created_by !== req.user.id) {
-      return res.status(403).json({ error: 'Access denied' });
+    // 권한 체크 (파트너는 collaborator로 등록된 프로젝트만)
+    if (req.user?.role === 'partner') {
+      const hasAccess = await canPartnerAccessProject(req.user.id, projectId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
     }
 
     // display_order 자동 계산
@@ -641,8 +669,11 @@ router.patch('/webtoon-projects/:projectId/scenes/:sceneId', imageUpload.single(
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    if (req.user?.role === 'partner' && projectResult.rows[0].created_by !== req.user.id) {
-      return res.status(403).json({ error: 'Access denied' });
+    if (req.user?.role === 'partner') {
+      const hasAccess = await canPartnerAccessProject(req.user.id, projectId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
     }
 
     // 장면 존재 확인
@@ -759,8 +790,11 @@ router.patch('/webtoon-projects/:projectId/scenes/reorder', async (req: AuthRequ
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    if (req.user?.role === 'partner' && projectResult.rows[0].created_by !== req.user.id) {
-      return res.status(403).json({ error: 'Access denied' });
+    if (req.user?.role === 'partner') {
+      const hasAccess = await canPartnerAccessProject(req.user.id, projectId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
     }
 
     const client = await pool.connect();
@@ -806,8 +840,11 @@ router.delete('/webtoon-projects/:projectId/scenes/:sceneId', async (req: AuthRe
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    if (req.user?.role === 'partner' && projectResult.rows[0].created_by !== req.user.id) {
-      return res.status(403).json({ error: 'Access denied' });
+    if (req.user?.role === 'partner') {
+      const hasAccess = await canPartnerAccessProject(req.user.id, projectId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
     }
 
     // 장면 조회
@@ -863,8 +900,11 @@ router.post('/webtoon-projects/:projectId/scenes/:sceneId/tracks', async (req: A
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    if (req.user?.role === 'partner' && projectResult.rows[0].created_by !== req.user.id) {
-      return res.status(403).json({ error: 'Access denied' });
+    if (req.user?.role === 'partner') {
+      const hasAccess = await canPartnerAccessProject(req.user.id, projectId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
     }
 
     // 장면 존재 확인
@@ -921,8 +961,11 @@ router.delete('/webtoon-projects/:projectId/scenes/:sceneId/tracks/:trackId', as
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    if (req.user?.role === 'partner' && projectResult.rows[0].created_by !== req.user.id) {
-      return res.status(403).json({ error: 'Access denied' });
+    if (req.user?.role === 'partner') {
+      const hasAccess = await canPartnerAccessProject(req.user.id, projectId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
     }
 
     // 연결 삭제
@@ -963,8 +1006,11 @@ router.put('/webtoon-projects/:projectId/data', async (req: AuthRequest, res: Re
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    if (req.user?.role === 'partner' && projectResult.rows[0].created_by !== req.user.id) {
-      return res.status(403).json({ error: 'Access denied' });
+    if (req.user?.role === 'partner') {
+      const hasAccess = await canPartnerAccessProject(req.user.id, projectId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
     }
 
     const client = await pool.connect();
@@ -1038,8 +1084,11 @@ router.get('/webtoon-projects/:projectId/data', async (req: AuthRequest, res: Re
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    if (req.user?.role === 'partner' && projectResult.rows[0].created_by !== req.user.id) {
-      return res.status(403).json({ error: 'Access denied' });
+    if (req.user?.role === 'partner') {
+      const hasAccess = await canPartnerAccessProject(req.user.id, projectId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
     }
 
     // 트랙 마커 조회 (트랙 정보 포함)
@@ -1117,8 +1166,11 @@ router.post('/webtoon-projects/:projectId/project-tracks', audioUpload.single('f
     }
 
     // 파트너는 본인 프로젝트만 접근 가능
-    if (req.user?.role === 'partner' && projectCheck.rows[0].created_by !== req.user.id) {
-      return res.status(403).json({ error: 'Access denied' });
+    if (req.user?.role === 'partner') {
+      const hasAccess = await canPartnerAccessProject(req.user.id, projectId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
     }
 
     // 오디오 메타데이터 추출 (duration)
@@ -1178,8 +1230,11 @@ router.get('/webtoon-projects/:projectId/project-tracks', async (req: AuthReques
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    if (req.user?.role === 'partner' && projectCheck.rows[0].created_by !== req.user.id) {
-      return res.status(403).json({ error: 'Access denied' });
+    if (req.user?.role === 'partner') {
+      const hasAccess = await canPartnerAccessProject(req.user.id, projectId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
     }
 
     // 프로젝트 전용 음원 조회
@@ -1221,8 +1276,11 @@ router.delete('/webtoon-projects/:projectId/project-tracks/:trackId', async (req
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    if (req.user?.role === 'partner' && projectCheck.rows[0].created_by !== req.user.id) {
-      return res.status(403).json({ error: 'Access denied' });
+    if (req.user?.role === 'partner') {
+      const hasAccess = await canPartnerAccessProject(req.user.id, projectId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
     }
 
     // 음원 조회
@@ -1269,8 +1327,11 @@ router.get('/webtoon-projects/:projectId/project-tracks/:trackId/stream', async 
       return res.status(404).json({ error: 'Project not found' });
     }
 
-    if (req.user?.role === 'partner' && projectCheck.rows[0].created_by !== req.user.id) {
-      return res.status(403).json({ error: 'Access denied' });
+    if (req.user?.role === 'partner') {
+      const hasAccess = await canPartnerAccessProject(req.user.id, projectId);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
     }
 
     // 음원 조회
@@ -1288,6 +1349,184 @@ router.get('/webtoon-projects/:projectId/project-tracks/:trackId/stream', async 
   } catch (error) {
     console.error('Error generating stream URL:', error);
     res.status(500).json({ error: 'Failed to generate stream URL' });
+  }
+});
+
+// ===== 프로젝트 공유 =====
+
+// 공유 링크 생성 (admin만)
+router.post('/webtoon-projects/:projectId/share', requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const { projectId } = req.params;
+    const { expiresInDays } = req.body;
+
+    // 프로젝트 존재 확인
+    const projectResult = await pool.query(
+      'SELECT id, title FROM webtoon_projects WHERE id = $1',
+      [projectId]
+    );
+
+    if (projectResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Project not found' });
+    }
+
+    // 토큰 생성 (32바이트 hex)
+    const shareToken = crypto.randomBytes(32).toString('hex');
+
+    // 만료일 계산
+    let expiresAt: Date | null = null;
+    if (expiresInDays && expiresInDays > 0) {
+      expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + parseInt(expiresInDays, 10));
+    }
+
+    // DB에 저장
+    const result = await pool.query(
+      `INSERT INTO project_shares (project_id, share_token, created_by, expires_at)
+       VALUES ($1, $2, $3, $4)
+       RETURNING *`,
+      [projectId, shareToken, req.user!.id, expiresAt]
+    );
+
+    const share = result.rows[0];
+
+    // 프론트엔드 URL 생성
+    const frontendUrl = process.env.FRONTEND_URL || 'https://music.routelabel.com';
+    const shareUrl = `${frontendUrl}/project/share/${shareToken}`;
+
+    res.status(201).json({
+      success: true,
+      shareId: share.id,
+      shareToken,
+      shareUrl,
+      expiresAt: share.expires_at,
+    });
+  } catch (error) {
+    console.error('Error creating share link:', error);
+    res.status(500).json({ error: 'Failed to create share link' });
+  }
+});
+
+// 공유 링크 목록 조회 (admin만)
+router.get('/webtoon-projects/:projectId/shares', requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const { projectId } = req.params;
+
+    const result = await pool.query(
+      `SELECT ps.*, u.name as created_by_name,
+              (SELECT COUNT(*) FROM project_collaborators pc WHERE pc.share_id = ps.id) as collaborator_count
+       FROM project_shares ps
+       LEFT JOIN users u ON ps.created_by = u.id
+       WHERE ps.project_id = $1
+       ORDER BY ps.created_at DESC`,
+      [projectId]
+    );
+
+    // 프론트엔드 URL 생성
+    const frontendUrl = process.env.FRONTEND_URL || 'https://music.routelabel.com';
+    const shares = result.rows.map(share => ({
+      ...share,
+      shareUrl: `${frontendUrl}/project/share/${share.share_token}`,
+    }));
+
+    res.json({ shares });
+  } catch (error) {
+    console.error('Error fetching share links:', error);
+    res.status(500).json({ error: 'Failed to fetch share links' });
+  }
+});
+
+// 공유 비활성화 (admin만)
+router.delete('/webtoon-projects/:projectId/share/:shareId', requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const { projectId, shareId } = req.params;
+
+    // 공유 링크 존재 확인
+    const shareResult = await pool.query(
+      'SELECT id FROM project_shares WHERE id = $1 AND project_id = $2',
+      [shareId, projectId]
+    );
+
+    if (shareResult.rows.length === 0) {
+      return res.status(404).json({ error: 'Share link not found' });
+    }
+
+    // 해당 share로 참여한 collaborators 삭제
+    await pool.query(
+      'DELETE FROM project_collaborators WHERE share_id = $1',
+      [shareId]
+    );
+
+    // 공유 링크 비활성화
+    await pool.query(
+      'UPDATE project_shares SET is_active = FALSE WHERE id = $1',
+      [shareId]
+    );
+
+    res.json({
+      success: true,
+      message: 'Share link deactivated and collaborators removed',
+    });
+  } catch (error) {
+    console.error('Error deactivating share link:', error);
+    res.status(500).json({ error: 'Failed to deactivate share link' });
+  }
+});
+
+// 협업자 목록 조회 (admin만)
+router.get('/webtoon-projects/:projectId/collaborators', requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const { projectId } = req.params;
+
+    const result = await pool.query(
+      `SELECT pc.id, pc.permission, pc.joined_at,
+              p.id as partner_id, p.business_name as partner_name,
+              u.email, u.name as user_name
+       FROM project_collaborators pc
+       JOIN partners p ON pc.partner_id = p.id
+       JOIN users u ON p.user_id = u.id
+       WHERE pc.project_id = $1
+       ORDER BY pc.joined_at DESC`,
+      [projectId]
+    );
+
+    res.json({
+      collaborators: result.rows.map(row => ({
+        id: row.id,
+        partnerId: row.partner_id,
+        partnerName: row.partner_name || row.user_name,
+        email: row.email,
+        permission: row.permission,
+        joinedAt: row.joined_at,
+      })),
+    });
+  } catch (error) {
+    console.error('Error fetching collaborators:', error);
+    res.status(500).json({ error: 'Failed to fetch collaborators' });
+  }
+});
+
+// 협업자 제거 (admin만)
+router.delete('/webtoon-projects/:projectId/collaborators/:collaboratorId', requireAdmin, async (req: AuthRequest, res: Response) => {
+  try {
+    const { projectId, collaboratorId } = req.params;
+
+    const result = await pool.query(
+      'DELETE FROM project_collaborators WHERE id = $1 AND project_id = $2 RETURNING *',
+      [collaboratorId, projectId]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Collaborator not found' });
+    }
+
+    res.json({
+      success: true,
+      message: 'Collaborator removed',
+    });
+  } catch (error) {
+    console.error('Error removing collaborator:', error);
+    res.status(500).json({ error: 'Failed to remove collaborator' });
   }
 });
 

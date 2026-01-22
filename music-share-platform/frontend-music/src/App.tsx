@@ -5,6 +5,7 @@ import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import InvitePage from './pages/InvitePage';
+import ProjectSharePage from './pages/ProjectSharePage';
 import AdminPage from './pages/AdminPage';
 import AdminSettingsPage from './pages/AdminSettingsPage';
 import CMSDashboardPage from './pages/CMSDashboardPage';
@@ -124,6 +125,9 @@ function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/invite/:code" element={<InvitePage />} />
         <Route path="/register/:code" element={<RegisterPage />} />
+
+        {/* 프로젝트 공유 링크 */}
+        <Route path="/project/share/:token" element={<ProjectSharePage />} />
 
         {/* 사용자 음원 페이지 */}
         <Route path="/my-tracks" element={

@@ -31,7 +31,14 @@ export default function PartnerLoginPage() {
       // 로그인 성공 후 역할에 따라 리다이렉트
       const user = useAuthStore.getState().user;
       if (user?.role === 'partner') {
-        navigate('/partner/dashboard');
+        // 공유 링크에서 왔으면 해당 페이지로 복귀
+        const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
+        if (redirectUrl) {
+          sessionStorage.removeItem('redirectAfterLogin');
+          navigate(redirectUrl);
+        } else {
+          navigate('/partner/dashboard');
+        }
       } else if (user?.role === 'admin') {
         navigate('/cms');
       } else {

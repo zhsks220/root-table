@@ -5,15 +5,17 @@ import { PageTransition } from '../PageTransition';
 import { TrackSearchModal } from '../webtoon/TrackSearchModal';
 import { DraggableMemoNote } from '../webtoon/DraggableMemoNote';
 import { DraggableTrackMarker } from '../webtoon/DraggableTrackMarker';
+import { ShareModal } from '../webtoon/ShareModal';
 import { cn } from '../../lib/utils';
 import { useThemeStore } from '../../store/themeStore';
+import { useAuthStore } from '../../store/authStore';
 import { usePlayerStore } from '../../store/playerStore';
 import { useScrollBasedPlayback } from '../../hooks/useScrollBasedPlayback';
 import {
   ArrowLeft, Plus, Upload, Trash2, Music,
   Loader2, Image as ImageIcon, X, Smartphone, StickyNote,
   Save, Volume2, VolumeX, Play, Pause, Menu,
-  Eye, EyeOff, Timer, RotateCcw
+  Eye, EyeOff, Timer, RotateCcw, Share2
 } from 'lucide-react';
 
 interface TrackMarker {
@@ -25,7 +27,14 @@ interface TrackMarker {
 export function WebToonProjectsView() {
   const { theme } = useThemeStore();
   const isDark = theme === 'dark';
+  const { user } = useAuthStore();
+  const isAdmin = user?.role === 'admin' || user?.role === 'developer';
   const { playTrack, preloadTrack, currentTrack, stop, volume, isMuted, setVolume, toggleMute, isPlaying, togglePlay } = usePlayerStore();
+
+  // 공유 모달 상태
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareProjectId, setShareProjectId] = useState<string | null>(null);
+  const [shareProjectTitle, setShareProjectTitle] = useState('');
 
   // 프로젝트 목록
   const [projects, setProjects] = useState<WebToonProject[]>([]);
@@ -735,16 +744,33 @@ export function WebToonProjectsView() {
                     )}
                     onClick={() => setCurrentProject(project)}
                   >
-                    {/* 삭제 버튼 */}
-                    <button
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteProject(project.id, project.title);
-                      }}
-                      className="absolute top-2 right-2 p-2 rounded-lg bg-red-500 hover:bg-red-600 text-white opacity-0 group-hover:opacity-100 transition-opacity z-10"
-                    >
-                      <Trash2 className="w-4 h-4" />
-                    </button>
+                    {/* 액션 버튼들 */}
+                    <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
+                      {/* 공유 버튼 (admin만) */}
+                      {isAdmin && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setShareProjectId(project.id);
+                            setShareProjectTitle(project.title);
+                            setShowShareModal(true);
+                          }}
+                          className="p-2 rounded-lg bg-emerald-500 hover:bg-emerald-600 text-white"
+                        >
+                          <Share2 className="w-4 h-4" />
+                        </button>
+                      )}
+                      {/* 삭제 버튼 */}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteProject(project.id, project.title);
+                        }}
+                        className="p-2 rounded-lg bg-red-500 hover:bg-red-600 text-white"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
 
                     <div className="flex items-start justify-between mb-3">
                       <h3 className={cn('text-lg font-bold truncate pr-8', isDark ? 'text-white' : 'text-gray-900')}>
@@ -779,6 +805,19 @@ export function WebToonProjectsView() {
               </div>
             )}
           </div>
+
+          {/* 공유 모달 */}
+          {shareProjectId && (
+            <ShareModal
+              isOpen={showShareModal}
+              onClose={() => {
+                setShowShareModal(false);
+                setShareProjectId(null);
+              }}
+              projectId={shareProjectId}
+              projectTitle={shareProjectTitle}
+            />
+          )}
 
           {/* 프로젝트 생성 모달 */}
           {showCreateModal && (
@@ -1641,6 +1680,7 @@ export function WebToonProjectsView() {
         excludeTrackIds={trackMarkers.map(m => m.track.id)}
         projectId={currentProject?.id}
       />
+
     </PageTransition>
   );
 }

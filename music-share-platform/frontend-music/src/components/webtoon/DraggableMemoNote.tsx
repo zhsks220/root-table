@@ -95,26 +95,45 @@ export function DraggableMemoNote({
   }, [onUpdate]);
 
   // 외부 클릭 감지하여 저장
+  const isClosingRef = useRef(false);
+
   useEffect(() => {
-    if (!isEditing) return;
+    if (!isEditing) {
+      isClosingRef.current = false;
+      return;
+    }
 
     const handleClickOutside = (e: MouseEvent | TouchEvent) => {
+      // 중복 실행 방지
+      if (isClosingRef.current) return;
+
       if (noteRef.current && !noteRef.current.contains(e.target as Node)) {
-        saveNote();
-        setIsEditing(false);
+        isClosingRef.current = true;
+
+        // 비동기로 상태 업데이트하여 현재 이벤트 처리 완료 후 실행
+        // 이렇게 하면 다른 요소의 클릭 이벤트가 정상 처리됨
+        requestAnimationFrame(() => {
+          saveNote();
+          setIsEditing(false);
+          // 약간의 딜레이 후 플래그 리셋
+          setTimeout(() => {
+            isClosingRef.current = false;
+          }, 100);
+        });
       }
     };
 
     // 약간의 딜레이 후 리스너 추가 (현재 탭 이벤트 무시)
     const timer = setTimeout(() => {
+      // touchend 사용 (터치가 끝난 후 처리, 이벤트 전파 방해 안함)
       document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('touchstart', handleClickOutside, { passive: true });
-    }, 100);
+      document.addEventListener('touchend', handleClickOutside);
+    }, 150);
 
     return () => {
       clearTimeout(timer);
       document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchstart', handleClickOutside);
+      document.removeEventListener('touchend', handleClickOutside);
     };
   }, [isEditing, saveNote]);
 
@@ -346,12 +365,16 @@ export function DraggableMemoNote({
             onChange={(e) => setContent(e.target.value)}
             placeholder="메모 작성..."
             className={cn(
-              'w-full min-h-[60px] px-2 py-1.5 text-base rounded border-none resize-none',
+              'w-full min-h-[60px] px-2 py-1.5 rounded border-none resize-none',
               'bg-transparent placeholder-gray-400',
               'focus:outline-none focus:ring-0',
               getTextColorClass()
             )}
-            style={{ minWidth: '100px', fontSize: '16px' }}
+            style={{
+              minWidth: '100px',
+              fontSize: '16px',  // iOS 자동 줌 방지 (16px 이상 필수)
+              touchAction: 'manipulation',  // 더블탭 줌 방지
+            }}
             rows={3}
           />
         ) : (

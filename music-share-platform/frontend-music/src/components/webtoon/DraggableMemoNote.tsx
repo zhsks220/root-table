@@ -95,45 +95,26 @@ export function DraggableMemoNote({
   }, [onUpdate]);
 
   // 외부 클릭 감지하여 저장
-  const isClosingRef = useRef(false);
-
   useEffect(() => {
-    if (!isEditing) {
-      isClosingRef.current = false;
-      return;
-    }
+    if (!isEditing) return;
 
     const handleClickOutside = (e: MouseEvent | TouchEvent) => {
-      // 중복 실행 방지
-      if (isClosingRef.current) return;
-
       if (noteRef.current && !noteRef.current.contains(e.target as Node)) {
-        isClosingRef.current = true;
-
-        // 비동기로 상태 업데이트하여 현재 이벤트 처리 완료 후 실행
-        // 이렇게 하면 다른 요소의 클릭 이벤트가 정상 처리됨
-        requestAnimationFrame(() => {
-          saveNote();
-          setIsEditing(false);
-          // 약간의 딜레이 후 플래그 리셋
-          setTimeout(() => {
-            isClosingRef.current = false;
-          }, 100);
-        });
+        saveNote();
+        setIsEditing(false);
       }
     };
 
-    // 약간의 딜레이 후 리스너 추가 (현재 탭 이벤트 무시)
+    // 약간의 딜레이 후 리스너 추가 (현재 클릭 이벤트 무시)
     const timer = setTimeout(() => {
-      // touchend 사용 (터치가 끝난 후 처리, 이벤트 전파 방해 안함)
       document.addEventListener('mousedown', handleClickOutside);
-      document.addEventListener('touchend', handleClickOutside);
-    }, 150);
+      document.addEventListener('touchstart', handleClickOutside);
+    }, 50);
 
     return () => {
       clearTimeout(timer);
       document.removeEventListener('mousedown', handleClickOutside);
-      document.removeEventListener('touchend', handleClickOutside);
+      document.removeEventListener('touchstart', handleClickOutside);
     };
   }, [isEditing, saveNote]);
 

@@ -1,35 +1,38 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
-import { X, Trash2 } from 'lucide-react';
 import { cn } from '../../lib/utils';
-import { useThemeStore } from '../../store/themeStore';
 import { WebToonMemoNote } from '../../types';
+
+// 텍스트 색상 옵션
+type TextColor = 'black' | 'red';
 
 interface DraggableMemoNoteProps {
   note: WebToonMemoNote;
   onUpdate: (note: WebToonMemoNote) => void;
   onDelete: (noteId: string) => void;
   containerRef: React.RefObject<HTMLDivElement>;
+  onDragStateChange?: (isDragging: boolean, noteId: string) => void; // 드래그 상태 알림 (휴지통 표시용)
+  isOverTrash?: boolean; // 휴지통 위에 있는지 여부
 }
 
-export function DraggableMemoNote({ note, onUpdate, onDelete, containerRef }: DraggableMemoNoteProps) {
-  const { theme } = useThemeStore();
-  const isDark = theme === 'dark';
-
+export function DraggableMemoNote({
+  note,
+  onUpdate,
+  onDelete,
+  containerRef,
+  onDragStateChange,
+  isOverTrash = false
+}: DraggableMemoNoteProps) {
   const [isDragging, setIsDragging] = useState(false);
   const [isEditing, setIsEditing] = useState(!note.content); // 새 메모는 바로 편집 모드
-  const [showDeleteButton, setShowDeleteButton] = useState(false); // 모바일용
-  const [showContextMenu, setShowContextMenu] = useState(false); // PC용 우클릭 메뉴
-  const [contextMenuPos, setContextMenuPos] = useState({ x: 0, y: 0 });
   const [content, setContent] = useState(note.content);
   const [position, setPosition] = useState({ x: note.position_x, y: note.position_y });
+  const [textColor, setTextColor] = useState<TextColor>((note as any).textColor || 'black');
 
   const dragStartPos = useRef({ x: 0, y: 0 });
   const noteRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isLongPress = useRef(false);
   const hasMoved = useRef(false);
-  const mouseDownTime = useRef(0); // PC에서 클릭 vs 드래그 구분용
+  const mouseDownTime = useRef(0); // 클릭 vs 드래그 구분용
 
   // 외부에서 note가 변경되면 동기화
   useEffect(() => {
@@ -44,6 +47,7 @@ export function DraggableMemoNote({ note, onUpdate, onDelete, containerRef }: Dr
   const contentRef = useRef(content);
   const positionRef = useRef(position);
   const noteRef2 = useRef(note);
+  const textColorRef = useRef(textColor);
 
   useEffect(() => {
     contentRef.current = content;
@@ -57,14 +61,37 @@ export function DraggableMemoNote({ note, onUpdate, onDelete, containerRef }: Dr
     noteRef2.current = note;
   }, [note]);
 
+  useEffect(() => {
+    textColorRef.current = textColor;
+  }, [textColor]);
+
+  // onDragStateChange를 ref로 유지 (클로저 문제 방지)
+  const onDragStateChangeRef = useRef(onDragStateChange);
+  useEffect(() => {
+    onDragStateChangeRef.current = onDragStateChange;
+  }, [onDragStateChange]);
+
+  // 드래그 시작 함수
+  const startDragging = useCallback(() => {
+    setIsDragging(true);
+    onDragStateChangeRef.current?.(true, note.id);
+  }, [note.id]);
+
+  // 드래그 종료 함수
+  const stopDragging = useCallback(() => {
+    setIsDragging(false);
+    onDragStateChangeRef.current?.(false, note.id);
+  }, [note.id]);
+
   // 저장 함수
   const saveNote = useCallback(() => {
     onUpdate({
       ...noteRef2.current,
       content: contentRef.current,
       position_x: positionRef.current.x,
-      position_y: positionRef.current.y
-    });
+      position_y: positionRef.current.y,
+      textColor: textColorRef.current
+    } as WebToonMemoNote & { textColor: TextColor });
   }, [onUpdate]);
 
   // 외부 클릭 감지하여 저장
@@ -100,42 +127,12 @@ export function DraggableMemoNote({ note, onUpdate, onDelete, containerRef }: Dr
     }
   }, [isEditing]);
 
-  // 롱프레스 타이머 정리
-  const clearLongPressTimer = useCallback(() => {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-    }
-  }, []);
-
-  // 터치/마우스 시작
-  const handlePressStart = useCallback((clientX: number, clientY: number) => {
-    if (isEditing) return;
-
-    isLongPress.current = false;
-    hasMoved.current = false;
-
-    longPressTimer.current = setTimeout(() => {
-      isLongPress.current = true;
-
-      if (!containerRef.current) return;
-      const containerRect = containerRef.current.getBoundingClientRect();
-
-      dragStartPos.current = {
-        x: clientX - containerRect.left - positionRef.current.x,
-        y: clientY - containerRect.top - positionRef.current.y + containerRef.current.scrollTop
-      };
-
-      setIsDragging(true);
-    }, 300);
-  }, [isEditing, containerRef]);
 
   // 이동 중
   const handlePressMove = useCallback((clientX: number, clientY: number) => {
     if (!containerRef.current) return;
 
     hasMoved.current = true;
-    setShowDeleteButton(false);
 
     const containerRect = containerRef.current.getBoundingClientRect();
     const scrollTop = containerRef.current.scrollTop;
@@ -170,64 +167,71 @@ export function DraggableMemoNote({ note, onUpdate, onDelete, containerRef }: Dr
       y: e.clientY - containerRect.top - positionRef.current.y + containerRef.current.scrollTop
     };
 
-    setIsDragging(true);
-    setShowContextMenu(false);
+    startDragging();
   };
 
-  // PC: 우클릭 컨텍스트 메뉴
+  // 우클릭 방지 (더 이상 컨텍스트 메뉴 사용 안함)
   const handleContextMenu = (e: React.MouseEvent) => {
     e.preventDefault();
-    e.stopPropagation();
-
-    if (isEditing) return;
-
-    // 메모 기준 상대 위치
-    const rect = noteRef.current?.getBoundingClientRect();
-    if (rect) {
-      setContextMenuPos({
-        x: e.clientX - rect.left,
-        y: e.clientY - rect.top
-      });
-    }
-    setShowContextMenu(true);
-    setShowDeleteButton(false);
   };
 
-  // 터치 시작
-  const handleTouchStart = (e: React.TouchEvent) => {
-    if (isEditing) return;
-    e.stopPropagation();
-    const touch = e.touches[0];
-    handlePressStart(touch.clientX, touch.clientY);
-  };
+  // 터치 시작 - native 이벤트 리스너로 등록 (passive: false로 preventDefault 가능하게)
+  useEffect(() => {
+    const element = noteRef.current;
+    if (!element) return;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      if (isEditing) return;
+
+      e.preventDefault(); // 스크롤 방지 (passive: false이므로 가능)
+      e.stopPropagation();
+
+      const touch = e.touches[0];
+      mouseDownTime.current = Date.now();
+      hasMoved.current = false;
+
+      if (!containerRef.current) return;
+      const containerRect = containerRef.current.getBoundingClientRect();
+
+      dragStartPos.current = {
+        x: touch.clientX - containerRect.left - positionRef.current.x,
+        y: touch.clientY - containerRect.top - positionRef.current.y + containerRef.current.scrollTop
+      };
+
+      startDragging();
+    };
+
+    element.addEventListener('touchstart', handleTouchStart, { passive: false });
+
+    return () => {
+      element.removeEventListener('touchstart', handleTouchStart);
+    };
+  }, [isEditing, containerRef, startDragging]);
 
   // 터치 종료
   const handleTouchEnd = (e: React.TouchEvent) => {
     e.stopPropagation();
-    clearLongPressTimer();
 
     if (isEditing) return;
 
     // 드래그 중이었으면
     if (isDragging) {
-      setIsDragging(false);
-      saveNote();
+      stopDragging();
 
-      // 롱프레스 후 이동하지 않았으면 삭제 버튼 표시
-      if (!hasMoved.current) {
-        setShowDeleteButton(true);
+      // 휴지통 위에서 놓으면 삭제
+      if (isOverTrash) {
+        onDelete(note.id);
+        return;
       }
-      isLongPress.current = false;
-      return;
-    }
 
-    // 짧은 탭이면 편집 모드
-    if (!isLongPress.current && !hasMoved.current) {
-      setIsEditing(true);
-      setShowDeleteButton(false);
+      // 이동하지 않았으면 클릭으로 간주 → 편집 모드
+      const clickDuration = Date.now() - mouseDownTime.current;
+      if (!hasMoved.current && clickDuration < 200) {
+        setIsEditing(true);
+      } else {
+        saveNote();
+      }
     }
-
-    isLongPress.current = false;
   };
 
   // 드래그 중 전역 이벤트 리스너
@@ -247,8 +251,13 @@ export function DraggableMemoNote({ note, onUpdate, onDelete, containerRef }: Dr
     };
 
     const handleMouseUp = () => {
-      clearLongPressTimer();
-      setIsDragging(false);
+      stopDragging();
+
+      // 휴지통 위에서 놓으면 삭제
+      if (isOverTrash) {
+        onDelete(note.id);
+        return;
+      }
 
       // PC: 이동하지 않았으면 클릭으로 간주 → 편집 모드
       const clickDuration = Date.now() - mouseDownTime.current;
@@ -258,8 +267,6 @@ export function DraggableMemoNote({ note, onUpdate, onDelete, containerRef }: Dr
         // 이동했으면 저장
         saveNote();
       }
-
-      isLongPress.current = false;
     };
 
     // 터치는 handleTouchEnd에서 처리하므로 여기서는 마우스만
@@ -272,111 +279,60 @@ export function DraggableMemoNote({ note, onUpdate, onDelete, containerRef }: Dr
       document.removeEventListener('mouseup', handleMouseUp);
       document.removeEventListener('touchmove', handleTouchMove);
     };
-  }, [isDragging, handlePressMove, saveNote, clearLongPressTimer]);
+  }, [isDragging, handlePressMove, saveNote, stopDragging, isOverTrash, onDelete, note.id]);
 
-  // 삭제 버튼 클릭
-  const handleDelete = (e: React.MouseEvent | React.TouchEvent) => {
+  // 텍스트 색상 토글
+  const toggleTextColor = (e: React.MouseEvent) => {
     e.stopPropagation();
-    e.preventDefault();
-    onDelete(note.id);
+    const newColor = textColor === 'black' ? 'red' : 'black';
+    setTextColor(newColor);
   };
 
-  // 삭제 버튼 외부 클릭 시 숨김 (모바일)
-  useEffect(() => {
-    if (!showDeleteButton) return;
-
-    const hideDeleteButton = (e: MouseEvent | TouchEvent) => {
-      if (noteRef.current && !noteRef.current.contains(e.target as Node)) {
-        setShowDeleteButton(false);
-      }
-    };
-
-    const timer = setTimeout(() => {
-      document.addEventListener('mousedown', hideDeleteButton);
-      document.addEventListener('touchstart', hideDeleteButton, { passive: true });
-    }, 100);
-
-    return () => {
-      clearTimeout(timer);
-      document.removeEventListener('mousedown', hideDeleteButton);
-      document.removeEventListener('touchstart', hideDeleteButton);
-    };
-  }, [showDeleteButton]);
-
-  // 컨텍스트 메뉴 외부 클릭 시 숨김 (PC)
-  useEffect(() => {
-    if (!showContextMenu) return;
-
-    const hideContextMenu = () => {
-      setShowContextMenu(false);
-    };
-
-    // 약간의 딜레이 후 리스너 추가
-    const timer = setTimeout(() => {
-      document.addEventListener('click', hideContextMenu);
-      document.addEventListener('contextmenu', hideContextMenu);
-    }, 10);
-
-    return () => {
-      clearTimeout(timer);
-      document.removeEventListener('click', hideContextMenu);
-      document.removeEventListener('contextmenu', hideContextMenu);
-    };
-  }, [showContextMenu]);
+  // 텍스트 색상에 따른 클래스
+  const getTextColorClass = () => {
+    return textColor === 'red' ? 'text-red-600' : 'text-gray-800';
+  };
 
   return (
     <div
       ref={noteRef}
       className={cn(
         'absolute z-[5] rounded-lg shadow-lg',
-        isDark ? 'bg-yellow-200' : 'bg-yellow-100',
-        isDragging && 'cursor-grabbing opacity-70 scale-105',
-        'transition-transform duration-100'
+        // 반투명 기름종이 스타일
+        'bg-amber-50/50 backdrop-blur-sm border border-amber-200/40',
+        isDragging && 'cursor-grabbing scale-105 shadow-xl z-[50]',
+        isOverTrash && isDragging && 'opacity-50 border-red-500 border-2',
+        // 드래그 중에는 transition 비활성화 (성능)
+        !isDragging && 'transition-transform duration-100'
       )}
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
         minWidth: '120px',
         maxWidth: '280px',
-        touchAction: isDragging ? 'none' : 'auto'
+        touchAction: isDragging ? 'none' : 'auto',
+        WebkitTouchCallout: 'none',
+        WebkitUserSelect: 'none',
+        userSelect: 'none'
       }}
       onMouseDown={handleMouseDown}
       onContextMenu={handleContextMenu}
-      onTouchStart={handleTouchStart}
       onTouchEnd={handleTouchEnd}
     >
-      {/* 모바일: 삭제 버튼 (롱프레스 후 표시) */}
-      {showDeleteButton && (
-        <button
-          onClick={handleDelete}
-          onTouchEnd={handleDelete}
-          className="absolute -top-2 -right-2 w-7 h-7 bg-red-500 hover:bg-red-600 rounded-full flex items-center justify-center shadow-lg z-30 transition-colors"
-        >
-          <X className="w-4 h-4 text-white" />
-        </button>
-      )}
-
-      {/* PC: 우클릭 컨텍스트 메뉴 */}
-      {showContextMenu && (
-        <div
-          className="absolute z-40 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-1 min-w-[120px]"
-          style={{
-            left: `${contextMenuPos.x}px`,
-            top: `${contextMenuPos.y}px`
-          }}
-          onMouseDown={(e) => e.stopPropagation()}
-        >
+      {/* 색상 선택 버튼 (편집 모드일 때만 표시) */}
+      {isEditing && (
+        <div className="absolute -top-8 left-0 flex gap-1">
           <button
-            onMouseDown={(e) => {
-              e.stopPropagation();
-              e.preventDefault();
-              setShowContextMenu(false);
-              onDelete(note.id);
-            }}
-            className="w-full px-3 py-2 text-left text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
+            onClick={toggleTextColor}
+            className={cn(
+              'w-6 h-6 rounded-full border-2 flex items-center justify-center text-xs font-bold transition-all',
+              textColor === 'black'
+                ? 'bg-gray-800 border-gray-600 text-white'
+                : 'bg-red-500 border-red-400 text-white'
+            )}
+            title={textColor === 'black' ? '빨간색으로 변경' : '검정색으로 변경'}
           >
-            <Trash2 className="w-4 h-4" />
-            삭제
+            A
           </button>
         </div>
       )}
@@ -391,8 +347,9 @@ export function DraggableMemoNote({ note, onUpdate, onDelete, containerRef }: Dr
             placeholder="메모 작성..."
             className={cn(
               'w-full min-h-[60px] px-2 py-1.5 text-sm rounded border-none resize-none',
-              'bg-transparent text-gray-800 placeholder-gray-500',
-              'focus:outline-none focus:ring-0'
+              'bg-transparent placeholder-gray-400',
+              'focus:outline-none focus:ring-0',
+              getTextColorClass()
             )}
             style={{ minWidth: '100px' }}
             rows={3}
@@ -400,8 +357,9 @@ export function DraggableMemoNote({ note, onUpdate, onDelete, containerRef }: Dr
         ) : (
           <div
             className={cn(
-              'text-sm text-gray-800 min-h-[40px] whitespace-pre-wrap break-words',
-              !content && 'text-gray-500 italic'
+              'text-sm min-h-[40px] whitespace-pre-wrap break-words',
+              !content && 'text-gray-400 italic',
+              content && getTextColorClass()
             )}
           >
             {content || '탭하여 작성...'}

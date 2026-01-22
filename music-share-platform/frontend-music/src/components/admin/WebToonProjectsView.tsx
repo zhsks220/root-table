@@ -57,12 +57,20 @@ export function WebToonProjectsView() {
   const [mobileHeaderVisible, setMobileHeaderVisible] = useState(true);
   const lastScrollY = useRef(0);
 
-  // Long press 컨텍스트 메뉴
-  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // 음원 추가 모달
   const [showTrackModal, setShowTrackModal] = useState(false);
+
+  // FAB 메뉴 상태 (모바일)
+  const [showFabMenu, setShowFabMenu] = useState(false);
+
+  // 드래그 중인 메모 ID (휴지통 표시용)
+  const [draggingMemoId, setDraggingMemoId] = useState<string | null>(null);
+
+  // 휴지통 위에 있는지 여부
+  const [isOverTrash, setIsOverTrash] = useState(false);
+  const mobileTrashRef = useRef<HTMLDivElement>(null);
+  const desktopTrashRef = useRef<HTMLDivElement>(null);
 
   // 메모 노트 관리
   const [memoNotes, setMemoNotes] = useState<WebToonMemoNote[]>([]);
@@ -413,6 +421,108 @@ export function WebToonProjectsView() {
     // TODO: 서버에서 삭제
   };
 
+  // 메모 드래그 상태 변경 핸들러
+  const handleMemoDragStateChange = useCallback((isDragging: boolean, noteId: string) => {
+    if (isDragging) {
+      setDraggingMemoId(noteId);
+    } else {
+      setDraggingMemoId(null);
+      setIsOverTrash(false);
+    }
+  }, []);
+
+  // 마우스/터치 이동 시 휴지통 위치 감지
+  useEffect(() => {
+    if (!draggingMemoId) return;
+
+    const checkTrashPosition = (clientX: number, clientY: number) => {
+      // 모바일 또는 데스크톱 휴지통 중 보이는 것 확인
+      const trashEl = mobileTrashRef.current || desktopTrashRef.current;
+      if (!trashEl) return;
+
+      const rect = trashEl.getBoundingClientRect();
+      // 요소가 화면에 보이는지 확인 (width/height > 0)
+      if (rect.width === 0 || rect.height === 0) {
+        // 다른 ref 시도
+        const otherTrash = mobileTrashRef.current === trashEl ? desktopTrashRef.current : mobileTrashRef.current;
+        if (otherTrash) {
+          const otherRect = otherTrash.getBoundingClientRect();
+          if (otherRect.width > 0 && otherRect.height > 0) {
+            const isOver = (
+              clientX >= otherRect.left &&
+              clientX <= otherRect.right &&
+              clientY >= otherRect.top &&
+              clientY <= otherRect.bottom
+            );
+            setIsOverTrash(isOver);
+            return;
+          }
+        }
+        return;
+      }
+
+      const isOver = (
+        clientX >= rect.left &&
+        clientX <= rect.right &&
+        clientY >= rect.top &&
+        clientY <= rect.bottom
+      );
+      setIsOverTrash(isOver);
+    };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      checkTrashPosition(e.clientX, e.clientY);
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      const touch = e.touches[0];
+      checkTrashPosition(touch.clientX, touch.clientY);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('touchmove', handleTouchMove, { passive: true });
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('touchmove', handleTouchMove);
+    };
+  }, [draggingMemoId]);
+
+  // FAB 메뉴에서 메모 추가 (화면 중앙에)
+  const handleAddMemoFromFab = () => {
+    if (mobileContainerRef.current) {
+      const containerRect = mobileContainerRef.current.getBoundingClientRect();
+      const scrollTop = mobileContainerRef.current.scrollTop;
+
+      const newNote: WebToonMemoNote = {
+        id: `memo-${Date.now()}`,
+        scene_id: '',
+        content: '',
+        position_x: containerRect.width / 2 - 100,
+        position_y: scrollTop + containerRect.height / 2 - 50,
+        width: 200,
+        height: 100
+      };
+
+      setMemoNotes(prev => [...prev, newNote]);
+    }
+    setShowFabMenu(false);
+  };
+
+  // FAB 메뉴에서 음원 추가
+  const handleAddTrackFromFab = () => {
+    if (mobileContainerRef.current) {
+      const containerRect = mobileContainerRef.current.getBoundingClientRect();
+      const scrollTop = mobileContainerRef.current.scrollTop;
+      setPendingTrackPosition({
+        x: containerRect.width / 2,
+        y: containerRect.top + containerRect.height / 2 - scrollTop
+      });
+    }
+    setShowTrackModal(true);
+    setShowFabMenu(false);
+  };
+
   // 프로젝트 삭제
   const handleDeleteProject = async (projectId: string, projectTitle: string) => {
     if (!confirm(`"${projectTitle}" 프로젝트를 삭제하시겠습니까?\n\n모든 장면과 데이터가 영구적으로 삭제됩니다.`)) {
@@ -465,27 +575,6 @@ export function WebToonProjectsView() {
     }
   };
 
-  // Long press 핸들러
-  const handleTouchStart = (e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    longPressTimer.current = setTimeout(() => {
-      setContextMenu({ x: touch.clientX, y: touch.clientY });
-    }, 500);
-  };
-
-  const handleTouchEnd = () => {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-    }
-  };
-
-  const handleTouchMove = () => {
-    if (longPressTimer.current) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-    }
-  };
 
   // 모바일 스크롤 시 헤더 숨김/표시
   const handleMobileScroll = useCallback(() => {
@@ -520,8 +609,6 @@ export function WebToonProjectsView() {
     container.addEventListener('scroll', handleMobileScroll, { passive: true });
     return () => container.removeEventListener('scroll', handleMobileScroll);
   }, [currentProject, handleMobileScroll]);
-
-  const closeContextMenu = () => setContextMenu(null);
 
   // 프로젝트 변경 시 마커 상태 리셋 및 음악 정지
   useEffect(() => {
@@ -1026,9 +1113,6 @@ export function WebToonProjectsView() {
                 'md:hidden w-full h-full overflow-y-auto relative pt-14',
                 isDark ? 'bg-black' : 'bg-white'
               )}
-              onTouchStart={handleTouchStart}
-              onTouchEnd={handleTouchEnd}
-              onTouchMove={handleTouchMove}
             >
               {scenes.length === 0 ? (
                 <div className="w-full h-full flex items-center justify-center">
@@ -1071,6 +1155,8 @@ export function WebToonProjectsView() {
                       onUpdate={handleUpdateMemoNote}
                       onDelete={handleDeleteMemoNote}
                       containerRef={mobileContainerRef}
+                      onDragStateChange={handleMemoDragStateChange}
+                      isOverTrash={isOverTrash && draggingMemoId === note.id}
                     />
                   ))}
 
@@ -1089,42 +1175,44 @@ export function WebToonProjectsView() {
                   ))}
                 </>
               )}
-            </div>
 
-            {/* Long Press 컨텍스트 메뉴 */}
-            {contextMenu && (
-              <>
-                <div className="fixed inset-0 z-40" onClick={closeContextMenu} />
-                <div
-                  className={cn(
-                    'fixed z-50 rounded-lg shadow-lg border overflow-hidden select-none',
-                    isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
+              {/* 모바일 FAB 버튼 (우측 하단) */}
+              {scenes.length > 0 && !draggingMemoId && (
+                <div className="fixed bottom-24 right-4 z-30">
+                  {showFabMenu && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setShowFabMenu(false)} />
+                      <div className="absolute bottom-14 right-0 flex flex-col gap-2 items-end z-50">
+                        <button
+                          onClick={handleAddMemoFromFab}
+                          className="px-4 py-2 rounded-full bg-amber-500 text-white text-sm font-medium shadow-lg whitespace-nowrap"
+                        >
+                          메모
+                        </button>
+                        <button
+                          onClick={handleAddTrackFromFab}
+                          className="px-4 py-2 rounded-full bg-emerald-500 text-white text-sm font-medium shadow-lg whitespace-nowrap"
+                        >
+                          음원
+                        </button>
+                      </div>
+                    </>
                   )}
-                  style={{ left: contextMenu.x - 75, top: contextMenu.y - 10 }}
-                >
                   <button
-                    onClick={() => { handleAddMemoNote(contextMenu); closeContextMenu(); }}
+                    onClick={() => setShowFabMenu(!showFabMenu)}
                     className={cn(
-                      'w-full flex items-center gap-3 px-4 py-3 transition-colors select-none',
-                      isDark ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-700'
+                      'w-12 h-12 rounded-full flex items-center justify-center shadow-lg transition-all',
+                      showFabMenu
+                        ? 'bg-gray-600 rotate-45'
+                        : 'bg-emerald-500 hover:bg-emerald-600'
                     )}
                   >
-                    <StickyNote className="w-5 h-5" />
-                    <span>메모 추가</span>
-                  </button>
-                  <button
-                    onClick={() => { setPendingTrackPosition(contextMenu); setShowTrackModal(true); closeContextMenu(); }}
-                    className={cn(
-                      'w-full flex items-center gap-3 px-4 py-3 transition-colors select-none',
-                      isDark ? 'hover:bg-gray-700 text-gray-200' : 'hover:bg-gray-100 text-gray-700'
-                    )}
-                  >
-                    <Music className="w-5 h-5" />
-                    <span>음원 추가</span>
+                    <Plus className="w-6 h-6 text-white" />
                   </button>
                 </div>
-              </>
-            )}
+              )}
+
+            </div>
 
             {/* 데스크톱: 버튼들 */}
             {scenes.length > 0 && (
@@ -1228,6 +1316,8 @@ export function WebToonProjectsView() {
                         onUpdate={handleUpdateMemoNote}
                         onDelete={handleDeleteMemoNote}
                         containerRef={previewContainerRef}
+                        onDragStateChange={handleMemoDragStateChange}
+                        isOverTrash={isOverTrash && draggingMemoId === note.id}
                       />
                     ))}
 
@@ -1244,9 +1334,30 @@ export function WebToonProjectsView() {
                         onRegister={registerMarkerElement}
                       />
                     ))}
+
                   </>
                 )}
               </div>
+
+              {/* PC 전용: 드래그 시 휴지통 (핸드폰 프리뷰 하단 중앙) */}
+              {draggingMemoId && (
+                <div
+                  ref={desktopTrashRef}
+                  className={cn(
+                    'absolute z-[60] flex items-center justify-center',
+                    'w-14 h-14 rounded-full transition-all duration-200',
+                    'bottom-8 left-1/2 -translate-x-1/2',
+                    isOverTrash
+                      ? 'bg-red-500 scale-125'
+                      : 'bg-gray-700/80'
+                  )}
+                >
+                  <Trash2 className={cn(
+                    'w-6 h-6 transition-colors',
+                    isOverTrash ? 'text-white' : 'text-gray-300'
+                  )} />
+                </div>
+              )}
 
               {/* 핸드폰 하단 바 */}
               <div className={cn(
@@ -1386,6 +1497,26 @@ export function WebToonProjectsView() {
           )}
         </div>
       </div>
+
+      {/* 모바일 전용: 드래그 시 휴지통 (화면 하단 중앙) */}
+      {draggingMemoId && (
+        <div
+          ref={mobileTrashRef}
+          className={cn(
+            'md:hidden fixed z-[60] flex items-center justify-center',
+            'w-16 h-16 rounded-full transition-all duration-200',
+            'bottom-24 left-1/2 -translate-x-1/2',
+            isOverTrash
+              ? 'bg-red-500 scale-125'
+              : 'bg-gray-700/80'
+          )}
+        >
+          <Trash2 className={cn(
+            'w-7 h-7 transition-colors',
+            isOverTrash ? 'text-white' : 'text-gray-300'
+          )} />
+        </div>
+      )}
 
       {/* 음원 검색 모달 */}
       <TrackSearchModal

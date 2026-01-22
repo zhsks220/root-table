@@ -261,11 +261,11 @@ router.get('/users', async (req: AuthRequest, res: Response) => {
       WHERE created_at > NOW() - INTERVAL '7 days'
     `);
 
-    // 최근 로그인 기록 (request_logs의 /api/auth/login 성공)
+    // 최근 로그인 기록 (request_logs의 /login 성공)
     const recentLogins = await pool.query(`
       SELECT COUNT(DISTINCT user_id) as count
       FROM request_logs
-      WHERE endpoint = '/api/auth/login'
+      WHERE endpoint = '/login'
         AND status_code = 200
         AND created_at > NOW() - INTERVAL '24 hours'
     `);

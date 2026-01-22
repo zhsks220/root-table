@@ -13,7 +13,7 @@ import {
   ArrowLeft, Plus, Upload, Trash2, Music,
   Loader2, Image as ImageIcon, X, Smartphone, StickyNote,
   Save, Volume2, VolumeX, Play, Pause, Menu,
-  Eye, EyeOff, Timer
+  Eye, EyeOff, Timer, RotateCcw
 } from 'lucide-react';
 
 interface TrackMarker {
@@ -65,7 +65,8 @@ export function WebToonProjectsView() {
   const [showFabMenu, setShowFabMenu] = useState(false);
 
   // 타이머 상태
-  const [timerActive, setTimerActive] = useState(false);
+  const [showTimer, setShowTimer] = useState(false); // 타이머 UI 표시 여부
+  const [timerActive, setTimerActive] = useState(false); // 타이머 실행 중 여부
   const [timerSeconds, setTimerSeconds] = useState(0);
   const timerIntervalRef = useRef<number | null>(null);
 
@@ -528,7 +529,13 @@ export function WebToonProjectsView() {
     setShowFabMenu(false);
   };
 
-  // 타이머 토글
+  // 타이머 UI 표시/숨김 (메뉴 버튼용)
+  const handleShowTimer = () => {
+    setShowTimer(prev => !prev);
+    setShowFabMenu(false);
+  };
+
+  // 타이머 시작/정지 토글 (플레이 버튼용)
   const handleToggleTimer = () => {
     if (timerActive) {
       // 타이머 정지
@@ -544,10 +551,9 @@ export function WebToonProjectsView() {
         setTimerSeconds(prev => prev + 1);
       }, 1000);
     }
-    setShowFabMenu(false);
   };
 
-  // 타이머 리셋
+  // 타이머 리셋 (시간만 초기화, UI는 유지)
   const handleResetTimer = () => {
     if (timerIntervalRef.current) {
       clearInterval(timerIntervalRef.current);
@@ -923,9 +929,9 @@ export function WebToonProjectsView() {
             {/* 드롭다운 메뉴 */}
             {menuOpen && (
               <>
-                <div className="fixed inset-0 z-40" onClick={() => setMenuOpen(false)} />
+                <div className="fixed inset-0 z-[55]" onClick={() => setMenuOpen(false)} />
                 <div className={cn(
-                  'absolute right-0 top-full mt-2 w-48 rounded-lg shadow-lg border z-50',
+                  'absolute right-0 top-full mt-2 w-48 rounded-lg shadow-lg border z-[60]',
                   isDark ? 'bg-gray-800 border-gray-700' : 'bg-white border-gray-200'
                 )}>
                   <label className={cn(
@@ -1006,16 +1012,15 @@ export function WebToonProjectsView() {
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <label className={cn(
-              'flex items-center gap-2 px-4 py-2 rounded-lg cursor-pointer transition-colors',
+              'p-2 rounded-lg cursor-pointer transition-colors',
               uploading && 'opacity-50 pointer-events-none',
-              isDark
-                ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                : 'bg-emerald-500 hover:bg-emerald-600 text-white'
-            )}>
+              'bg-emerald-500/20 hover:bg-emerald-500/30 text-emerald-400'
+            )}
+            title="이미지 업로드"
+            >
               <Upload className="w-5 h-5" />
-              <span>이미지 업로드</span>
               <input
                 type="file"
                 accept="image/*"
@@ -1029,26 +1034,24 @@ export function WebToonProjectsView() {
               onClick={handleSaveProject}
               disabled={saving}
               className={cn(
-                'flex items-center gap-2 px-4 py-2 rounded-lg transition-colors',
+                'p-2 rounded-lg transition-colors',
                 saving && 'opacity-50 cursor-not-allowed',
-                isDark
-                  ? 'bg-gray-700 hover:bg-gray-600 text-white border border-gray-600'
-                  : 'bg-white hover:bg-gray-100 text-gray-800 border border-gray-300'
+                'bg-gray-700/50 hover:bg-gray-700 text-gray-300'
               )}
+              title="저장"
             >
               {saving ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
+                <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
-                <Save className="w-4 h-4" />
+                <Save className="w-5 h-5" />
               )}
-              <span>{saving ? '저장 중...' : '저장'}</span>
             </button>
             <button
               onClick={() => handleDeleteProject(currentProject.id, currentProject.title)}
-              className="flex items-center gap-2 px-4 py-2 rounded-lg bg-red-500 hover:bg-red-600 text-white transition-colors"
+              className="p-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 transition-colors"
+              title="삭제"
             >
-              <Trash2 className="w-4 h-4" />
-              <span>삭제</span>
+              <Trash2 className="w-5 h-5" />
             </button>
           </div>
         </header>
@@ -1231,28 +1234,25 @@ export function WebToonProjectsView() {
                 <div className="fixed bottom-24 right-4 z-30">
                   {showFabMenu && (
                     <>
-                      <div className="fixed inset-0 z-40" onClick={() => setShowFabMenu(false)} />
-                      <div className="absolute bottom-14 right-0 flex flex-col gap-2 items-end z-50">
+                      <div className="fixed inset-0 z-[55]" onClick={() => setShowFabMenu(false)} />
+                      <div className="absolute bottom-14 right-0 flex flex-col gap-2 items-end z-[60]">
                         <button
                           onClick={handleAddMemoFromFab}
-                          className="px-4 py-2 rounded-full bg-amber-500 text-white text-sm font-medium shadow-lg whitespace-nowrap"
+                          className="px-4 py-2 rounded-full bg-gray-900/90 text-emerald-400 text-sm font-medium shadow-lg whitespace-nowrap border border-gray-700"
                         >
                           메모
                         </button>
                         <button
                           onClick={handleAddTrackFromFab}
-                          className="px-4 py-2 rounded-full bg-emerald-500 text-white text-sm font-medium shadow-lg whitespace-nowrap"
+                          className="px-4 py-2 rounded-full bg-gray-900/90 text-emerald-400 text-sm font-medium shadow-lg whitespace-nowrap border border-gray-700"
                         >
                           음원
                         </button>
                         <button
-                          onClick={handleToggleTimer}
-                          className={cn(
-                            "px-4 py-2 rounded-full text-white text-sm font-medium shadow-lg whitespace-nowrap",
-                            timerActive ? "bg-red-500" : "bg-blue-500"
-                          )}
+                          onClick={handleShowTimer}
+                          className="px-4 py-2 rounded-full bg-gray-900/90 text-emerald-400 text-sm font-medium shadow-lg whitespace-nowrap border border-gray-700"
                         >
-                          {timerActive ? '타이머 정지' : '타이머'}
+                          {showTimer ? '타이머 숨김' : '타이머'}
                         </button>
                       </div>
                     </>
@@ -1272,8 +1272,8 @@ export function WebToonProjectsView() {
               )}
 
               {/* 모바일 타이머 UI (상단 중앙, 투명 배경) */}
-              {(timerActive || timerSeconds > 0) && (
-                <div className="fixed top-20 left-1/2 -translate-x-1/2 z-40 md:hidden">
+              {showTimer && (
+                <div className="fixed top-20 left-1/2 -translate-x-1/2 z-20 md:hidden">
                   <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-black/30 backdrop-blur-sm">
                     <span className="text-white text-xl font-mono font-bold">
                       {formatTimer(timerSeconds)}
@@ -1292,7 +1292,7 @@ export function WebToonProjectsView() {
                       onClick={handleResetTimer}
                       className="p-1.5 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
                     >
-                      <X className="w-4 h-4 text-white" />
+                      <RotateCcw className="w-4 h-4 text-white" />
                     </button>
                   </div>
                 </div>
@@ -1305,41 +1305,29 @@ export function WebToonProjectsView() {
               <div className="hidden md:flex gap-3">
                 <button
                   onClick={() => handleAddMemoNote()}
-                  className={cn(
-                    'flex items-center gap-2 px-4 py-2 rounded-lg transition-colors',
-                    isDark
-                      ? 'bg-yellow-600 hover:bg-yellow-700 text-white'
-                      : 'bg-yellow-500 hover:bg-yellow-600 text-white'
-                  )}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-900 hover:bg-gray-800 text-emerald-400 border border-gray-700 transition-colors"
                 >
                   <StickyNote className="w-4 h-4" />
                   <span className="text-sm font-medium">메모 추가</span>
                 </button>
                 <button
                   onClick={() => setShowTrackModal(true)}
-                  className={cn(
-                    'flex items-center gap-2 px-4 py-2 rounded-lg transition-colors',
-                    isDark
-                      ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                      : 'bg-emerald-500 hover:bg-emerald-600 text-white'
-                  )}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg bg-gray-900 hover:bg-gray-800 text-emerald-400 border border-gray-700 transition-colors"
                 >
                   <Music className="w-4 h-4" />
                   <span className="text-sm font-medium">음원 추가</span>
                 </button>
                 <button
-                  onClick={handleToggleTimer}
+                  onClick={handleShowTimer}
                   className={cn(
-                    'flex items-center gap-2 px-4 py-2 rounded-lg transition-colors',
-                    timerActive
-                      ? 'bg-red-500 hover:bg-red-600 text-white'
-                      : isDark
-                        ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                        : 'bg-blue-500 hover:bg-blue-600 text-white'
+                    'flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-700 transition-colors',
+                    showTimer
+                      ? 'bg-gray-700 text-emerald-300'
+                      : 'bg-gray-900 hover:bg-gray-800 text-emerald-400'
                   )}
                 >
                   <Timer className="w-4 h-4" />
-                  <span className="text-sm font-medium">{timerActive ? '타이머 정지' : '타이머'}</span>
+                  <span className="text-sm font-medium">{showTimer ? '타이머 숨김' : '타이머'}</span>
                 </button>
               </div>
             )}
@@ -1361,8 +1349,8 @@ export function WebToonProjectsView() {
               </div>
 
               {/* 데스크톱 타이머 UI (노치 아래, 투명 배경) */}
-              {(timerActive || timerSeconds > 0) && (
-                <div className="absolute top-10 left-1/2 -translate-x-1/2 z-20">
+              {showTimer && (
+                <div className="absolute top-10 left-1/2 -translate-x-1/2 z-30">
                   <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/30 backdrop-blur-sm">
                     <span className="text-white text-lg font-mono font-bold">
                       {formatTimer(timerSeconds)}
@@ -1381,7 +1369,7 @@ export function WebToonProjectsView() {
                       onClick={handleResetTimer}
                       className="p-1 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
                     >
-                      <X className="w-3 h-3 text-white" />
+                      <RotateCcw className="w-3 h-3 text-white" />
                     </button>
                   </div>
                 </div>

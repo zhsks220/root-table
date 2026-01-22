@@ -1391,7 +1391,7 @@ router.post('/webtoon-projects/:projectId/share', requireAdmin, async (req: Auth
     const share = result.rows[0];
 
     // 프론트엔드 URL 생성
-    const frontendUrl = process.env.FRONTEND_URL || 'https://music.routelabel.com';
+    const frontendUrl = process.env.FRONTEND_URL || 'https://routelabel.org';
     const shareUrl = `${frontendUrl}/project/share/${shareToken}`;
 
     res.status(201).json({
@@ -1423,7 +1423,7 @@ router.get('/webtoon-projects/:projectId/shares', requireAdmin, async (req: Auth
     );
 
     // 프론트엔드 URL 생성
-    const frontendUrl = process.env.FRONTEND_URL || 'https://music.routelabel.com';
+    const frontendUrl = process.env.FRONTEND_URL || 'https://routelabel.org';
     const shares = result.rows.map(share => ({
       ...share,
       shareUrl: `${frontendUrl}/project/share/${share.share_token}`,

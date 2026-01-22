@@ -572,7 +572,7 @@ router.post('/invitations', async (req: AuthRequest, res: Response) => {
       await client.query('COMMIT');
 
       // 초대 URL 생성
-      const inviteUrl = `${process.env.FRONTEND_URL || 'http://localhost:3000'}/invite/${code}`;
+      const inviteUrl = `${process.env.FRONTEND_URL || 'https://routelabel.org'}/invite/${code}`;
 
       res.status(201).json({
         success: true,

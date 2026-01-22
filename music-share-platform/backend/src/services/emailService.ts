@@ -87,7 +87,7 @@ export async function sendContactNotification(data: ContactNotificationData): Pr
           <p style="margin: 0; font-size: 12px; opacity: 0.7;">
             CMS에서 문의를 확인하고 응대해주세요.
           </p>
-          <a href="${process.env.CMS_URL || 'https://music.routelabel.org'}/cms"
+          <a href="${process.env.FRONTEND_URL || 'https://routelabel.org'}/cms"
              style="display: inline-block; margin-top: 15px; padding: 10px 20px; background: #059669; color: white; text-decoration: none; border-radius: 8px; font-size: 14px;">
             CMS 바로가기
           </a>
@@ -253,7 +253,7 @@ export async function sendChatbotNotification(data: ChatbotNotificationData): Pr
           <p style="margin: 0; font-size: 12px; opacity: 0.7;">
             CMS에서 문의를 확인하고 응대해주세요.
           </p>
-          <a href="${process.env.CMS_URL || 'https://music.routelabel.org'}/cms"
+          <a href="${process.env.FRONTEND_URL || 'https://routelabel.org'}/cms"
              style="display: inline-block; margin-top: 15px; padding: 10px 20px; background: #059669; color: white; text-decoration: none; border-radius: 8px; font-size: 14px;">
             CMS 바로가기
           </a>

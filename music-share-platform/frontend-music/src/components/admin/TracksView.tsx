@@ -725,8 +725,8 @@ export function TracksView() {
                     <th className="px-6 py-4 font-medium">아티스트</th>
                     <th className="px-6 py-4 font-medium">카테고리</th>
                     <th className="px-6 py-4 font-medium">분위기</th>
-                    <th className="px-6 py-4 font-medium">재생 시간</th>
-                    <th className="px-6 py-4 font-medium">날짜</th>
+                    <th className="px-6 py-4 font-medium whitespace-nowrap">재생 시간</th>
+                    <th className="px-6 py-4 font-medium whitespace-nowrap">날짜</th>
                     <th className="px-6 py-4 font-medium w-24"></th>
                   </tr>
                 </thead>
@@ -793,8 +793,8 @@ export function TracksView() {
                           <span className={cn(isDark ? "text-white/40" : "text-gray-400")}>-</span>
                         )}
                       </td>
-                      <td className={cn("px-6 py-4", isDark ? "text-white/70" : "text-gray-600")}>{formatDuration(track.duration)}</td>
-                      <td className={cn("px-6 py-4", isDark ? "text-white/70" : "text-gray-600")}>{formatDate(track.created_at)}</td>
+                      <td className={cn("px-6 py-4 whitespace-nowrap", isDark ? "text-white/70" : "text-gray-600")}>{formatDuration(track.duration)}</td>
+                      <td className={cn("px-6 py-4 whitespace-nowrap", isDark ? "text-white/70" : "text-gray-600")}>{formatDate(track.created_at)}</td>
                       <td className="px-6 py-4">
                         <div className="opacity-0 group-hover:opacity-100 transition-opacity flex justify-end gap-1">
                           <button

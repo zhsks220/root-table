@@ -13,7 +13,7 @@ import {
   ArrowLeft, Plus, Upload, Trash2, Music,
   Loader2, Image as ImageIcon, X, Smartphone, StickyNote,
   Save, Volume2, VolumeX, Play, Pause, Menu,
-  Eye, EyeOff
+  Eye, EyeOff, Timer
 } from 'lucide-react';
 
 interface TrackMarker {
@@ -63,6 +63,11 @@ export function WebToonProjectsView() {
 
   // FAB 메뉴 상태 (모바일)
   const [showFabMenu, setShowFabMenu] = useState(false);
+
+  // 타이머 상태
+  const [timerActive, setTimerActive] = useState(false);
+  const [timerSeconds, setTimerSeconds] = useState(0);
+  const timerIntervalRef = useRef<number | null>(null);
 
   // 드래그 중인 메모 ID (휴지통 표시용)
   const [draggingMemoId, setDraggingMemoId] = useState<string | null>(null);
@@ -522,6 +527,51 @@ export function WebToonProjectsView() {
     setShowTrackModal(true);
     setShowFabMenu(false);
   };
+
+  // 타이머 토글
+  const handleToggleTimer = () => {
+    if (timerActive) {
+      // 타이머 정지
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+        timerIntervalRef.current = null;
+      }
+      setTimerActive(false);
+    } else {
+      // 타이머 시작
+      setTimerActive(true);
+      timerIntervalRef.current = window.setInterval(() => {
+        setTimerSeconds(prev => prev + 1);
+      }, 1000);
+    }
+    setShowFabMenu(false);
+  };
+
+  // 타이머 리셋
+  const handleResetTimer = () => {
+    if (timerIntervalRef.current) {
+      clearInterval(timerIntervalRef.current);
+      timerIntervalRef.current = null;
+    }
+    setTimerActive(false);
+    setTimerSeconds(0);
+  };
+
+  // 타이머 시간 포맷
+  const formatTimer = (seconds: number) => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+  };
+
+  // 컴포넌트 언마운트 시 타이머 정리
+  useEffect(() => {
+    return () => {
+      if (timerIntervalRef.current) {
+        clearInterval(timerIntervalRef.current);
+      }
+    };
+  }, []);
 
   // 프로젝트 삭제
   const handleDeleteProject = async (projectId: string, projectTitle: string) => {
@@ -1195,6 +1245,15 @@ export function WebToonProjectsView() {
                         >
                           음원
                         </button>
+                        <button
+                          onClick={handleToggleTimer}
+                          className={cn(
+                            "px-4 py-2 rounded-full text-white text-sm font-medium shadow-lg whitespace-nowrap",
+                            timerActive ? "bg-red-500" : "bg-blue-500"
+                          )}
+                        >
+                          {timerActive ? '타이머 정지' : '타이머'}
+                        </button>
                       </div>
                     </>
                   )}
@@ -1209,6 +1268,33 @@ export function WebToonProjectsView() {
                   >
                     <Plus className="w-6 h-6 text-white" />
                   </button>
+                </div>
+              )}
+
+              {/* 모바일 타이머 UI (상단 중앙, 투명 배경) */}
+              {(timerActive || timerSeconds > 0) && (
+                <div className="fixed top-20 left-1/2 -translate-x-1/2 z-40 md:hidden">
+                  <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-black/30 backdrop-blur-sm">
+                    <span className="text-white text-xl font-mono font-bold">
+                      {formatTimer(timerSeconds)}
+                    </span>
+                    <button
+                      onClick={handleToggleTimer}
+                      className="p-1.5 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+                    >
+                      {timerActive ? (
+                        <Pause className="w-4 h-4 text-white" />
+                      ) : (
+                        <Play className="w-4 h-4 text-white" />
+                      )}
+                    </button>
+                    <button
+                      onClick={handleResetTimer}
+                      className="p-1.5 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+                    >
+                      <X className="w-4 h-4 text-white" />
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -1241,6 +1327,20 @@ export function WebToonProjectsView() {
                   <Music className="w-4 h-4" />
                   <span className="text-sm font-medium">음원 추가</span>
                 </button>
+                <button
+                  onClick={handleToggleTimer}
+                  className={cn(
+                    'flex items-center gap-2 px-4 py-2 rounded-lg transition-colors',
+                    timerActive
+                      ? 'bg-red-500 hover:bg-red-600 text-white'
+                      : isDark
+                        ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                        : 'bg-blue-500 hover:bg-blue-600 text-white'
+                  )}
+                >
+                  <Timer className="w-4 h-4" />
+                  <span className="text-sm font-medium">{timerActive ? '타이머 정지' : '타이머'}</span>
+                </button>
               </div>
             )}
 
@@ -1259,6 +1359,33 @@ export function WebToonProjectsView() {
               )}>
                 <div className="absolute top-2 left-1/2 -translate-x-1/2 w-16 h-1 bg-gray-600 rounded-full" />
               </div>
+
+              {/* 데스크톱 타이머 UI (노치 아래, 투명 배경) */}
+              {(timerActive || timerSeconds > 0) && (
+                <div className="absolute top-10 left-1/2 -translate-x-1/2 z-20">
+                  <div className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-black/30 backdrop-blur-sm">
+                    <span className="text-white text-lg font-mono font-bold">
+                      {formatTimer(timerSeconds)}
+                    </span>
+                    <button
+                      onClick={handleToggleTimer}
+                      className="p-1 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+                    >
+                      {timerActive ? (
+                        <Pause className="w-3 h-3 text-white" />
+                      ) : (
+                        <Play className="w-3 h-3 text-white" />
+                      )}
+                    </button>
+                    <button
+                      onClick={handleResetTimer}
+                      className="p-1 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+                    >
+                      <X className="w-3 h-3 text-white" />
+                    </button>
+                  </div>
+                </div>
+              )}
 
               {/* 프리뷰 내용 - 웹툰 스크롤 방식 */}
               <div

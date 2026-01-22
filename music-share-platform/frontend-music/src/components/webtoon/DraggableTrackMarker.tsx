@@ -150,27 +150,27 @@ export const DraggableTrackMarker = forwardRef<HTMLDivElement, DraggableTrackMar
       onMouseDown={handleMouseDown}
       onTouchStart={handleTouchStart}
     >
-      {/* 한 줄로 표시 */}
-      <div className="flex items-center justify-between px-3 py-2">
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          <GripVertical className="w-4 h-4 text-white flex-shrink-0" />
+      {/* 한 줄로 표시 - 컴팩트 */}
+      <div className="flex items-center justify-between px-2 py-1">
+        <div className="flex items-center gap-1.5 flex-1 min-w-0">
+          <GripVertical className="w-3 h-3 text-white flex-shrink-0" />
 
           {/* 재생/일시정지 버튼 */}
           <button
             onClick={handlePlayToggle}
-            className="p-1 hover:bg-emerald-700 rounded transition-colors flex-shrink-0"
+            className="p-0.5 hover:bg-emerald-700 rounded transition-colors flex-shrink-0"
           >
             {isThisTrackPlaying ? (
-              <Pause className="w-4 h-4 text-white fill-white" />
+              <Pause className="w-3 h-3 text-white fill-white" />
             ) : (
-              <Play className="w-4 h-4 text-white fill-white" />
+              <Play className="w-3 h-3 text-white fill-white" />
             )}
           </button>
 
-          <Music className="w-4 h-4 text-white flex-shrink-0" />
+          <Music className="w-3 h-3 text-white flex-shrink-0" />
           <div className="flex-1 min-w-0">
-            <p className="text-white text-xs font-bold truncate">{track.title}</p>
-            <p className="text-emerald-100 text-xs truncate">{track.artist}</p>
+            <p className="text-white text-[10px] font-bold truncate leading-tight">{track.title}</p>
+            <p className="text-emerald-100 text-[10px] truncate leading-tight">{track.artist}</p>
           </div>
         </div>
         <button
@@ -178,9 +178,9 @@ export const DraggableTrackMarker = forwardRef<HTMLDivElement, DraggableTrackMar
             e.stopPropagation();
             onDelete();
           }}
-          className="p-1 hover:bg-emerald-700 rounded transition-colors flex-shrink-0"
+          className="p-0.5 hover:bg-emerald-700 rounded transition-colors flex-shrink-0"
         >
-          <X className="w-4 h-4 text-white" />
+          <X className="w-3 h-3 text-white" />
         </button>
       </div>
     </div>

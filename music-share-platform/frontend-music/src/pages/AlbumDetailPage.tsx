@@ -128,7 +128,7 @@ const AlbumDetailPage = () => {
                                     {album.genre}
                                 </p>
                                 <p>
-                                    <span className="text-white/40 mr-2">웹툰</span>
+                                    <span className="text-white/40 mr-2">발매사</span>
                                     {album.artist}
                                 </p>
                                 <p>

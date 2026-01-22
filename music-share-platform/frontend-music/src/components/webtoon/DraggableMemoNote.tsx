@@ -346,12 +346,12 @@ export function DraggableMemoNote({
             onChange={(e) => setContent(e.target.value)}
             placeholder="메모 작성..."
             className={cn(
-              'w-full min-h-[60px] px-2 py-1.5 text-sm rounded border-none resize-none',
+              'w-full min-h-[60px] px-2 py-1.5 text-base rounded border-none resize-none',
               'bg-transparent placeholder-gray-400',
               'focus:outline-none focus:ring-0',
               getTextColorClass()
             )}
-            style={{ minWidth: '100px' }}
+            style={{ minWidth: '100px', fontSize: '16px' }}
             rows={3}
           />
         ) : (

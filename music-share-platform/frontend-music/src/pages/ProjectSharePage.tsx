@@ -8,7 +8,7 @@ import { Loader2, AlertCircle, CheckCircle2, ArrowRight, LogIn, Users } from 'lu
 export default function ProjectSharePage() {
   const { token } = useParams<{ token: string }>();
   const navigate = useNavigate();
-  const { isAuthenticated, user } = useAuthStore();
+  const { isAuthenticated } = useAuthStore();
 
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);

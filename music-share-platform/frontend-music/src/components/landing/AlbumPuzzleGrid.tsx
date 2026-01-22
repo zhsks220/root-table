@@ -85,26 +85,26 @@ export const AlbumPuzzleGrid = () => {
         navigate(`/albums/${album.slug}`);
     };
 
-    // 사이즈에 따른 그리드 클래스
+    // 사이즈에 따른 그리드 클래스 (모바일에서는 모두 small로 통일)
     const getSizeClasses = (size: Album['size']) => {
         switch (size) {
             case 'large':
-                return 'col-span-2 row-span-2';
+                return 'col-span-1 row-span-1 md:col-span-2 md:row-span-2';
             case 'medium':
-                return 'col-span-2 row-span-1';
+                return 'col-span-1 row-span-1 md:col-span-2 md:row-span-1';
             case 'small':
             default:
                 return 'col-span-1 row-span-1';
         }
     };
 
-    // 사이즈에 따른 aspect ratio
+    // 사이즈에 따른 aspect ratio (모바일에서는 모두 정사각형)
     const getAspectRatio = (size: Album['size']) => {
         switch (size) {
             case 'large':
                 return 'aspect-square';
             case 'medium':
-                return 'aspect-[2/1]';
+                return 'aspect-square md:aspect-[2/1]';
             case 'small':
             default:
                 return 'aspect-square';

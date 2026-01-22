@@ -30,7 +30,7 @@ export const ChatMessage = ({ message }: ChatMessageProps) => {
             : 'bg-emerald-500 rounded-2xl rounded-tr text-white'
         }`}
       >
-        <p className="text-sm leading-relaxed whitespace-pre-wrap">
+        <p className="text-sm leading-relaxed whitespace-pre-wrap break-all">
           {message.content}
         </p>
       </div>

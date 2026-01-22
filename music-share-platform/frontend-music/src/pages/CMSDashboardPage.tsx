@@ -59,6 +59,60 @@ const formatDate = (dateStr: string) => {
   return date.toLocaleDateString('ko-KR', { year: 'numeric', month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
 };
 
+// 문의 내용 JSON 파싱 및 포맷
+const formatInquiryMessage = (message: string | null | undefined) => {
+  if (!message) return null;
+
+  try {
+    const data = JSON.parse(message);
+
+    const labels: Record<string, string> = {
+      clientType: '고객 유형',
+      genres: '장르',
+      musicTypes: '음악 유형',
+      estimatedTracks: '예상 곡수',
+      timeline: '일정',
+      budget: '예산',
+      additionalNotes: '추가 요청사항',
+    };
+
+    const clientTypeLabels: Record<string, string> = {
+      author: '웹툰 작가',
+      platform: '플랫폼/제작사',
+      other: '기타',
+    };
+
+    const items: { label: string; value: string }[] = [];
+
+    if (data.clientType) {
+      items.push({ label: labels.clientType, value: clientTypeLabels[data.clientType] || data.clientType });
+    }
+    if (data.genres?.length) {
+      items.push({ label: labels.genres, value: data.genres.join(', ') });
+    }
+    if (data.musicTypes?.length) {
+      items.push({ label: labels.musicTypes, value: data.musicTypes.join(', ') });
+    }
+    if (data.estimatedTracks) {
+      items.push({ label: labels.estimatedTracks, value: data.estimatedTracks });
+    }
+    if (data.timeline) {
+      items.push({ label: labels.timeline, value: data.timeline });
+    }
+    if (data.budget) {
+      items.push({ label: labels.budget, value: data.budget });
+    }
+    if (data.additionalNotes) {
+      items.push({ label: labels.additionalNotes, value: data.additionalNotes });
+    }
+
+    return items;
+  } catch {
+    // JSON이 아닌 경우 원본 텍스트 반환
+    return null;
+  }
+};
+
 export default function CMSDashboardPage() {
   const { theme } = useThemeStore();
   const isDark = theme === 'dark';
@@ -654,15 +708,16 @@ export default function CMSDashboardPage() {
 
             {/* 상세 모달 */}
             {selectedInquiry && (
-              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+              <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 px-3 py-4">
                 <motion.div
                   initial={{ opacity: 0, scale: 0.95 }}
                   animate={{ opacity: 1, scale: 1 }}
-                  className={`w-full max-w-lg rounded-2xl p-6 ${isDark ? 'bg-[#0a0a0a] border border-white/10' : 'bg-white'}`}
+                  className={`w-full max-w-md sm:max-w-lg max-h-[85vh] rounded-2xl flex flex-col overflow-hidden ${isDark ? 'bg-[#0a0a0a] border border-white/10' : 'bg-white'}`}
                 >
-                  <div className="flex items-start justify-between mb-6">
+                  {/* 헤더 - 고정 */}
+                  <div className={`flex items-start justify-between p-5 flex-shrink-0 border-b ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
                     <div>
-                      <h2 className={`text-xl font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>문의 상세</h2>
+                      <h2 className={`text-lg font-bold ${isDark ? 'text-white' : 'text-gray-900'}`}>문의 상세</h2>
                       <p className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>{formatDate(selectedInquiry.createdAt)}</p>
                     </div>
                     <button
@@ -673,7 +728,8 @@ export default function CMSDashboardPage() {
                     </button>
                   </div>
 
-                  <div className="space-y-4">
+                  {/* 스크롤 영역 */}
+                  <div className="flex-1 overflow-y-auto p-5 pr-3 mr-2 space-y-4">
                     <div>
                       <label className={`text-xs font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>이름</label>
                       <p className={`mt-1 ${isDark ? 'text-white' : 'text-gray-900'}`}>{selectedInquiry.name}</p>
@@ -689,19 +745,37 @@ export default function CMSDashboardPage() {
                     <div>
                       <label className={`text-xs font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>작품 링크</label>
                       <a href={selectedInquiry.workLink} target="_blank" rel="noopener noreferrer" className="mt-1 text-emerald-500 hover:underline flex items-center gap-1">
-                        <ExternalLink className="w-4 h-4" />
-                        {selectedInquiry.workLink}
+                        <ExternalLink className="w-4 h-4 flex-shrink-0" />
+                        <span className="line-clamp-2">{selectedInquiry.workLink}</span>
                       </a>
                     </div>
                     <div>
                       <label className={`text-xs font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>문의 내용</label>
-                      <p className={`mt-1 whitespace-pre-wrap ${isDark ? 'text-white' : 'text-gray-900'}`}>{selectedInquiry.message || '-'}</p>
+                      {(() => {
+                        const formattedItems = formatInquiryMessage(selectedInquiry.message);
+                        if (formattedItems) {
+                          return (
+                            <div className={`mt-2 space-y-3 p-4 rounded-xl ${isDark ? 'bg-white/5' : 'bg-gray-50'}`}>
+                              {formattedItems.map((item, idx) => (
+                                <div key={idx}>
+                                  <span className={`text-xs font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>{item.label}</span>
+                                  <p className={`text-sm mt-0.5 ${isDark ? 'text-white' : 'text-gray-900'}`}>{item.value}</p>
+                                </div>
+                              ))}
+                            </div>
+                          );
+                        }
+                        return (
+                          <p className={`mt-1 whitespace-pre-wrap ${isDark ? 'text-white' : 'text-gray-900'}`}>{selectedInquiry.message || '-'}</p>
+                        );
+                      })()}
                     </div>
+                  </div>
 
-                    {/* 상태 변경 */}
-                    <div className={`pt-4 border-t ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
-                      <label className={`text-xs font-medium ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>상태 변경</label>
-                      <div className="flex flex-wrap gap-2 mt-2">
+                  {/* 하단 고정 영역 */}
+                  <div className={`flex-shrink-0 px-5 py-4 border-t ${isDark ? 'border-white/10' : 'border-gray-100'}`}>
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="flex flex-wrap gap-2">
                         {['pending', 'in_progress', 'completed', 'cancelled'].map((status) => {
                           const badge = getStatusBadge(status, isDark);
                           const isActive = selectedInquiry.status === status;
@@ -709,23 +783,19 @@ export default function CMSDashboardPage() {
                             <button
                               key={status}
                               onClick={() => updateInquiryStatus(selectedInquiry.id, status)}
-                              className={`px-3 py-1.5 rounded-lg text-sm transition-all ${isActive ? `${badge.bg} ${badge.text} ring-2 ring-offset-2 ${isDark ? 'ring-offset-[#0a0a0a]' : 'ring-offset-white'} ring-emerald-500` : `${isDark ? 'bg-white/5 text-gray-400 hover:bg-white/10' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}`}
+                              className={`px-3 py-1.5 rounded-lg text-sm transition-all ${isActive ? `${badge.bg} ${badge.text} ring-1 ring-emerald-500` : `${isDark ? 'bg-white/5 text-gray-400 hover:bg-white/10' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}`}
                             >
                               {badge.label}
                             </button>
                           );
                         })}
                       </div>
-                    </div>
-
-                    {/* 삭제 버튼 */}
-                    <div className="flex justify-end pt-4">
                       <button
                         onClick={() => {
                           deleteInquiry(selectedInquiry.id);
                           setSelectedInquiry(null);
                         }}
-                        className="px-4 py-2 rounded-lg text-sm text-red-500 hover:bg-red-500/10 transition-colors"
+                        className="px-3 py-1.5 rounded-lg text-sm text-red-500 hover:bg-red-500/10 transition-colors"
                       >
                         삭제
                       </button>

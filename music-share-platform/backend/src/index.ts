@@ -29,6 +29,9 @@ const app = express();
 const PORT = process.env.PORT || 3001;
 const isProduction = process.env.NODE_ENV === 'production';
 
+// Railway/Vercel 등 프록시 뒤에서 실행될 때 필요
+app.set('trust proxy', 1);
+
 // Rate Limiters (개발 환경에서는 제한 완화)
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15분

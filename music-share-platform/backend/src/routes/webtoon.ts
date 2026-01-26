@@ -1530,4 +1530,55 @@ router.delete('/webtoon-projects/:projectId/collaborators/:collaboratorId', requ
   }
 });
 
+// 파트너가 공유받은 프로젝트 목록 조회
+router.get('/shared-with-me', authenticateToken, async (req: AuthRequest, res: Response) => {
+  try {
+    const user = req.user!;
+
+    // 파트너 계정 체크
+    if (user.role !== 'partner') {
+      return res.status(403).json({ error: '파트너 계정만 접근 가능합니다' });
+    }
+
+    // 파트너 ID 조회
+    const partnerResult = await pool.query(
+      'SELECT id FROM partners WHERE user_id = $1',
+      [user.id]
+    );
+
+    if (partnerResult.rows.length === 0) {
+      return res.json({ projects: [] });
+    }
+
+    const partnerId = partnerResult.rows[0].id;
+
+    // 참여 중인 프로젝트 목록 조회
+    const result = await pool.query(
+      `SELECT pc.id, pc.project_id, pc.permission, pc.joined_at,
+              wp.title as project_title,
+              ps.expires_at
+       FROM project_collaborators pc
+       JOIN webtoon_projects wp ON pc.project_id = wp.id
+       LEFT JOIN project_shares ps ON pc.share_id = ps.id
+       WHERE pc.partner_id = $1
+       ORDER BY pc.joined_at DESC`,
+      [partnerId]
+    );
+
+    res.json({
+      projects: result.rows.map(row => ({
+        id: row.id,
+        projectId: row.project_id,
+        projectTitle: row.project_title,
+        permission: row.permission,
+        sharedAt: row.joined_at,
+        expiresAt: row.expires_at,
+      })),
+    });
+  } catch (error) {
+    console.error('Error fetching shared projects:', error);
+    res.status(500).json({ error: 'Failed to fetch shared projects' });
+  }
+});
+
 export default router;

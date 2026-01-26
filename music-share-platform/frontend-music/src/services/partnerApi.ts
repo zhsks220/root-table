@@ -82,6 +82,36 @@ export interface PartnerTrack {
   isActive: boolean;
 }
 
+export interface LibraryTrack {
+  id: string;
+  title: string;
+  artist: string;
+  album: string | null;
+  duration: number | null;
+  mood: string | null;
+  language: string | null;
+  bpm: number | null;
+  release_year: number | null;
+  is_explicit: boolean;
+  created_at: string;
+  categories: { id: string; name: string; is_primary: boolean }[];
+  isAssigned: boolean;
+  shareRate: number | null;
+  role: string | null;
+}
+
+export interface LibrarySearchParams {
+  q?: string;
+  category?: string;
+  mood?: string;
+  language?: string;
+  sort?: 'created_at' | 'title' | 'artist';
+  order?: 'asc' | 'desc';
+  page?: number;
+  limit?: number;
+  assigned_only?: boolean;
+}
+
 // 파트너 API 클라이언트
 export const partnerAPI = {
   // 초대 코드 확인
@@ -132,6 +162,26 @@ export const partnerAPI = {
   // 내 트랙 목록
   getTracks: () =>
     api.get<{ tracks: PartnerTrack[] }>(`${PARTNER_BASE}/tracks`),
+
+  // 전체 트랙 라이브러리 (할당 여부 포함)
+  getLibrary: (params?: LibrarySearchParams) =>
+    api.get<{
+      tracks: LibraryTrack[];
+      pagination: {
+        page: number;
+        limit: number;
+        total: number;
+        totalPages: number;
+      };
+    }>(`${PARTNER_BASE}/library`, { params }),
+
+  // 트랙 스트리밍 URL (할당된 트랙만)
+  getStreamUrl: (trackId: string) =>
+    api.get<{ streamUrl: string }>(`${PARTNER_BASE}/library/${trackId}/stream`),
+
+  // 트랙 다운로드 (할당된 트랙만)
+  downloadTrack: (trackId: string) =>
+    api.get<Blob>(`${PARTNER_BASE}/library/${trackId}/download`, { responseType: 'blob' }),
 };
 
 export default partnerAPI;

@@ -4,6 +4,8 @@ import { authenticateToken } from '../middleware/auth';
 import { AuthRequest } from '../types';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
+import { getStreamUrl, downloadFile } from '../services/supabaseStorage';
+import { transcodeToMp3 } from '../services/transcoder';
 
 const router = Router();
 
@@ -455,6 +457,228 @@ router.get('/settlements/:id', authenticateToken as any, requirePartner, async (
   } catch (error) {
     console.error('Settlement detail error:', error);
     res.status(500).json({ error: 'Failed to fetch settlement details' });
+  }
+});
+
+// GET /api/partner/library - 전체 트랙 목록 (할당 여부 포함)
+router.get('/library', authenticateToken as any, requirePartner, async (req: AuthRequest, res: Response) => {
+  try {
+    const partnerId = (req as any).partnerId;
+    const { q, category, mood, language, sort = 'created_at', order = 'desc', page = 1, limit = 20, assigned_only } = req.query;
+
+    const pageNum = Math.max(1, parseInt(page as string) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit as string) || 20));
+    const offset = (pageNum - 1) * limitNum;
+    const assignedOnlyMode = assigned_only === 'true';
+
+    // 조건 배열
+    const conditions: string[] = [];
+    const params: any[] = [partnerId];
+    let paramIndex = 2;
+
+    // 검색어
+    if (q) {
+      conditions.push(`(t.title ILIKE $${paramIndex} OR t.artist ILIKE $${paramIndex} OR t.album ILIKE $${paramIndex})`);
+      params.push(`%${q}%`);
+      paramIndex++;
+    }
+
+    // 카테고리 필터
+    if (category) {
+      conditions.push(`EXISTS (
+        SELECT 1 FROM track_categories tc
+        JOIN categories c ON tc.category_id = c.id
+        WHERE tc.track_id = t.id AND (c.id = $${paramIndex} OR c.parent_id = $${paramIndex})
+      )`);
+      params.push(category);
+      paramIndex++;
+    }
+
+    // 분위기 필터
+    if (mood) {
+      conditions.push(`t.mood = $${paramIndex}`);
+      params.push(mood);
+      paramIndex++;
+    }
+
+    // 언어 필터
+    if (language) {
+      conditions.push(`t.language = $${paramIndex}`);
+      params.push(language);
+      paramIndex++;
+    }
+
+    // assigned_only 필터 - 할당된 트랙만 표시
+    const assignedJoin = assignedOnlyMode
+      ? `INNER JOIN partner_tracks pt_filter ON pt_filter.track_id = t.id AND pt_filter.partner_id = $1 AND pt_filter.is_active = true`
+      : '';
+
+    const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+    // 정렬
+    const validSorts = ['created_at', 'title', 'artist'];
+    const sortColumn = validSorts.includes(sort as string) ? sort : 'created_at';
+    const sortOrder = order === 'asc' ? 'ASC' : 'DESC';
+
+    // 총 개수 - assigned_only 모드에서는 할당된 트랙만 카운트
+    const countResult = await pool.query(
+      `SELECT COUNT(*) FROM tracks t ${assignedJoin} ${whereClause}`,
+      assignedOnlyMode ? params : params.slice(1)
+    );
+    const total = parseInt(countResult.rows[0].count);
+
+    // 트랙 조회 (할당 여부 포함)
+    // assigned_only 모드에서는 INNER JOIN으로 할당된 트랙만 조회
+    const partnerTrackJoin = assignedOnlyMode
+      ? `INNER JOIN partner_tracks pt ON pt.track_id = t.id AND pt.partner_id = $1 AND pt.is_active = true`
+      : `LEFT JOIN partner_tracks pt ON pt.track_id = t.id AND pt.partner_id = $1 AND pt.is_active = true`;
+
+    const result = await pool.query(`
+      SELECT
+        t.id,
+        t.title,
+        t.artist,
+        t.album,
+        t.duration,
+        t.mood,
+        t.language,
+        t.bpm,
+        t.release_year,
+        t.is_explicit,
+        t.created_at,
+        CASE WHEN pt.id IS NOT NULL THEN true ELSE false END as is_assigned,
+        pt.share_rate,
+        pt.role,
+        (
+          SELECT json_agg(json_build_object('id', c.id, 'name', c.name, 'is_primary', tc.is_primary))
+          FROM track_categories tc
+          JOIN categories c ON tc.category_id = c.id
+          WHERE tc.track_id = t.id
+        ) as categories
+      FROM tracks t
+      ${partnerTrackJoin}
+      ${whereClause}
+      ORDER BY t.${sortColumn} ${sortOrder}
+      LIMIT $${paramIndex} OFFSET $${paramIndex + 1}
+    `, [...params, limitNum, offset]);
+
+    res.json({
+      tracks: result.rows.map(row => ({
+        id: row.id,
+        title: row.title,
+        artist: row.artist,
+        album: row.album,
+        duration: row.duration,
+        mood: row.mood,
+        language: row.language,
+        bpm: row.bpm,
+        release_year: row.release_year,
+        is_explicit: row.is_explicit,
+        created_at: row.created_at,
+        categories: row.categories || [],
+        isAssigned: row.is_assigned,
+        shareRate: row.share_rate ? Number(row.share_rate) : null,
+        role: row.role,
+      })),
+      pagination: {
+        page: pageNum,
+        limit: limitNum,
+        total,
+        totalPages: Math.ceil(total / limitNum),
+      },
+    });
+  } catch (error) {
+    console.error('Partner library error:', error);
+    res.status(500).json({ error: 'Failed to fetch library' });
+  }
+});
+
+// GET /api/partner/library/:trackId/stream - 트랙 스트리밍 (할당된 트랙만)
+router.get('/library/:trackId/stream', authenticateToken as any, requirePartner, async (req: AuthRequest, res: Response) => {
+  try {
+    const partnerId = (req as any).partnerId;
+    const { trackId } = req.params;
+
+    // 할당된 트랙인지 확인
+    const assignedResult = await pool.query(
+      `SELECT pt.id FROM partner_tracks pt
+       WHERE pt.partner_id = $1 AND pt.track_id = $2 AND pt.is_active = true`,
+      [partnerId, trackId]
+    );
+
+    if (assignedResult.rows.length === 0) {
+      return res.status(403).json({ error: '이 트랙에 대한 접근 권한이 없습니다' });
+    }
+
+    // 트랙 정보 조회
+    const trackResult = await pool.query(
+      'SELECT file_key FROM tracks WHERE id = $1',
+      [trackId]
+    );
+
+    if (trackResult.rows.length === 0 || !trackResult.rows[0].file_key) {
+      return res.status(404).json({ error: '트랙 파일을 찾을 수 없습니다' });
+    }
+
+    const streamUrl = await getStreamUrl(trackResult.rows[0].file_key);
+    res.json({ streamUrl });
+  } catch (error) {
+    console.error('Partner stream error:', error);
+    res.status(500).json({ error: 'Failed to get stream URL' });
+  }
+});
+
+// GET /api/partner/library/:trackId/download - 트랙 다운로드 (할당된 트랙만)
+router.get('/library/:trackId/download', authenticateToken as any, requirePartner, async (req: AuthRequest, res: Response) => {
+  try {
+    const partnerId = (req as any).partnerId;
+    const { trackId } = req.params;
+
+    // 할당된 트랙인지 확인
+    const assignedResult = await pool.query(
+      `SELECT pt.id FROM partner_tracks pt
+       WHERE pt.partner_id = $1 AND pt.track_id = $2 AND pt.is_active = true`,
+      [partnerId, trackId]
+    );
+
+    if (assignedResult.rows.length === 0) {
+      return res.status(403).json({ error: '이 트랙에 대한 다운로드 권한이 없습니다' });
+    }
+
+    // 트랙 정보 조회
+    const trackResult = await pool.query(
+      'SELECT file_key, title, artist FROM tracks WHERE id = $1',
+      [trackId]
+    );
+
+    if (trackResult.rows.length === 0 || !trackResult.rows[0].file_key) {
+      return res.status(404).json({ error: '트랙 파일을 찾을 수 없습니다' });
+    }
+
+    const { file_key, title, artist } = trackResult.rows[0];
+    const filename = `${artist} - ${title}.mp3`;
+
+    // Supabase에서 파일 다운로드
+    const fileBuffer = await downloadFile(file_key);
+
+    // FLAC인 경우 MP3로 변환
+    let outputBuffer: Buffer;
+    const isFlac = file_key.toLowerCase().endsWith('.flac');
+
+    if (isFlac) {
+      const result = await transcodeToMp3(fileBuffer);
+      outputBuffer = result.buffer;
+    } else {
+      outputBuffer = fileBuffer;
+    }
+
+    res.setHeader('Content-Type', 'audio/mpeg');
+    res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
+    res.setHeader('Content-Length', outputBuffer.length);
+    res.send(outputBuffer);
+  } catch (error) {
+    console.error('Partner download error:', error);
+    res.status(500).json({ error: 'Failed to download track' });
   }
 });
 

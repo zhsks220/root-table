@@ -7,7 +7,7 @@ interface NavbarProps {
     onCTAClick?: () => void;
 }
 
-export const Navbar = ({ onCTAClick: _onCTAClick }: NavbarProps) => {
+export const Navbar = ({ onCTAClick }: NavbarProps) => {
     const [isScrolled, setIsScrolled] = useState(false);
     const navigate = useNavigate();
     const { isAuthenticated, user } = useAuthStore();
@@ -27,8 +27,8 @@ export const Navbar = ({ onCTAClick: _onCTAClick }: NavbarProps) => {
                 navigate('/my-tracks');
             }
         } else {
-            // 로그인 안 되어 있으면 로그인 페이지로
-            navigate('/login');
+            // 비로그인 상태면 챗봇 열기
+            onCTAClick?.();
         }
     };
 
@@ -63,19 +63,27 @@ export const Navbar = ({ onCTAClick: _onCTAClick }: NavbarProps) => {
                 />
             </a>
 
-            <div className="hidden md:flex items-center gap-8 text-sm lg:text-base font-medium text-white/60 absolute left-1/2 -translate-x-1/2">
-                <a href="#process" className="hover:text-white transition-colors">제작 프로세스</a>
+            <div className="flex items-center gap-4 md:gap-12 text-xs md:text-sm lg:text-base font-medium text-white/80 ml-auto md:ml-0 md:absolute md:left-1/2 md:-translate-x-1/2">
+                <a href="#process" className="hover:text-white transition-colors">
+                    <span className="md:hidden">프로세스</span>
+                    <span className="hidden md:inline">제작 프로세스</span>
+                </a>
                 <a href="#genre-bgm" className="hover:text-white transition-colors">장르별 BGM</a>
                 <a href="#testimonials" className="hover:text-white transition-colors">독자 반응</a>
-                <a href="#contact" className="hover:text-white transition-colors">문의하기</a>
+                <a href="#contact" className="hover:text-white transition-colors">
+                    <span className="md:hidden">문의</span>
+                    <span className="hidden md:inline">문의하기</span>
+                </a>
             </div>
 
-            <button
-                onClick={handleStart}
-                className="bg-white hover:bg-gray-100 text-black px-4 py-2 lg:px-5 lg:py-2.5 rounded-full text-sm lg:text-base font-bold transition-all"
-            >
-                {isAuthenticated ? '워크스페이스' : '시작하기'}
-            </button>
+            {isAuthenticated && (
+                <button
+                    onClick={handleStart}
+                    className="bg-white hover:bg-gray-100 text-black px-4 py-2 lg:px-5 lg:py-2.5 rounded-full text-sm lg:text-base font-bold transition-all"
+                >
+                    워크스페이스
+                </button>
+            )}
         </nav>
     );
 };

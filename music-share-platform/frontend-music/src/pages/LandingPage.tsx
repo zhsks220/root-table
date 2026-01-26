@@ -9,7 +9,8 @@ import {
     ReaderReactions,
     WhoWeWorkWith,
     FinalCTA,
-    FloatingCTA
+    FloatingCTA,
+    Footer
 } from '../components/landing';
 import { ChatbotInquiry } from '../components/chatbot';
 
@@ -30,6 +31,7 @@ const LandingPage = () => {
             <ReaderReactions />
             <WhoWeWorkWith />
             <FinalCTA />
+            <Footer />
             <FloatingCTA onClick={openChatbot} />
 
             {/* 챗봇 문의 모달 */}

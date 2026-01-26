@@ -284,7 +284,7 @@ export const WhyNotStock = () => {
                         어떤 <span className="text-emerald-500">BGM</span>이 필요하신가요?
                     </h2>
                     <p className="text-white/50 text-base md:text-lg 3xl:text-2xl">
-                        작품의 감동을 극대화 시킬 수 있는 음악을 만듭니다.
+                        웹툰만을 위한 루트레이블의 음악들입니다.
                     </p>
                 </motion.div>
 
@@ -552,7 +552,7 @@ export const WhyNotStock = () => {
                     viewport={{ once: true }}
                     className="text-center text-white/50 text-base md:text-lg 3xl:text-2xl max-w-2xl 3xl:max-w-4xl mx-auto leading-relaxed"
                 >
-                    우리는 음악을 만드는 팀이 아니라, <br />
+                    우리는 단순히 음악을 만드는 팀이 아니라, <br />
                     웹툰의 흐름을 함께 설계하는 팀입니다.
                 </motion.p>
             </div>

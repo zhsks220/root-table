@@ -16,11 +16,11 @@ export const Footer = () => {
                             className="h-12 object-contain"
                         />
                         <div className="text-white/40 text-sm space-y-1">
-                            <p>상호명: 루트레이블</p>
-                            <p>대표: 홍길동</p>
-                            <p>사업자등록번호: 000-00-00000</p>
-                            <p>주소: 서울특별시 강남구 테헤란로 000</p>
-                            <p>이메일: contact@routelabel.com</p>
+                            <p>상호명: 주식회사 루트레이블</p>
+                            <p>대표: 최선</p>
+                            <p>사업자등록번호: 846-81-08268</p>
+                            <p>주소: 서울특별시 서대문구 연세로5나길 16, 지하 1층</p>
+                            <p>이메일: route@routelabel.org</p>
                         </div>
                     </div>
 

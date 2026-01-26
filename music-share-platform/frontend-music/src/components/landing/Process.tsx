@@ -17,8 +17,13 @@ const steps = [
     },
     {
         title: "음악 플롯 설계",
-        description: "작품에 어울리는 음악 레퍼런스 방향도 역제안합니다.",
+        description: "작품에 어울리는 음악을 설계합니다.",
         image: panel3,
+    },
+    {
+        title: "음악 연출",
+        description: "원고를 읽는 속도에 맞춰 적절한 타이밍에 음악을 연출합니다.",
+        image: null,
     },
     {
         title: "제작 & 수정",
@@ -32,8 +37,8 @@ const steps = [
     },
 ];
 
-// 화살표 컴포넌트 (수평/대각선)
-const FlowArrow = ({ type }: { type: 'right' | 'left' | 'down-left' | 'down-right' }) => {
+// 화살표 컴포넌트 (수평/대각선/수직)
+const FlowArrow = ({ type }: { type: 'right' | 'left' | 'down' | 'down-left' | 'down-right' }) => {
     if (type === 'right') {
         return (
             <div className="flex items-center justify-center">
@@ -47,6 +52,15 @@ const FlowArrow = ({ type }: { type: 'right' | 'left' | 'down-left' | 'down-righ
         return (
             <div className="flex items-center justify-center">
                 <svg className="w-8 h-8 text-emerald-500 rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                </svg>
+            </div>
+        );
+    }
+    if (type === 'down') {
+        return (
+            <div className="flex items-center justify-center h-12">
+                <svg className="w-8 h-8 text-emerald-500 rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
                 </svg>
             </div>
@@ -107,8 +121,8 @@ export const Process = () => {
             <div className="max-w-6xl mx-auto">
                 <div className="text-center mb-16">
                     <h2 className="text-3xl md:text-5xl 3xl:text-7xl font-black mb-6">
-                        마감일까지, <br />
-                        <span className="text-emerald-500">체계적으로.</span>
+                        웹툰을 더 재밌게, <br />
+                        <span className="text-emerald-500">마감일까지 체계적으로.</span>
                     </h2>
                 </div>
 
@@ -123,22 +137,22 @@ export const Process = () => {
                         <div className="w-[320px] justify-self-center"><StepCard step={steps[2]} /></div>
                     </div>
 
-                    {/* 대각선 화살표 줄 (3번에서 4번으로) */}
+                    {/* 아래 화살표 줄 (3번에서 4번으로) */}
                     <div className="grid grid-cols-[1fr_auto_1fr_auto_1fr] gap-4 items-center">
                         <div />
                         <div />
                         <div />
                         <div />
-                        <FlowArrow type="down-left" />
+                        <FlowArrow type="down" />
                     </div>
 
-                    {/* 두 번째 줄: 5 ← 4 */}
-                    <div className="grid grid-cols-[1fr_1fr_auto_1fr_1fr] gap-4 items-center">
-                        <div />
+                    {/* 두 번째 줄: 6 ← 5 ← 4 */}
+                    <div className="grid grid-cols-[1fr_auto_1fr_auto_1fr] gap-4 items-center">
+                        <div className="w-[320px] justify-self-center"><StepCard step={steps[5]} /></div>
+                        <FlowArrow type="left" />
                         <div className="w-[320px] justify-self-center"><StepCard step={steps[4]} /></div>
                         <FlowArrow type="left" />
                         <div className="w-[320px] justify-self-center"><StepCard step={steps[3]} /></div>
-                        <div />
                     </div>
                 </div>
 
@@ -149,11 +163,6 @@ export const Process = () => {
                     ))}
                 </div>
 
-                {/* 하단 문장 */}
-                <p className="text-center text-white/50 text-base md:text-lg 3xl:text-2xl max-w-2xl 3xl:max-w-4xl mx-auto mt-16">
-                    이 방식으로, 작품의 흐름과 <br />
-                    캐릭터 해석이 흔들리지 않게 음악을 설계합니다.
-                </p>
             </div>
         </section>
     );

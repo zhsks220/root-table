@@ -124,10 +124,11 @@ export const AlbumPuzzleGrid = () => {
                     className="text-center mb-16"
                 >
                     <h2 className="text-3xl md:text-5xl 3xl:text-7xl font-black mb-6">
-                        <span className="text-emerald-500">OST</span> 라이브러리
+                        작품의 서사를 담은 <span className="text-emerald-500">OST 앨범</span> 까지.
                     </h2>
                     <p className="text-white/50 text-base md:text-lg 3xl:text-2xl">
-                        지금까지 제작한 작품들을 만나보세요
+                        웹툰 OST 제작도 문제 없습니다.<br />
+                        우리가 제작한 앨범들을 만나보세요.
                     </p>
                 </motion.div>
 

@@ -645,7 +645,7 @@ export const ReaderReactions = () => {
                     className="text-center mb-12"
                 >
                     <h2 className="text-3xl md:text-5xl 3xl:text-7xl font-black mb-6">
-                        독자는, <span className="text-emerald-500">차이</span>를 <br className="sm:hidden" />먼저 느낍니다.
+                        독자들은, <span className="text-emerald-500">차이</span>를 <br className="sm:hidden" />먼저 느낍니다.
                     </h2>
                     <p className="text-white/50 text-base md:text-lg 3xl:text-2xl">
                         실제 독자들의 반응입니다

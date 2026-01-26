@@ -119,11 +119,11 @@ router.post('/share/:token/join', authenticateToken, async (req: AuthRequest, re
     );
 
     if (existingResult.rows.length > 0) {
-      // 이미 협업자면 바로 리다이렉트
+      // 이미 협업자면 파트너 대시보드로 리다이렉트
       return res.json({
         success: true,
         projectId: share.project_id,
-        redirectUrl: `/webtoon/${share.project_id}`,
+        redirectUrl: `/partner/dashboard`,
         message: '이미 참여 중인 프로젝트입니다',
       });
     }
@@ -138,7 +138,7 @@ router.post('/share/:token/join', authenticateToken, async (req: AuthRequest, re
     res.json({
       success: true,
       projectId: share.project_id,
-      redirectUrl: `/webtoon/${share.project_id}`,
+      redirectUrl: `/partner/dashboard`,
       message: '프로젝트에 참여했습니다',
     });
   } catch (error) {

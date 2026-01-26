@@ -108,6 +108,10 @@ app.get('/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/invitations', invitationRoutes);
 app.use('/api/tracks', trackRoutes);
+
+// 웹툰 프로젝트 라우트 (관리자 + 파트너) - adminRoutes보다 먼저 등록해야 파트너 접근 가능
+app.use('/api/admin', webtoonRoutes);
+
 app.use('/api/admin', adminRoutes);
 app.use('/api/categories', categoryRoutes);
 
@@ -125,9 +129,6 @@ app.use('/api/settings', settingsRoutes);
 
 // 상담 문의 라우트 (공개 + 관리자)
 app.use('/api/contact', contactRoutes);
-
-// 웹툰 프로젝트 라우트 (관리자 + 파트너)
-app.use('/api/admin', webtoonRoutes);
 
 // 프로젝트 공유 라우트 (공유 링크 접속용)
 app.use('/api/project', projectShareRoutes);

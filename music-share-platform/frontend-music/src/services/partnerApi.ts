@@ -182,6 +182,12 @@ export const partnerAPI = {
   // 트랙 다운로드 (할당된 트랙만)
   downloadTrack: (trackId: string) =>
     api.get<Blob>(`${PARTNER_BASE}/library/${trackId}/download`, { responseType: 'blob' }),
+
+  // 초대 코드로 트랙 할당 받기
+  acceptInvitation: (code: string) =>
+    api.post<{ success: boolean; assignedCount: number; message: string }>(
+      `${PARTNER_BASE}/accept-invitation/${code}`
+    ),
 };
 
 export default partnerAPI;

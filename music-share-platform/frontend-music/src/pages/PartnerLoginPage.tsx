@@ -1,14 +1,17 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useThemeStore } from '../store/themeStore';
-import { Loader2, AlertCircle, ArrowRight, Eye, EyeOff } from 'lucide-react';
+import { Loader2, AlertCircle, ArrowRight, Eye, EyeOff, Music } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '../lib/utils';
+import { partnerAPI } from '../services/partnerApi';
+import { invitationAPI } from '../services/api';
 
 export default function PartnerLoginPage() {
   const navigate = useNavigate();
-  const { login, isLoading, error: authError } = useAuthStore();
+  const [searchParams] = useSearchParams();
+  const { login, isLoading, error: authError, isAuthenticated, user } = useAuthStore();
   const { theme } = useThemeStore();
   const isDark = theme === 'dark';
 
@@ -16,6 +19,49 @@ export default function PartnerLoginPage() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  // 초대 코드 관련 상태
+  const inviteCode = searchParams.get('invite');
+  const [inviteInfo, setInviteInfo] = useState<{ trackCount: number } | null>(null);
+  const [acceptingInvite, setAcceptingInvite] = useState(false);
+
+  // 이미 로그인된 경우 처리
+  useEffect(() => {
+    if (isAuthenticated && user?.role === 'partner') {
+      // 초대 코드가 있으면 트랙 할당 후 대시보드로
+      if (inviteCode) {
+        setAcceptingInvite(true);
+        partnerAPI.acceptInvitation(inviteCode)
+          .then(() => {
+            navigate('/partner/dashboard');
+          })
+          .catch(() => {
+            // 실패해도 대시보드로 이동
+            navigate('/partner/dashboard');
+          });
+      } else {
+        // 초대 코드 없으면 바로 대시보드로
+        navigate('/partner/dashboard');
+      }
+    } else if (isAuthenticated && user?.role === 'admin') {
+      navigate('/cms');
+    }
+  }, [isAuthenticated, user, inviteCode, navigate]);
+
+  // 초대 코드가 있으면 정보 조회
+  useEffect(() => {
+    if (inviteCode && !isAuthenticated) {
+      invitationAPI.verify(inviteCode)
+        .then((response) => {
+          if (response.data.valid) {
+            setInviteInfo({ trackCount: response.data.trackCount });
+          }
+        })
+        .catch(() => {
+          // 무시 - 초대 코드가 유효하지 않아도 로그인은 가능
+        });
+    }
+  }, [inviteCode, isAuthenticated]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +77,17 @@ export default function PartnerLoginPage() {
       // 로그인 성공 후 역할에 따라 리다이렉트
       const user = useAuthStore.getState().user;
       if (user?.role === 'partner') {
+        // 초대 코드가 있으면 트랙 할당
+        if (inviteCode) {
+          setAcceptingInvite(true);
+          try {
+            await partnerAPI.acceptInvitation(inviteCode);
+          } catch {
+            // 할당 실패해도 로그인은 성공했으므로 계속 진행
+          }
+          setAcceptingInvite(false);
+        }
+
         // 공유 링크에서 왔으면 해당 페이지로 복귀
         const redirectUrl = sessionStorage.getItem('redirectAfterLogin');
         if (redirectUrl) {
@@ -45,7 +102,6 @@ export default function PartnerLoginPage() {
         navigate('/');
       }
     } catch (err: any) {
-      console.error('Login failed:', err);
       setError(err.response?.data?.error || '로그인에 실패했습니다.');
     }
   };
@@ -69,9 +125,29 @@ export default function PartnerLoginPage() {
             파트너 로그인
           </h1>
           <p className={`text-sm px-4 sm:px-0 ${isDark ? 'text-gray-400' : 'text-gray-500'}`}>
-            루트레이블 파트너 대시보드에 접속하세요
+            {inviteInfo
+              ? '로그인하면 초대받은 음원이 자동으로 할당됩니다'
+              : '루트레이블 파트너 대시보드에 접속하세요'}
           </p>
         </div>
+
+        {/* 초대 정보 표시 */}
+        {inviteInfo && (
+          <motion.div
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className={`mb-4 p-4 rounded-xl border flex items-center gap-3 ${
+              isDark
+                ? 'bg-emerald-500/10 border-emerald-500/20 text-emerald-400'
+                : 'bg-emerald-50 border-emerald-100 text-emerald-700'
+            }`}
+          >
+            <Music className="w-5 h-5 flex-shrink-0" />
+            <span className="text-sm">
+              <strong>{inviteInfo.trackCount}개의 음원</strong>이 준비되어 있습니다
+            </span>
+          </motion.div>
+        )}
 
         {/* 에러 메시지 */}
         {(error || authError) && (
@@ -91,7 +167,7 @@ export default function PartnerLoginPage() {
             {/* 이메일 입력 */}
             <div>
               <input
-                type="email"
+                type="text"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className={`w-full px-4 py-3.5 sm:py-3 border rounded-xl text-base sm:text-sm placeholder:text-gray-400 focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 outline-none transition-all ${
@@ -99,9 +175,8 @@ export default function PartnerLoginPage() {
                     ? 'bg-white/5 border-white/10 text-white'
                     : 'bg-white border-gray-200 text-gray-900'
                 }`}
-                placeholder="이메일 주소"
-                autoComplete="email"
-                inputMode="email"
+                placeholder="사용자명 또는 이메일"
+                autoComplete="username"
               />
             </div>
 
@@ -132,20 +207,20 @@ export default function PartnerLoginPage() {
           {/* 로그인 버튼 */}
           <button
             type="submit"
-            disabled={isLoading}
+            disabled={isLoading || acceptingInvite}
             className={cn(
               "w-full font-medium py-3.5 sm:py-3 rounded-xl shadow-lg flex items-center justify-center gap-2 transition-all active:scale-[0.98] text-base sm:text-sm",
               isDark
                 ? "bg-emerald-500 hover:bg-emerald-600 text-white shadow-emerald-500/20"
                 : "bg-gray-900 hover:bg-black text-white shadow-gray-900/10",
-              isLoading && "opacity-80 disabled:cursor-not-allowed"
+              (isLoading || acceptingInvite) && "opacity-80 disabled:cursor-not-allowed"
             )}
           >
-            {isLoading ? (
+            {isLoading || acceptingInvite ? (
               <Loader2 className="w-5 h-5 sm:w-4 sm:h-4 animate-spin" />
             ) : (
               <>
-                로그인
+                {inviteCode ? '로그인 및 음원 받기' : '로그인'}
                 <ArrowRight className="w-5 h-5 sm:w-4 sm:h-4" />
               </>
             )}

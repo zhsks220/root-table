@@ -26,32 +26,32 @@ router.post('/login', async (req, res: Response) => {
     const { email, password } = req.body;
 
     if (!email || !password) {
-      return res.status(400).json({ error: 'Email and password are required' });
+      return res.status(400).json({ error: '사용자명/이메일과 비밀번호를 입력해주세요' });
     }
 
-    // 사용자 조회 (partner role만)
+    // 사용자 조회 (partner role만) - username 또는 email로 검색
     const userResult = await pool.query(`
       SELECT u.*, p.id as partner_id, p.business_name, p.is_active as partner_active
       FROM users u
       LEFT JOIN partners p ON p.user_id = u.id
-      WHERE u.email = $1 AND u.role = 'partner'
+      WHERE (u.email = $1 OR u.username = $1) AND u.role = 'partner'
     `, [email]);
 
     if (userResult.rows.length === 0) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+      return res.status(401).json({ error: '사용자명/이메일 또는 비밀번호가 잘못되었습니다' });
     }
 
     const user = userResult.rows[0];
 
     // 파트너 활성화 상태 확인
     if (!user.partner_active) {
-      return res.status(403).json({ error: 'Partner account is deactivated' });
+      return res.status(403).json({ error: '파트너 계정이 비활성화되었습니다' });
     }
 
     // 비밀번호 확인
     const validPassword = await bcrypt.compare(password, user.password_hash);
     if (!validPassword) {
-      return res.status(401).json({ error: 'Invalid email or password' });
+      return res.status(401).json({ error: '사용자명/이메일 또는 비밀번호가 잘못되었습니다' });
     }
 
     // JWT 토큰 생성
@@ -119,23 +119,95 @@ router.get('/validate-invitation/:code', async (req, res: Response) => {
 
 // 파트너 전용 미들웨어
 const requirePartner = async (req: AuthRequest, res: Response, next: any) => {
-  if (req.user?.role !== 'partner') {
-    return res.status(403).json({ error: 'Partner access only' });
+  try {
+    if (req.user?.role !== 'partner') {
+      return res.status(403).json({ error: 'Partner access only' });
+    }
+
+    // 파트너 ID 조회
+    const partnerResult = await pool.query(
+      'SELECT id FROM partners WHERE user_id = $1 AND is_active = true',
+      [req.user.id]
+    );
+
+    if (partnerResult.rows.length === 0) {
+      return res.status(403).json({ error: 'Partner not found or inactive' });
+    }
+
+    (req as any).partnerId = partnerResult.rows[0].id;
+    next();
+  } catch (error) {
+    console.error('requirePartner middleware error:', error);
+    res.status(500).json({ error: 'Internal server error' });
   }
-
-  // 파트너 ID 조회
-  const partnerResult = await pool.query(
-    'SELECT id FROM partners WHERE user_id = $1 AND is_active = true',
-    [req.user.id]
-  );
-
-  if (partnerResult.rows.length === 0) {
-    return res.status(403).json({ error: 'Partner not found or inactive' });
-  }
-
-  (req as any).partnerId = partnerResult.rows[0].id;
-  next();
 };
+
+// POST /api/partner/accept-invitation/:code - 초대 코드로 트랙 할당 받기
+router.post('/accept-invitation/:code', authenticateToken as any, requirePartner, async (req: AuthRequest, res: Response) => {
+  try {
+    const { code } = req.params;
+    const partnerId = (req as any).partnerId;
+
+    // 초대 코드 조회
+    const inviteResult = await pool.query(`
+      SELECT id, is_used, expires_at
+      FROM invitations
+      WHERE code = $1
+    `, [code]);
+
+    if (inviteResult.rows.length === 0) {
+      return res.status(404).json({ error: '유효하지 않은 초대 코드입니다' });
+    }
+
+    const invitation = inviteResult.rows[0];
+
+    // 이미 사용된 초대 코드인지 확인
+    if (invitation.is_used) {
+      return res.status(400).json({ error: '이미 사용된 초대 코드입니다' });
+    }
+
+    // 만료 확인
+    if (invitation.expires_at && new Date(invitation.expires_at) < new Date()) {
+      return res.status(400).json({ error: '만료된 초대 코드입니다' });
+    }
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+
+      // 초대에 연결된 트랙들을 파트너에게 할당
+      const tracksResult = await client.query(`
+        INSERT INTO partner_tracks (partner_id, track_id, is_active)
+        SELECT $1, it.track_id, true
+        FROM invitation_tracks it
+        WHERE it.invitation_id = $2
+        ON CONFLICT (partner_id, track_id) DO NOTHING
+        RETURNING track_id
+      `, [partnerId, invitation.id]);
+
+      // 초대 코드를 사용됨으로 표시
+      await client.query(`
+        UPDATE invitations SET is_used = TRUE, used_by = $1 WHERE id = $2
+      `, [req.user!.id, invitation.id]);
+
+      await client.query('COMMIT');
+
+      res.json({
+        success: true,
+        assignedCount: tracksResult.rowCount,
+        message: `${tracksResult.rowCount}개의 음원이 할당되었습니다`
+      });
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
+  } catch (error: any) {
+    console.error('Accept invitation error:', error);
+    res.status(500).json({ error: '초대 수락에 실패했습니다' });
+  }
+});
 
 // GET /api/partner/dashboard - 대시보드 요약
 router.get('/dashboard', authenticateToken as any, requirePartner, async (req: AuthRequest, res: Response) => {

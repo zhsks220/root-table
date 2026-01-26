@@ -754,6 +754,140 @@ router.put('/notifications/read-all', authenticateToken as any, requirePartner, 
   }
 });
 
+// =====================================================
+// 웹툰 프로젝트 (협업자)
+// =====================================================
+
+// GET /api/partner/projects - 협업자로 참여 중인 프로젝트 목록
+router.get('/projects', authenticateToken as any, requirePartner, async (req: AuthRequest, res: Response) => {
+  try {
+    const partnerId = (req as any).partnerId;
+
+    const result = await pool.query(`
+      SELECT
+        wp.id,
+        wp.title,
+        wp.description,
+        wp.cover_image_key,
+        wp.status,
+        wp.created_at,
+        wp.updated_at,
+        pc.permission,
+        pc.joined_at,
+        u.name as creator_name,
+        (SELECT COUNT(*) FROM webtoon_scenes ws WHERE ws.project_id = wp.id) as scene_count
+      FROM project_collaborators pc
+      JOIN webtoon_projects wp ON wp.id = pc.project_id
+      LEFT JOIN users u ON u.id = wp.created_by
+      WHERE pc.partner_id = $1
+      ORDER BY pc.joined_at DESC
+    `, [partnerId]);
+
+    res.json({
+      projects: result.rows.map(row => ({
+        id: row.id,
+        title: row.title,
+        description: row.description,
+        coverImageKey: row.cover_image_key,
+        status: row.status,
+        createdAt: row.created_at,
+        updatedAt: row.updated_at,
+        permission: row.permission,
+        joinedAt: row.joined_at,
+        creatorName: row.creator_name,
+        sceneCount: Number(row.scene_count),
+      })),
+    });
+  } catch (error) {
+    console.error('Partner projects error:', error);
+    res.status(500).json({ error: 'Failed to fetch projects' });
+  }
+});
+
+// GET /api/partner/projects/:id - 프로젝트 상세 조회
+router.get('/projects/:id', authenticateToken as any, requirePartner, async (req: AuthRequest, res: Response) => {
+  try {
+    const partnerId = (req as any).partnerId;
+    const { id } = req.params;
+
+    // 협업자 권한 확인
+    const collabResult = await pool.query(
+      'SELECT permission FROM project_collaborators WHERE project_id = $1 AND partner_id = $2',
+      [id, partnerId]
+    );
+
+    if (collabResult.rows.length === 0) {
+      return res.status(403).json({ error: '이 프로젝트에 대한 접근 권한이 없습니다' });
+    }
+
+    // 프로젝트 정보
+    const projectResult = await pool.query(`
+      SELECT wp.*, u.name as creator_name
+      FROM webtoon_projects wp
+      LEFT JOIN users u ON u.id = wp.created_by
+      WHERE wp.id = $1
+    `, [id]);
+
+    if (projectResult.rows.length === 0) {
+      return res.status(404).json({ error: '프로젝트를 찾을 수 없습니다' });
+    }
+
+    const project = projectResult.rows[0];
+
+    // 장면 목록
+    const scenesResult = await pool.query(`
+      SELECT
+        ws.id,
+        ws.image_key,
+        ws.thumbnail_key,
+        ws.display_order,
+        ws.memo,
+        ws.scroll_trigger_position,
+        (
+          SELECT json_agg(json_build_object(
+            'id', st.id,
+            'trackId', t.id,
+            'title', t.title,
+            'artist', t.artist,
+            'displayOrder', st.display_order
+          ) ORDER BY st.display_order)
+          FROM scene_tracks st
+          JOIN tracks t ON t.id = st.track_id
+          WHERE st.scene_id = ws.id
+        ) as tracks
+      FROM webtoon_scenes ws
+      WHERE ws.project_id = $1
+      ORDER BY ws.display_order
+    `, [id]);
+
+    res.json({
+      project: {
+        id: project.id,
+        title: project.title,
+        description: project.description,
+        coverImageKey: project.cover_image_key,
+        status: project.status,
+        createdAt: project.created_at,
+        updatedAt: project.updated_at,
+        creatorName: project.creator_name,
+      },
+      permission: collabResult.rows[0].permission,
+      scenes: scenesResult.rows.map(row => ({
+        id: row.id,
+        imageKey: row.image_key,
+        thumbnailKey: row.thumbnail_key,
+        displayOrder: row.display_order,
+        memo: row.memo,
+        scrollTriggerPosition: row.scroll_trigger_position,
+        tracks: row.tracks || [],
+      })),
+    });
+  } catch (error) {
+    console.error('Partner project detail error:', error);
+    res.status(500).json({ error: 'Failed to fetch project details' });
+  }
+});
+
 // GET /api/partner/profile - 내 프로필 조회
 router.get('/profile', authenticateToken as any, requirePartner, async (req: AuthRequest, res: Response) => {
   try {

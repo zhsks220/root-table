@@ -27,8 +27,17 @@ export function PartnerProjectsView() {
 
   const loadSharedProjects = async () => {
     try {
-      const response = await api.get('/admin/shared-with-me');
-      setProjects(response.data.projects || []);
+      const response = await api.get('/partner/projects');
+      // partner/projects API는 다른 형식으로 반환하므로 매핑
+      const projects = response.data.projects || [];
+      setProjects(projects.map((p: any) => ({
+        id: p.id,
+        projectId: p.id,
+        projectTitle: p.title,
+        permission: p.permission,
+        sharedAt: p.joinedAt,
+        expiresAt: null,
+      })));
     } catch (error) {
       console.error('Failed to load shared projects:', error);
     } finally {

@@ -24,7 +24,13 @@ interface TrackMarker {
   position: { x: number; y: number };
 }
 
-export function WebToonProjectsView() {
+interface WebToonProjectsViewProps {
+  // 파트너가 특정 프로젝트로 바로 진입할 때 사용
+  projectId?: string;
+  onClose?: () => void;
+}
+
+export function WebToonProjectsView({ projectId: initialProjectId, onClose }: WebToonProjectsViewProps = {}) {
   const { theme } = useThemeStore();
   const isDark = theme === 'dark';
   const { user } = useAuthStore();
@@ -155,10 +161,15 @@ export function WebToonProjectsView() {
     }
   }, []);
 
-  // 컴포넌트 마운트 시 프로젝트 목록 로드
+  // 컴포넌트 마운트 시 프로젝트 목록 로드 또는 특정 프로젝트 직접 로드
   useEffect(() => {
-    loadProjects();
-  }, [loadProjects]);
+    if (initialProjectId) {
+      // 파트너가 특정 프로젝트로 바로 진입하는 경우
+      setCurrentProject({ id: initialProjectId } as WebToonProject);
+    } else {
+      loadProjects();
+    }
+  }, [loadProjects, initialProjectId]);
 
   // 프로젝트 데이터 로드
   const loadProject = useCallback(async () => {
@@ -939,7 +950,7 @@ export function WebToonProjectsView() {
         )}>
           {/* 왼쪽: 뒤로가기 */}
           <button
-            onClick={() => setCurrentProject(null)}
+            onClick={() => onClose ? onClose() : setCurrentProject(null)}
             className={cn(
               'p-2 rounded-lg transition-colors',
               isDark ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-700'
@@ -1010,16 +1021,18 @@ export function WebToonProjectsView() {
                     <Save className="w-5 h-5" />
                     <span>저장</span>
                   </button>
-                  <button
-                    onClick={() => { handleDeleteProject(currentProject.id, currentProject.title); setMenuOpen(false); }}
-                    className={cn(
-                      'w-full flex items-center gap-3 px-4 py-3 transition-colors text-red-500',
-                      isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
-                    )}
-                  >
-                    <Trash2 className="w-5 h-5" />
-                    <span>삭제</span>
-                  </button>
+                  {isAdmin && (
+                    <button
+                      onClick={() => { handleDeleteProject(currentProject.id, currentProject.title); setMenuOpen(false); }}
+                      className={cn(
+                        'w-full flex items-center gap-3 px-4 py-3 transition-colors text-red-500',
+                        isDark ? 'hover:bg-gray-700' : 'hover:bg-gray-100'
+                      )}
+                    >
+                      <Trash2 className="w-5 h-5" />
+                      <span>삭제</span>
+                    </button>
+                  )}
                 </div>
               </>
             )}
@@ -1033,7 +1046,7 @@ export function WebToonProjectsView() {
         )}>
           <div className="flex items-center gap-4">
             <button
-              onClick={() => setCurrentProject(null)}
+              onClick={() => onClose ? onClose() : setCurrentProject(null)}
               className={cn(
                 'p-2 rounded-lg transition-colors',
                 isDark ? 'hover:bg-gray-700 text-gray-300' : 'hover:bg-gray-100 text-gray-700'
@@ -1085,13 +1098,15 @@ export function WebToonProjectsView() {
                 <Save className="w-5 h-5" />
               )}
             </button>
-            <button
-              onClick={() => handleDeleteProject(currentProject.id, currentProject.title)}
-              className="p-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 transition-colors"
-              title="삭제"
-            >
-              <Trash2 className="w-5 h-5" />
-            </button>
+            {isAdmin && (
+              <button
+                onClick={() => handleDeleteProject(currentProject.id, currentProject.title)}
+                className="p-2 rounded-lg bg-red-500/20 hover:bg-red-500/30 text-red-400 transition-colors"
+                title="삭제"
+              >
+                <Trash2 className="w-5 h-5" />
+              </button>
+            )}
           </div>
         </header>
 

@@ -33,21 +33,35 @@ router.get('/:trackId/stream', authenticateToken, async (req: AuthRequest, res: 
   try {
     const { trackId } = req.params;
     const userId = req.user!.id;
+    const userRole = req.user!.role;
 
-    // 권한 확인
-    const accessResult = await pool.query(
-      `SELECT t.file_key
-       FROM tracks t
-       INNER JOIN user_tracks ut ON t.id = ut.track_id
-       WHERE t.id = $1 AND ut.user_id = $2`,
-      [trackId, userId]
-    );
+    let track;
 
-    if (accessResult.rows.length === 0) {
-      return res.status(403).json({ error: 'Access denied' });
+    // 파트너는 웹툰 프로젝트 협업용으로 권한 체크 없이 스트리밍 허용
+    if (userRole === 'partner') {
+      const trackResult = await pool.query(
+        'SELECT file_key FROM tracks WHERE id = $1',
+        [trackId]
+      );
+      if (trackResult.rows.length === 0) {
+        return res.status(404).json({ error: 'Track not found' });
+      }
+      track = trackResult.rows[0];
+    } else {
+      // 일반 사용자는 기존 권한 확인
+      const accessResult = await pool.query(
+        `SELECT t.file_key
+         FROM tracks t
+         INNER JOIN user_tracks ut ON t.id = ut.track_id
+         WHERE t.id = $1 AND ut.user_id = $2`,
+        [trackId, userId]
+      );
+
+      if (accessResult.rows.length === 0) {
+        return res.status(403).json({ error: 'Access denied' });
+      }
+      track = accessResult.rows[0];
     }
-
-    const track = accessResult.rows[0];
 
     // S3 Pre-signed URL 생성
     const streamUrl = await getStreamUrl(track.file_key);

@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
-import { WebToonEditor } from '../components/webtoon/WebToonEditor';
+import { WebToonProjectsView } from '../components/admin/WebToonProjectsView';
 
 export default function SharedProjectPage() {
   const { projectId } = useParams<{ projectId: string }>();
@@ -14,7 +14,7 @@ export default function SharedProjectPage() {
   }
 
   return (
-    <WebToonEditor
+    <WebToonProjectsView
       projectId={projectId}
       onClose={() => navigate('/partner/dashboard')}
     />

@@ -124,7 +124,7 @@ export const AlbumPuzzleGrid = () => {
                     className="text-center mb-16"
                 >
                     <h2 className="text-3xl md:text-5xl 3xl:text-7xl font-black mb-6">
-                        작품의 서사를 담은 <span className="text-emerald-500">OST 앨범</span> 까지.
+                        작품의 서사를 담은<br className="md:hidden" /> <span className="text-emerald-500">OST 앨범</span> 까지.
                     </h2>
                     <p className="text-white/50 text-base md:text-lg 3xl:text-2xl">
                         웹툰 OST 제작도 문제 없습니다.<br />

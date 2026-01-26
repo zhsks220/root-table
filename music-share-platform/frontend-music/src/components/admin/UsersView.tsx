@@ -36,7 +36,13 @@ export function UsersView() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState<string | null>(null);
 
   // 생성 폼
-  const [createForm, setCreateForm] = useState<{ name: string; email: string; role: 'user' | 'admin' | 'partner' | 'developer' }>({ name: '', email: '', role: 'user' });
+  const [createForm, setCreateForm] = useState<{
+    name: string;
+    email: string;
+    role: 'user' | 'admin' | 'partner' | 'developer';
+    partnerType?: 'artist' | 'company' | 'composer';
+    businessName?: string;
+  }>({ name: '', email: '', role: 'user' });
   const [createLoading, setCreateLoading] = useState(false);
   const [createdUser, setCreatedUser] = useState<{ username: string; password: string } | null>(null);
   const [copied, setCopied] = useState<'username' | 'password' | null>(null);
@@ -68,12 +74,22 @@ export function UsersView() {
   const handleCreateUser = async () => {
     if (!createForm.name.trim()) return;
 
+    // 파트너 역할인 경우 partnerType 필수
+    if (createForm.role === 'partner' && !createForm.partnerType) {
+      alert('파트너 유형을 선택해주세요');
+      return;
+    }
+
     setCreateLoading(true);
     try {
       const res = await adminAPI.createUser({
         name: createForm.name,
         email: createForm.email || undefined,
         role: createForm.role,
+        ...(createForm.role === 'partner' && {
+          partnerType: createForm.partnerType,
+          businessName: createForm.businessName,
+        }),
       });
 
       setCreatedUser({
@@ -498,7 +514,7 @@ export function UsersView() {
                       {ROLES.filter(r => currentUser?.role === 'developer' || r.value !== 'developer').map(role => (
                         <button
                           key={role.value}
-                          onClick={() => setCreateForm({ ...createForm, role: role.value })}
+                          onClick={() => setCreateForm({ ...createForm, role: role.value, partnerType: undefined, businessName: undefined })}
                           className={cn(
                             "px-4 py-3 rounded-xl text-sm font-medium border transition-all",
                             createForm.role === role.value
@@ -514,6 +530,56 @@ export function UsersView() {
                       ))}
                     </div>
                   </div>
+
+                  {/* 파트너 전용 필드 */}
+                  {createForm.role === 'partner' && (
+                    <>
+                      <div>
+                        <label className={cn("block text-sm font-medium mb-2", isDark ? "text-white/70" : "text-gray-700")}>
+                          파트너 유형 <span className="text-red-500">*</span>
+                        </label>
+                        <div className="grid grid-cols-3 gap-2">
+                          {[
+                            { value: 'artist', label: '아티스트' },
+                            { value: 'company', label: '회사' },
+                            { value: 'composer', label: '작곡가' },
+                          ].map(type => (
+                            <button
+                              key={type.value}
+                              onClick={() => setCreateForm({ ...createForm, partnerType: type.value as 'artist' | 'company' | 'composer' })}
+                              className={cn(
+                                "px-3 py-2 rounded-lg text-sm font-medium border transition-all",
+                                createForm.partnerType === type.value
+                                  ? (isDark ? "bg-blue-500/20 border-blue-500/50 text-blue-400" : "bg-blue-50 border-blue-500 text-blue-700")
+                                  : (isDark ? "bg-white/5 border-white/10 text-white/70 hover:bg-white/10" : "bg-white border-gray-200 text-gray-600 hover:bg-gray-50")
+                              )}
+                            >
+                              {type.label}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <label className={cn("block text-sm font-medium mb-2", isDark ? "text-white/70" : "text-gray-700")}>
+                          사업자명/활동명 <span className={isDark ? "text-white/30" : "text-gray-400"}>(선택)</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={createForm.businessName || ''}
+                          onChange={(e) => setCreateForm({ ...createForm, businessName: e.target.value })}
+                          placeholder="예: 루트레이블 엔터테인먼트"
+                          className={cn(
+                            "w-full px-4 py-3 rounded-xl border transition-all",
+                            isDark
+                              ? "bg-white/5 border-white/10 text-white placeholder:text-white/30 focus:border-emerald-500/50"
+                              : "bg-white border-gray-200 text-gray-900 placeholder:text-gray-400 focus:border-emerald-500"
+                          )}
+                        />
+                      </div>
+
+                    </>
+                  )}
                 </div>
 
                 <div className="flex gap-3 mt-6">

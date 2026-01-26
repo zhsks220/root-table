@@ -10,130 +10,14 @@ import { transcodeToMp3 } from '../services/transcoder';
 const router = Router();
 
 // =====================================================
-// 파트너 인증 (초대 코드로 회원가입)
+// 파트너 인증
 // =====================================================
 
-// POST /api/partner/register - 초대 코드로 파트너 회원가입
-router.post('/register', async (req, res: Response) => {
-  try {
-    const { invitationCode, email, password, name } = req.body;
-
-    if (!invitationCode || !email || !password || !name) {
-      return res.status(400).json({ error: 'All fields are required' });
-    }
-
-    // 초대 코드 확인
-    const invitationResult = await pool.query(`
-      SELECT * FROM partner_invitations
-      WHERE invitation_code = $1
-        AND is_used = false
-        AND (expires_at IS NULL OR expires_at > NOW())
-    `, [invitationCode]);
-
-    if (invitationResult.rows.length === 0) {
-      return res.status(400).json({ error: 'Invalid or expired invitation code' });
-    }
-
-    const invitation = invitationResult.rows[0];
-
-    // 이메일 중복 확인
-    const existingUser = await pool.query(
-      'SELECT id FROM users WHERE email = $1',
-      [email]
-    );
-
-    if (existingUser.rows.length > 0) {
-      return res.status(400).json({ error: 'Email already registered' });
-    }
-
-    const client = await pool.connect();
-    try {
-      await client.query('BEGIN');
-
-      // 비밀번호 해시 (bcrypt 12 라운드)
-      const passwordHash = await bcrypt.hash(password, 12);
-
-      // 사용자 생성 (role: partner)
-      const userResult = await client.query(`
-        INSERT INTO users (email, password_hash, name, role, invitation_code)
-        VALUES ($1, $2, $3, 'partner', $4)
-        RETURNING id, email, name, role
-      `, [email, passwordHash, name, invitationCode]);
-
-      const user = userResult.rows[0];
-
-      // 파트너 프로필 생성
-      const partnerResult = await client.query(`
-        INSERT INTO partners (
-          user_id, partner_type, business_name, phone, default_share_rate, memo
-        )
-        VALUES ($1, $2, $3, $4, $5, $6)
-        RETURNING id
-      `, [
-        user.id,
-        invitation.partner_type,
-        invitation.business_name || name,
-        invitation.phone,
-        invitation.default_share_rate,
-        invitation.memo
-      ]);
-
-      const partnerId = partnerResult.rows[0].id;
-
-      // 초대에 포함된 트랙 할당
-      const invitationTracks = await client.query(`
-        SELECT track_id, share_rate, role
-        FROM partner_invitation_tracks
-        WHERE invitation_id = $1
-      `, [invitation.id]);
-
-      for (const track of invitationTracks.rows) {
-        await client.query(`
-          INSERT INTO partner_tracks (partner_id, track_id, share_rate, role)
-          VALUES ($1, $2, $3, $4)
-        `, [partnerId, track.track_id, track.share_rate, track.role]);
-      }
-
-      // 초대 사용 처리
-      await client.query(`
-        UPDATE partner_invitations
-        SET is_used = true, used_by = $2, used_at = NOW()
-        WHERE id = $1
-      `, [invitation.id, user.id]);
-
-      await client.query('COMMIT');
-
-      // JWT 토큰 생성
-      if (!process.env.JWT_SECRET) {
-        throw new Error('JWT_SECRET is not configured');
-      }
-      const token = jwt.sign(
-        { id: user.id, email: user.email, role: 'partner', partnerId },
-        process.env.JWT_SECRET,
-        { expiresIn: '7d' }
-      );
-
-      res.json({
-        message: 'Registration successful',
-        token,
-        user: {
-          id: user.id,
-          email: user.email,
-          name: user.name,
-          role: 'partner',
-          partnerId,
-        },
-      });
-    } catch (error) {
-      await client.query('ROLLBACK');
-      throw error;
-    } finally {
-      client.release();
-    }
-  } catch (error) {
-    console.error('Partner registration error:', error);
-    res.status(500).json({ error: 'Registration failed' });
-  }
+// POST /api/partner/register - 비활성화됨 (어드민에서 계정 생성)
+router.post('/register', async (_req, res: Response) => {
+  return res.status(403).json({
+    error: '파트너 가입은 관리자를 통해서만 가능합니다. 관리자에게 문의하세요.'
+  });
 });
 
 // POST /api/partner/login - 파트너 로그인

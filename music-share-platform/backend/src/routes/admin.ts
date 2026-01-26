@@ -692,12 +692,21 @@ const createUserSchema = z.object({
   name: z.string().min(1, '이름을 입력해주세요'),
   email: z.string().email('올바른 이메일 형식이 아닙니다').optional(),
   role: z.enum(['user', 'admin', 'partner', 'developer']),
+  // 파트너 전용 필드
+  partnerType: z.enum(['artist', 'company', 'composer']).optional(),
+  businessName: z.string().optional(),
+  phone: z.string().optional(),
 });
 
 // 사용자 생성
 router.post('/users', async (req: AuthRequest, res: Response) => {
   try {
-    const { name, email, role } = createUserSchema.parse(req.body);
+    const { name, email, role, partnerType, businessName, phone } = createUserSchema.parse(req.body);
+
+    // 파트너 역할인 경우 partnerType 필수
+    if (role === 'partner' && !partnerType) {
+      return res.status(400).json({ error: '파트너 유형을 선택해주세요' });
+    }
 
     // username 자동 생성
     const username = await getNextUsername(role);
@@ -714,22 +723,46 @@ router.post('/users', async (req: AuthRequest, res: Response) => {
       }
     }
 
-    // 사용자 생성
-    const result = await pool.query(
-      `INSERT INTO users (username, email, password_hash, name, role, force_password_change)
-       VALUES ($1, $2, $3, $4, $5, true)
-       RETURNING id, username, email, name, role, force_password_change, created_at`,
-      [username, email || `${username}@routelabel.local`, passwordHash, name, role]
-    );
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
 
-    const user = result.rows[0];
+      // 사용자 생성
+      const result = await client.query(
+        `INSERT INTO users (username, email, password_hash, name, role, force_password_change)
+         VALUES ($1, $2, $3, $4, $5, true)
+         RETURNING id, username, email, name, role, force_password_change, created_at`,
+        [username, email || `${username}@routelabel.local`, passwordHash, name, role]
+      );
 
-    res.status(201).json({
-      success: true,
-      user,
-      initialPassword, // 이 비밀번호를 사용자에게 전달해야 함
-      message: `계정이 생성되었습니다. 초기 비밀번호: ${initialPassword}`
-    });
+      const user = result.rows[0];
+
+      // 파트너 역할인 경우 partners 테이블에도 레코드 생성
+      let partnerId = null;
+      if (role === 'partner') {
+        const partnerResult = await client.query(
+          `INSERT INTO partners (user_id, partner_type, business_name, phone, is_active)
+           VALUES ($1, $2, $3, $4, true)
+           RETURNING id`,
+          [user.id, partnerType, businessName || name, phone]
+        );
+        partnerId = partnerResult.rows[0].id;
+      }
+
+      await client.query('COMMIT');
+
+      res.status(201).json({
+        success: true,
+        user: { ...user, partnerId },
+        initialPassword, // 이 비밀번호를 사용자에게 전달해야 함
+        message: `계정이 생성되었습니다. 초기 비밀번호: ${initialPassword}`
+      });
+    } catch (error) {
+      await client.query('ROLLBACK');
+      throw error;
+    } finally {
+      client.release();
+    }
   } catch (error) {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ error: 'Invalid input', details: error.errors });

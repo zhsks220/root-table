@@ -154,13 +154,6 @@ export default function PartnerLoginPage() {
 
         {/* 푸터 링크 */}
         <div className="mt-6 sm:mt-8 text-center space-y-3 sm:space-y-4">
-          <button
-            onClick={() => navigate('/partner/register')}
-            className="text-sm font-medium text-emerald-500 hover:text-emerald-600 transition-colors py-2"
-          >
-            초대 코드로 등록하기
-          </button>
-
           <div className={`text-sm ${isDark ? 'text-gray-500' : 'text-gray-400'}`}>
             관리자이신가요?{' '}
             <button

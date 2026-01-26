@@ -11,7 +11,6 @@ import AdminSettingsPage from './pages/AdminSettingsPage';
 import CMSDashboardPage from './pages/CMSDashboardPage';
 import PartnerAdminPage from './pages/PartnerAdminPage';
 import PartnerLoginPage from './pages/PartnerLoginPage';
-import PartnerRegisterPage from './pages/PartnerRegisterPage';
 import PartnerDashboardPage from './pages/PartnerDashboardPage';
 import PartnerSettingsPage from './pages/PartnerSettingsPage';
 import MyTracksPage from './pages/MyTracksPage';
@@ -182,7 +181,7 @@ function App() {
 
         {/* 파트너 페이지 */}
         <Route path="/partner/login" element={<PartnerLoginPage />} />
-        <Route path="/partner/register" element={<PartnerRegisterPage />} />
+        <Route path="/partner/register" element={<Navigate to="/partner/login" replace />} />
         <Route path="/partner/dashboard" element={
           <PartnerRoute>
             <PartnerDashboardPage />

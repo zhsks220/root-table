@@ -27,7 +27,7 @@ export function PartnerProjectsView() {
 
   const loadSharedProjects = async () => {
     try {
-      const response = await api.get('/webtoon/shared-with-me');
+      const response = await api.get('/admin/shared-with-me');
       setProjects(response.data.projects || []);
     } catch (error) {
       console.error('Failed to load shared projects:', error);

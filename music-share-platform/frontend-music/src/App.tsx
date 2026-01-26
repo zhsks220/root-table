@@ -13,6 +13,7 @@ import PartnerAdminPage from './pages/PartnerAdminPage';
 import PartnerLoginPage from './pages/PartnerLoginPage';
 import PartnerDashboardPage from './pages/PartnerDashboardPage';
 import PartnerSettingsPage from './pages/PartnerSettingsPage';
+import SharedProjectPage from './pages/SharedProjectPage';
 import MyTracksPage from './pages/MyTracksPage';
 import AlbumDetailPage from './pages/AlbumDetailPage';
 import AudioPlayer from './components/AudioPlayer';
@@ -192,6 +193,13 @@ function App() {
         <Route path="/partner/settings" element={
           <PartnerRoute>
             <PartnerSettingsPage />
+          </PartnerRoute>
+        } />
+
+        {/* 파트너 공유 프로젝트 상세 (협업자로 등록된 프로젝트만 접근 가능) */}
+        <Route path="/project/shared/:projectId" element={
+          <PartnerRoute>
+            <SharedProjectPage />
           </PartnerRoute>
         } />
       </Routes>

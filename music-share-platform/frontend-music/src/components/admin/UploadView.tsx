@@ -257,18 +257,39 @@ export function UploadView() {
                         {selectedCategories.length > 0 && (
                             <div className="flex flex-wrap gap-2 mb-3">
                                 {selectedCategories.map((catId, index) => {
+                                    const categoryIdx = categories.findIndex(c => c.id === catId);
                                     const category = categories.flatMap(c => [c, ...(c.children || [])]).find(c => c.id === catId);
+                                    const isEtc = category?.name === '기타';
+
+                                    // 14개 색상 (Tailwind JIT 호환)
+                                    const tagColors = [
+                                        { dark: 'bg-red-500/20 text-red-400', light: 'bg-red-100 text-red-700' },
+                                        { dark: 'bg-blue-500/20 text-blue-400', light: 'bg-blue-100 text-blue-700' },
+                                        { dark: 'bg-amber-500/20 text-amber-400', light: 'bg-amber-100 text-amber-700' },
+                                        { dark: 'bg-teal-500/20 text-teal-400', light: 'bg-teal-100 text-teal-700' },
+                                        { dark: 'bg-violet-500/20 text-violet-400', light: 'bg-violet-100 text-violet-700' },
+                                        { dark: 'bg-orange-500/20 text-orange-400', light: 'bg-orange-100 text-orange-700' },
+                                        { dark: 'bg-indigo-500/20 text-indigo-400', light: 'bg-indigo-100 text-indigo-700' },
+                                        { dark: 'bg-lime-500/20 text-lime-400', light: 'bg-lime-100 text-lime-700' },
+                                        { dark: 'bg-fuchsia-500/20 text-fuchsia-400', light: 'bg-fuchsia-100 text-fuchsia-700' },
+                                        { dark: 'bg-sky-500/20 text-sky-400', light: 'bg-sky-100 text-sky-700' },
+                                        { dark: 'bg-green-500/20 text-green-400', light: 'bg-green-100 text-green-700' },
+                                        { dark: 'bg-pink-500/20 text-pink-400', light: 'bg-pink-100 text-pink-700' },
+                                        { dark: 'bg-cyan-500/20 text-cyan-400', light: 'bg-cyan-100 text-cyan-700' },
+                                        { dark: 'bg-rose-500/20 text-rose-400', light: 'bg-rose-100 text-rose-700' },
+                                    ];
+                                    const grayColor = { dark: 'bg-gray-500/20 text-gray-400', light: 'bg-gray-100 text-gray-700' };
+                                    const colorIdx = categoryIdx >= 0 ? categoryIdx : index;
+                                    const tagColor = isEtc ? grayColor : tagColors[colorIdx] || tagColors[colorIdx % tagColors.length];
+
                                     return category ? (
                                         <span
                                             key={catId}
                                             className={cn(
                                                 "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm font-medium",
-                                                index === 0
-                                                    ? (isDark ? "bg-emerald-500/20 text-emerald-400" : "bg-emerald-100 text-emerald-700")
-                                                    : (isDark ? "bg-white/10 text-white/70" : "bg-gray-100 text-gray-700")
+                                                isDark ? tagColor.dark : tagColor.light
                                             )}
                                         >
-                                            <span>{category.icon}</span>
                                             {category.name}
                                             {index === 0 && <span className="text-xs opacity-60">(주)</span>}
                                             <button
@@ -286,28 +307,60 @@ export function UploadView() {
 
                         {/* 카테고리 그리드 */}
                         <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
-                            {categories.map(category => (
-                                <button
-                                    key={category.id}
-                                    type="button"
-                                    onClick={() => handleCategoryToggle(category.id)}
-                                    className={cn(
-                                        "p-3 rounded-lg border text-center transition-all hover:shadow-sm",
-                                        selectedCategories.includes(category.id)
-                                            ? (isDark ? "border-emerald-500/30 bg-emerald-500/20 text-emerald-400" : "border-emerald-300 bg-emerald-50 text-emerald-700")
-                                            : (isDark ? "border-white/10 hover:border-white/20 text-white/70" : "border-gray-200 hover:border-gray-300 text-gray-700")
-                                    )}
-                                >
-                                    <div className="text-xl mb-1">{category.icon}</div>
-                                    <div className="text-xs font-medium truncate">{category.name}</div>
-                                </button>
-                            ))}
+                            {categories.map((category, idx) => {
+                                // "기타" 카테고리는 무채색
+                                const isEtc = category.name === '기타';
+                                const isSelected = selectedCategories.includes(category.id);
+
+                                // 14개의 확실히 구별되는 색상
+                                const categoryColors = [
+                                    { selected: isDark ? 'border-red-500/30 bg-red-500/20 text-red-400' : 'border-red-300 bg-red-50 text-red-700', unselected: isDark ? 'border-white/10 hover:border-red-500/30 text-white/70' : 'border-gray-200 hover:border-red-300 text-gray-700' },
+                                    { selected: isDark ? 'border-blue-500/30 bg-blue-500/20 text-blue-400' : 'border-blue-300 bg-blue-50 text-blue-700', unselected: isDark ? 'border-white/10 hover:border-blue-500/30 text-white/70' : 'border-gray-200 hover:border-blue-300 text-gray-700' },
+                                    { selected: isDark ? 'border-amber-500/30 bg-amber-500/20 text-amber-400' : 'border-amber-300 bg-amber-50 text-amber-700', unselected: isDark ? 'border-white/10 hover:border-amber-500/30 text-white/70' : 'border-gray-200 hover:border-amber-300 text-gray-700' },
+                                    { selected: isDark ? 'border-teal-500/30 bg-teal-500/20 text-teal-400' : 'border-teal-300 bg-teal-50 text-teal-700', unselected: isDark ? 'border-white/10 hover:border-teal-500/30 text-white/70' : 'border-gray-200 hover:border-teal-300 text-gray-700' },
+                                    { selected: isDark ? 'border-violet-500/30 bg-violet-500/20 text-violet-400' : 'border-violet-300 bg-violet-50 text-violet-700', unselected: isDark ? 'border-white/10 hover:border-violet-500/30 text-white/70' : 'border-gray-200 hover:border-violet-300 text-gray-700' },
+                                    { selected: isDark ? 'border-orange-500/30 bg-orange-500/20 text-orange-400' : 'border-orange-300 bg-orange-50 text-orange-700', unselected: isDark ? 'border-white/10 hover:border-orange-500/30 text-white/70' : 'border-gray-200 hover:border-orange-300 text-gray-700' },
+                                    { selected: isDark ? 'border-indigo-500/30 bg-indigo-500/20 text-indigo-400' : 'border-indigo-300 bg-indigo-50 text-indigo-700', unselected: isDark ? 'border-white/10 hover:border-indigo-500/30 text-white/70' : 'border-gray-200 hover:border-indigo-300 text-gray-700' },
+                                    { selected: isDark ? 'border-lime-500/30 bg-lime-500/20 text-lime-400' : 'border-lime-300 bg-lime-50 text-lime-700', unselected: isDark ? 'border-white/10 hover:border-lime-500/30 text-white/70' : 'border-gray-200 hover:border-lime-300 text-gray-700' },
+                                    { selected: isDark ? 'border-fuchsia-500/30 bg-fuchsia-500/20 text-fuchsia-400' : 'border-fuchsia-300 bg-fuchsia-50 text-fuchsia-700', unselected: isDark ? 'border-white/10 hover:border-fuchsia-500/30 text-white/70' : 'border-gray-200 hover:border-fuchsia-300 text-gray-700' },
+                                    { selected: isDark ? 'border-sky-500/30 bg-sky-500/20 text-sky-400' : 'border-sky-300 bg-sky-50 text-sky-700', unselected: isDark ? 'border-white/10 hover:border-sky-500/30 text-white/70' : 'border-gray-200 hover:border-sky-300 text-gray-700' },
+                                    { selected: isDark ? 'border-green-500/30 bg-green-500/20 text-green-400' : 'border-green-300 bg-green-50 text-green-700', unselected: isDark ? 'border-white/10 hover:border-green-500/30 text-white/70' : 'border-gray-200 hover:border-green-300 text-gray-700' },
+                                    { selected: isDark ? 'border-pink-500/30 bg-pink-500/20 text-pink-400' : 'border-pink-300 bg-pink-50 text-pink-700', unselected: isDark ? 'border-white/10 hover:border-pink-500/30 text-white/70' : 'border-gray-200 hover:border-pink-300 text-gray-700' },
+                                    { selected: isDark ? 'border-cyan-500/30 bg-cyan-500/20 text-cyan-400' : 'border-cyan-300 bg-cyan-50 text-cyan-700', unselected: isDark ? 'border-white/10 hover:border-cyan-500/30 text-white/70' : 'border-gray-200 hover:border-cyan-300 text-gray-700' },
+                                    { selected: isDark ? 'border-rose-500/30 bg-rose-500/20 text-rose-400' : 'border-rose-300 bg-rose-50 text-rose-700', unselected: isDark ? 'border-white/10 hover:border-rose-500/30 text-white/70' : 'border-gray-200 hover:border-rose-300 text-gray-700' },
+                                ];
+                                const grayColor = {
+                                    selected: isDark ? 'border-gray-500/30 bg-gray-500/20 text-gray-400' : 'border-gray-400 bg-gray-100 text-gray-700',
+                                    unselected: isDark ? 'border-white/10 hover:border-white/20 text-white/70' : 'border-gray-200 hover:border-gray-300 text-gray-700'
+                                };
+                                const color = isEtc ? grayColor : categoryColors[idx] || categoryColors[idx % categoryColors.length];
+
+                                return (
+                                    <button
+                                        key={category.id}
+                                        type="button"
+                                        onClick={() => handleCategoryToggle(category.id)}
+                                        className={cn(
+                                            "p-3 rounded-lg border text-center transition-all hover:shadow-sm",
+                                            isSelected ? color.selected : color.unselected
+                                        )}
+                                    >
+                                        <div className="text-xs font-medium truncate">{category.name}</div>
+                                    </button>
+                                );
+                            })}
                         </div>
 
                         {/* 서브카테고리 (선택된 메인 카테고리가 있을 때) */}
                         {selectedCategories.length > 0 && (() => {
-                            const mainCat = categories.find(c => c.id === selectedCategories[0]);
+                            const mainCatIdx = categories.findIndex(c => c.id === selectedCategories[0]);
+                            const mainCat = categories[mainCatIdx];
                             if (mainCat?.children && mainCat.children.length > 0) {
+                                // 메인 카테고리의 색상 가져오기
+                                const categoryColors = ['red', 'blue', 'amber', 'teal', 'violet', 'orange', 'indigo', 'lime', 'fuchsia', 'sky', 'green', 'pink', 'cyan', 'rose'];
+                                const isEtc = mainCat.name === '기타';
+                                const colorName = isEtc ? 'gray' : categoryColors[mainCatIdx] || categoryColors[mainCatIdx % categoryColors.length];
+
                                 return (
                                     <div className={cn("mt-3 p-3 rounded-lg", isDark ? "bg-white/5" : "bg-gray-50")}>
                                         <label className={cn("block text-xs font-medium mb-2", isDark ? "text-white/50" : "text-gray-500")}>
@@ -322,8 +375,8 @@ export function UploadView() {
                                                     className={cn(
                                                         "px-3 py-1.5 rounded-full text-xs font-medium transition-colors",
                                                         selectedCategories.includes(sub.id)
-                                                            ? "bg-emerald-500 text-white"
-                                                            : (isDark ? "bg-white/10 border border-white/10 text-white/60 hover:border-emerald-500/30" : "bg-white border border-gray-200 text-gray-600 hover:border-emerald-300")
+                                                            ? `bg-${colorName}-500 text-white`
+                                                            : (isDark ? `bg-white/10 border border-white/10 text-white/60 hover:border-${colorName}-500/30` : `bg-white border border-gray-200 text-gray-600 hover:border-${colorName}-300`)
                                                     )}
                                                 >
                                                     {sub.name}

@@ -288,30 +288,55 @@ export function PartnerLibraryView() {
             className={cn(
               "px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all",
               !searchParams.category
-                ? "bg-emerald-500 text-white shadow-md"
+                ? "bg-gray-500 text-white shadow-md"
                 : isDark ? "bg-white/10 text-white/70 hover:bg-white/20" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
             )}
           >
             전체
           </button>
 
-          {categories.map(cat => {
+          {categories.map((cat, idx) => {
             const isSelected = searchParams.category === cat.id ||
               cat.children?.some(c => c.id === searchParams.category);
+
+            // "기타" 카테고리는 무채색
+            const isEtc = cat.name === '기타';
+            const grayColor = {
+              selected: isDark ? 'bg-gray-500 text-white' : 'bg-gray-500 text-white',
+              unselected: isDark ? 'bg-white/10 text-white/70 hover:bg-white/20' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+            };
+
+            // 14개의 확실히 구별되는 색상 (대비되는 순서로 배치)
+            const categoryColors = [
+              { selected: 'bg-red-500 text-white', unselected: isDark ? 'bg-red-500/10 text-red-300 hover:bg-red-500/15' : 'bg-red-50/70 text-red-600 hover:bg-red-50' },
+              { selected: 'bg-blue-500 text-white', unselected: isDark ? 'bg-blue-500/10 text-blue-300 hover:bg-blue-500/15' : 'bg-blue-50/70 text-blue-600 hover:bg-blue-50' },
+              { selected: 'bg-amber-500 text-white', unselected: isDark ? 'bg-amber-500/10 text-amber-300 hover:bg-amber-500/15' : 'bg-amber-50/70 text-amber-600 hover:bg-amber-50' },
+              { selected: 'bg-teal-500 text-white', unselected: isDark ? 'bg-teal-500/10 text-teal-300 hover:bg-teal-500/15' : 'bg-teal-50/70 text-teal-600 hover:bg-teal-50' },
+              { selected: 'bg-violet-500 text-white', unselected: isDark ? 'bg-violet-500/10 text-violet-300 hover:bg-violet-500/15' : 'bg-violet-50/70 text-violet-600 hover:bg-violet-50' },
+              { selected: 'bg-orange-500 text-white', unselected: isDark ? 'bg-orange-500/10 text-orange-300 hover:bg-orange-500/15' : 'bg-orange-50/70 text-orange-600 hover:bg-orange-50' },
+              { selected: 'bg-indigo-500 text-white', unselected: isDark ? 'bg-indigo-500/10 text-indigo-300 hover:bg-indigo-500/15' : 'bg-indigo-50/70 text-indigo-600 hover:bg-indigo-50' },
+              { selected: 'bg-lime-500 text-white', unselected: isDark ? 'bg-lime-500/10 text-lime-300 hover:bg-lime-500/15' : 'bg-lime-50/70 text-lime-600 hover:bg-lime-50' },
+              { selected: 'bg-fuchsia-500 text-white', unselected: isDark ? 'bg-fuchsia-500/10 text-fuchsia-300 hover:bg-fuchsia-500/15' : 'bg-fuchsia-50/70 text-fuchsia-600 hover:bg-fuchsia-50' },
+              { selected: 'bg-sky-500 text-white', unselected: isDark ? 'bg-sky-500/10 text-sky-300 hover:bg-sky-500/15' : 'bg-sky-50/70 text-sky-600 hover:bg-sky-50' },
+              { selected: 'bg-green-500 text-white', unselected: isDark ? 'bg-green-500/10 text-green-300 hover:bg-green-500/15' : 'bg-green-50/70 text-green-600 hover:bg-green-50' },
+              { selected: 'bg-pink-500 text-white', unselected: isDark ? 'bg-pink-500/10 text-pink-300 hover:bg-pink-500/15' : 'bg-pink-50/70 text-pink-600 hover:bg-pink-50' },
+              { selected: 'bg-cyan-500 text-white', unselected: isDark ? 'bg-cyan-500/10 text-cyan-300 hover:bg-cyan-500/15' : 'bg-cyan-50/70 text-cyan-600 hover:bg-cyan-50' },
+              { selected: 'bg-rose-500 text-white', unselected: isDark ? 'bg-rose-500/10 text-rose-300 hover:bg-rose-500/15' : 'bg-rose-50/70 text-rose-600 hover:bg-rose-50' },
+            ];
+            const color = isEtc ? grayColor : categoryColors[idx] || categoryColors[idx % categoryColors.length];
 
             return (
               <button
                 key={cat.id}
                 onClick={() => handleCategorySelect(cat.id)}
                 className={cn(
-                  "px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all inline-flex items-center gap-1",
+                  "px-2.5 sm:px-3 py-1 sm:py-1.5 rounded-full text-xs sm:text-sm font-medium transition-all",
                   isSelected
-                    ? "bg-emerald-500 text-white shadow-md"
-                    : isDark ? "bg-white/10 text-white/70 hover:bg-white/20" : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                    ? `${color.selected} shadow-md`
+                    : color.unselected
                 )}
               >
-                <span className="hidden sm:inline">{cat.icon}</span>
-                <span>{cat.name}</span>
+                {cat.name}
               </button>
             );
           })}
@@ -334,8 +359,7 @@ export function PartnerLibraryView() {
                 : isDark ? "bg-white/5 border-white/10 text-white/70 hover:border-white/20" : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
             )}
           >
-            <span className="hidden sm:inline">💫</span>
-            <span>{searchParams.mood ? moods.find(m => m.value === searchParams.mood)?.label : '분위기'}</span>
+            {searchParams.mood ? moods.find(m => m.value === searchParams.mood)?.label : '분위기'}
             {searchParams.mood ? (
               <X
                 className="w-3 h-3"
@@ -386,8 +410,7 @@ export function PartnerLibraryView() {
                 : isDark ? "bg-white/5 border-white/10 text-white/70 hover:border-white/20" : "bg-white border-gray-200 text-gray-600 hover:border-gray-300"
             )}
           >
-            <span className="hidden sm:inline">🌐</span>
-            <span>{searchParams.language ? languages.find(l => l.value === searchParams.language)?.label : '언어'}</span>
+            {searchParams.language ? languages.find(l => l.value === searchParams.language)?.label : '언어'}
             {searchParams.language ? (
               <X
                 className="w-3 h-3"

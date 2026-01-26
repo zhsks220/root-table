@@ -367,12 +367,12 @@ router.get('/library', authenticateToken as any, requirePartner, async (req: Aut
       paramIndex++;
     }
 
-    // 카테고리 필터
+    // 카테고리 필터 (admin.ts와 동일)
     if (category) {
       conditions.push(`EXISTS (
         SELECT 1 FROM track_categories tc
-        JOIN categories c ON tc.category_id = c.id
-        WHERE tc.track_id = t.id AND (c.id = $${paramIndex} OR c.parent_id = $${paramIndex})
+        WHERE tc.track_id = t.id
+        AND (tc.category_id = $${paramIndex} OR tc.category_id IN (SELECT id FROM categories WHERE parent_id = $${paramIndex}))
       )`);
       params.push(category);
       paramIndex++;
@@ -392,11 +392,6 @@ router.get('/library', authenticateToken as any, requirePartner, async (req: Aut
       paramIndex++;
     }
 
-    // assigned_only 필터 - 할당된 트랙만 표시
-    const assignedJoin = assignedOnlyMode
-      ? `INNER JOIN partner_tracks pt_filter ON pt_filter.track_id = t.id AND pt_filter.partner_id = $1 AND pt_filter.is_active = true`
-      : '';
-
     const whereClause = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
 
     // 정렬
@@ -404,18 +399,18 @@ router.get('/library', authenticateToken as any, requirePartner, async (req: Aut
     const sortColumn = validSorts.includes(sort as string) ? sort : 'created_at';
     const sortOrder = order === 'asc' ? 'ASC' : 'DESC';
 
-    // 총 개수 - assigned_only 모드에서는 할당된 트랙만 카운트
-    const countResult = await pool.query(
-      `SELECT COUNT(*) FROM tracks t ${assignedJoin} ${whereClause}`,
-      assignedOnlyMode ? params : params.slice(1)
-    );
-    const total = parseInt(countResult.rows[0].count);
-
     // 트랙 조회 (할당 여부 포함)
     // assigned_only 모드에서는 INNER JOIN으로 할당된 트랙만 조회
     const partnerTrackJoin = assignedOnlyMode
       ? `INNER JOIN partner_tracks pt ON pt.track_id = t.id AND pt.partner_id = $1 AND pt.is_active = true`
       : `LEFT JOIN partner_tracks pt ON pt.track_id = t.id AND pt.partner_id = $1 AND pt.is_active = true`;
+
+    // 총 개수 (항상 동일한 JOIN 사용)
+    const countResult = await pool.query(
+      `SELECT COUNT(DISTINCT t.id) FROM tracks t ${partnerTrackJoin} ${whereClause}`,
+      params
+    );
+    const total = parseInt(countResult.rows[0].count);
 
     const result = await pool.query(`
       SELECT

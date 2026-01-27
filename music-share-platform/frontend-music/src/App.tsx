@@ -1,5 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { lazy, Suspense, useState } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
+import { lazy, Suspense, useState, useEffect } from 'react';
 import { useAuthStore } from './store/authStore';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/LoginPage';
@@ -15,6 +15,8 @@ import PartnerDashboardPage from './pages/PartnerDashboardPage';
 import PartnerSettingsPage from './pages/PartnerSettingsPage';
 import SharedProjectPage from './pages/SharedProjectPage';
 import MyTracksPage from './pages/MyTracksPage';
+import TermsPage from './pages/TermsPage';
+import PrivacyPage from './pages/PrivacyPage';
 import AlbumDetailPage from './pages/AlbumDetailPage';
 import AudioPlayer from './components/AudioPlayer';
 import PasswordChangeModal from './components/PasswordChangeModal';
@@ -97,6 +99,14 @@ function UserRoute({ children }: { children: React.ReactNode }) {
   return <>{children}</>;
 }
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
+
 function App() {
   const { user, isAuthenticated } = useAuthStore();
   const [passwordChangeSuccess, setPasswordChangeSuccess] = useState(false);
@@ -106,6 +116,8 @@ function App() {
 
   return (
     <BrowserRouter>
+      <ScrollToTop />
+
       {/* 비밀번호 변경 모달 - 첫 로그인 시 강제 표시 */}
       <PasswordChangeModal
         isOpen={!!needsPasswordChange}
@@ -118,6 +130,10 @@ function App() {
       <Routes>
         {/* 랜딩 페이지 (메인) */}
         <Route path="/" element={<LandingPage />} />
+
+        {/* 약관 및 정책 */}
+        <Route path="/terms" element={<TermsPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
 
         {/* 앨범 상세 페이지 */}
         <Route path="/albums/:slug" element={<AlbumDetailPage />} />

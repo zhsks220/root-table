@@ -82,13 +82,13 @@ export async function getDownloadUrl(key: string, filename: string): Promise<str
 }
 
 // 파일 삭제
-export async function deleteFile(key: string): Promise<void> {
+export async function deleteFile(key: string, bucket: string = BUCKET_NAME): Promise<void> {
   if (!supabase) {
     throw new Error('Supabase Storage is not configured. Please set SUPABASE_URL and SUPABASE_SERVICE_KEY.');
   }
 
   const { error } = await supabase.storage
-    .from(BUCKET_NAME)
+    .from(bucket)
     .remove([key]);
 
   if (error) {

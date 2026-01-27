@@ -1297,7 +1297,7 @@ router.delete('/webtoon-projects/:projectId/project-tracks/:trackId', async (req
 
     // 스토리지에서 파일 삭제
     try {
-      await deleteFile(track.file_key);
+      await deleteFile(track.file_key, 'project-tracks');
     } catch (e) {
       console.error('Failed to delete file from storage:', e);
     }

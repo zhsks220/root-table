@@ -1,36 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { cn } from '../../lib/utils';
-import { useAuthStore } from '../../store/authStore';
 
-interface NavbarProps {
-    onCTAClick?: () => void;
-}
-
-export const Navbar = ({ onCTAClick }: NavbarProps) => {
+export const Navbar = () => {
     const [isScrolled, setIsScrolled] = useState(false);
-    const navigate = useNavigate();
-    const { isAuthenticated, user } = useAuthStore();
     const lastScrollRef = useRef(0);
     const throttleMs = 50;
-
-    const handleStart = () => {
-        if (isAuthenticated) {
-            // 로그인 상태면 역할에 따라 적절한 페이지로 이동
-            if (user?.role === 'admin') {
-                navigate('/admin');
-            } else if (user?.role === 'developer') {
-                navigate('/admin/monitoring');
-            } else if (user?.role === 'partner') {
-                navigate('/partner/dashboard');
-            } else {
-                navigate('/my-tracks');
-            }
-        } else {
-            // 비로그인 상태면 챗봇 열기
-            onCTAClick?.();
-        }
-    };
 
     const handleScroll = useCallback(() => {
         const now = Date.now();
@@ -76,14 +50,6 @@ export const Navbar = ({ onCTAClick }: NavbarProps) => {
                 </a>
             </div>
 
-            {isAuthenticated && (
-                <button
-                    onClick={handleStart}
-                    className="bg-white hover:bg-gray-100 text-black px-4 py-2 lg:px-5 lg:py-2.5 rounded-full text-sm lg:text-base font-bold transition-all"
-                >
-                    워크스페이스
-                </button>
-            )}
         </nav>
     );
 };

@@ -699,7 +699,7 @@ export const ReaderReactions = () => {
                         </div>
                     )}
 
-                    <AnimatePresence mode="wait">
+                    <AnimatePresence mode={isMobile ? "wait" : "sync"}>
                         {isMobile ? (
                             /* 모바일: 1개 카드 중앙 배치 */
                             <motion.div

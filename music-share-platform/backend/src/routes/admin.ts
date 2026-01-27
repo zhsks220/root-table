@@ -8,7 +8,7 @@ import { pool } from '../db';
 import { AuthRequest } from '../types';
 import { authenticateToken, requireAdminOrDeveloper } from '../middleware/auth';
 import { uploadFile, deleteFile, getStreamUrl, downloadFile } from '../services/supabaseStorage';
-import { transcodeToFlac, transcodeToMp3, getAudioMetadata, checkFfmpegInstalled } from '../services/transcoder';
+import { transcodeToMp3, getAudioMetadata, checkFfmpegInstalled } from '../services/transcoder';
 
 // 허용된 실제 파일 MIME 타입 (magic bytes 기반)
 const ALLOWED_AUDIO_TYPES = ['audio/mpeg', 'audio/wav', 'audio/flac', 'audio/x-flac'];
@@ -58,28 +58,24 @@ router.post('/tracks', upload.single('file'), async (req: AuthRequest, res: Resp
       return res.status(400).json({ error: 'Title and artist are required' });
     }
 
-    // FLAC으로 트랜스코딩 (무손실 압축)
+    // MP3로 트랜스코딩 (320kbps)
     let finalBuffer = req.file.buffer;
     let finalMimeType = req.file.mimetype;
-    let compressionInfo = '';
 
-    // FFmpeg가 설치되어 있으면 FLAC으로 변환
     const ffmpegAvailable = await checkFfmpegInstalled();
-    if (ffmpegAvailable && req.file.mimetype !== 'audio/flac') {
+    if (ffmpegAvailable && req.file.mimetype !== 'audio/mpeg') {
       try {
-        const result = await transcodeToFlac(req.file.buffer, req.file.mimetype);
+        const result = await transcodeToMp3(req.file.buffer, req.file.mimetype);
         finalBuffer = result.buffer;
-        finalMimeType = 'audio/flac';
-        compressionInfo = ` (${Math.round(result.compressionRatio * 100)}% of original)`;
-        console.log(`🎵 Transcoded to FLAC: ${result.originalSize} → ${result.compressedSize}${compressionInfo}`);
+        finalMimeType = 'audio/mpeg';
+        console.log(`🎵 Transcoded to MP3: ${result.originalSize} → ${result.compressedSize} (${Math.round(result.compressionRatio * 100)}%)`);
       } catch (transcodeError) {
-        console.warn('⚠️ FLAC transcoding failed, using original file:', transcodeError);
-        // 트랜스코딩 실패 시 원본 사용
+        console.warn('⚠️ MP3 transcoding failed, using original file:', transcodeError);
       }
     }
 
-    // 파일 키 생성 (항상 .flac 확장자 사용, 실패 시 원본 확장자)
-    const fileExt = finalMimeType === 'audio/flac' ? 'flac' : req.file.originalname.split('.').pop();
+    // 파일 키 생성
+    const fileExt = finalMimeType === 'audio/mpeg' ? 'mp3' : req.file.originalname.split('.').pop();
     const fileKey = `tracks/${Date.now()}-${crypto.randomBytes(8).toString('hex')}.${fileExt}`;
 
     // 오디오 메타데이터 추출 (duration)
@@ -479,12 +475,11 @@ router.get('/tracks/:trackId/stream', async (req: AuthRequest, res: Response) =>
   }
 });
 
-// 관리자 다운로드 (FLAC → MP3 실시간 변환)
+// 관리자 다운로드
 router.get('/tracks/:trackId/download', async (req: AuthRequest, res: Response) => {
   try {
     const { trackId } = req.params;
 
-    // 관리자는 모든 트랙에 접근 가능
     const result = await pool.query(
       'SELECT file_key, title, artist FROM tracks WHERE id = $1',
       [trackId]
@@ -495,31 +490,13 @@ router.get('/tracks/:trackId/download', async (req: AuthRequest, res: Response) 
     }
 
     const { file_key, title, artist } = result.rows[0];
-
-    // 파일명 생성 (MP3로 다운로드)
     const filename = `${artist} - ${title}.mp3`;
-
-    // Supabase에서 파일 다운로드
-    console.log(`📥 [Admin] Downloading file for conversion: ${file_key}`);
     const fileBuffer = await downloadFile(file_key);
 
-    // FLAC인 경우 MP3로 변환, 아니면 그대로
-    let outputBuffer: Buffer;
-    const isFlac = file_key.toLowerCase().endsWith('.flac');
-
-    if (isFlac) {
-      console.log(`🔄 [Admin] Converting FLAC to MP3...`);
-      const result = await transcodeToMp3(fileBuffer);
-      outputBuffer = result.buffer;
-    } else {
-      outputBuffer = fileBuffer;
-    }
-
-    // MP3 파일 전송
     res.setHeader('Content-Type', 'audio/mpeg');
     res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
-    res.setHeader('Content-Length', outputBuffer.length);
-    res.send(outputBuffer);
+    res.setHeader('Content-Length', fileBuffer.length);
+    res.send(fileBuffer);
   } catch (error) {
     console.error('Admin download error:', error);
     res.status(500).json({ error: 'Failed to download file' });

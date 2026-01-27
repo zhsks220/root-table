@@ -66,7 +66,7 @@ export const Footer = () => {
                 </div>
 
                 {/* 하단 영역 */}
-                <div className="border-t border-white/10 pt-6 flex flex-col md:flex-row justify-between items-center gap-4">
+                <div className="border-t border-white/10 pt-6 flex flex-col items-center gap-4">
                     <p className="text-white/30 text-xs">
                         &copy; {currentYear} ROUTELABEL. All rights reserved.
                     </p>

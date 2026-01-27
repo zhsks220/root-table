@@ -5,7 +5,6 @@ import { AuthRequest } from '../types';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { getStreamUrl, downloadFile } from '../services/supabaseStorage';
-import { transcodeToMp3 } from '../services/transcoder';
 
 const router = Router();
 
@@ -609,24 +608,12 @@ router.get('/library/:trackId/download', authenticateToken as any, requirePartne
     const { file_key, title, artist } = trackResult.rows[0];
     const filename = `${artist} - ${title}.mp3`;
 
-    // Supabase에서 파일 다운로드
     const fileBuffer = await downloadFile(file_key);
-
-    // FLAC인 경우 MP3로 변환
-    let outputBuffer: Buffer;
-    const isFlac = file_key.toLowerCase().endsWith('.flac');
-
-    if (isFlac) {
-      const result = await transcodeToMp3(fileBuffer);
-      outputBuffer = result.buffer;
-    } else {
-      outputBuffer = fileBuffer;
-    }
 
     res.setHeader('Content-Type', 'audio/mpeg');
     res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
-    res.setHeader('Content-Length', outputBuffer.length);
-    res.send(outputBuffer);
+    res.setHeader('Content-Length', fileBuffer.length);
+    res.send(fileBuffer);
   } catch (error) {
     console.error('Partner download error:', error);
     res.status(500).json({ error: 'Failed to download track' });

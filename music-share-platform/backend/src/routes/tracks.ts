@@ -3,7 +3,7 @@ import { pool } from '../db';
 import { AuthRequest } from '../types';
 import { authenticateToken } from '../middleware/auth';
 import { getStreamUrl, downloadFile } from '../services/supabaseStorage';
-import { transcodeToMp3 } from '../services/transcoder';
+
 
 const router = Router();
 
@@ -102,20 +102,7 @@ router.get('/:trackId/download', authenticateToken, async (req: AuthRequest, res
     const filename = `${track.artist} - ${track.title}.mp3`;
 
     // Supabase에서 파일 다운로드
-    console.log(`📥 Downloading file for conversion: ${track.file_key}`);
     const fileBuffer = await downloadFile(track.file_key);
-
-    // FLAC인 경우 MP3로 변환, 아니면 그대로
-    let outputBuffer: Buffer;
-    const isFlac = track.file_key.toLowerCase().endsWith('.flac');
-
-    if (isFlac) {
-      console.log(`🔄 Converting FLAC to MP3...`);
-      const result = await transcodeToMp3(fileBuffer);
-      outputBuffer = result.buffer;
-    } else {
-      outputBuffer = fileBuffer;
-    }
 
     // 다운로드 로그 기록
     await pool.query(
@@ -127,8 +114,9 @@ router.get('/:trackId/download', authenticateToken, async (req: AuthRequest, res
     // MP3 파일 전송
     res.setHeader('Content-Type', 'audio/mpeg');
     res.setHeader('Content-Disposition', `attachment; filename="${encodeURIComponent(filename)}"`);
-    res.setHeader('Content-Length', outputBuffer.length);
-    res.send(outputBuffer);
+
+    res.setHeader('Content-Length', fileBuffer.length);
+    res.send(fileBuffer);
   } catch (error) {
     console.error('Download error:', error);
     res.status(500).json({ error: 'Internal server error' });

@@ -22,7 +22,7 @@ const LandingPage = () => {
 
     return (
         <div className="bg-black text-white min-h-screen">
-            <Navbar onCTAClick={openChatbot} />
+            <Navbar />
             <Hero />
             <SocialProof />
             <Process />

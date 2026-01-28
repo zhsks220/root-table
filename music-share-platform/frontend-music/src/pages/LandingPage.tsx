@@ -25,10 +25,10 @@ const LandingPage = () => {
             <Navbar />
             <Hero />
             <SocialProof />
-            <Process />
             <WhyNotStock />
             <AlbumPuzzleGrid />
             <ReaderReactions />
+            <Process />
             <WhoWeWorkWith />
             <FinalCTA />
             <Footer />

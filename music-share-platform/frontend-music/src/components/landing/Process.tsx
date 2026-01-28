@@ -12,13 +12,13 @@ const steps = [
         image: processAnalysis,
     },
     {
-        title: "감정선 & 캐릭터 매핑",
-        description: "회차별 감정의 고저와 캐릭터 관계를 음악적으로 해석합니다.",
+        title: "기획 & 설계",
+        description: "회차별 감정선과 스토리를 음악적으로 설계합니다.",
         image: processEmotion,
     },
     {
-        title: "음악 플롯 설계",
-        description: "작품에 어울리는 음악을 설계합니다.",
+        title: "음원 제작",
+        description: "작품에 어울리는 음악을 제작합니다.",
         image: processPlot,
     },
     {
@@ -32,8 +32,8 @@ const steps = [
         image: processRevision,
     },
     {
-        title: "OST / 앨범 / 확장 고려",
-        description: "작품의 IP 확장까지 고려한 음악 설계를 완성합니다.",
+        title: "OST / 앨범 / IP 확장",
+        description: "작품의 IP 확장을 완성합니다.",
         image: processExpansion,
     },
 ];

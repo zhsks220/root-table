@@ -14,7 +14,7 @@ export const Hero = () => {
     };
 
     return (
-        <section className="relative min-h-screen flex flex-col justify-center items-center px-6 pt-20 overflow-hidden bg-black text-white">
+        <section className="relative min-h-screen flex flex-col justify-center items-center px-4 min-[360px]:px-6 pt-20 overflow-hidden bg-black text-white">
             {/* Background Interactive Glow */}
             <div
                 className="hidden md:block fixed inset-0 z-40 pointer-events-none transition-opacity duration-300"
@@ -27,7 +27,7 @@ export const Hero = () => {
                 transition={{ duration: 0.8, ease: "easeOut" }}
                 className="text-center z-10 max-w-4xl 3xl:max-w-7xl"
             >
-                <h1 className="text-3xl sm:text-5xl md:text-6xl lg:text-7xl 3xl:text-8xl font-black tracking-tight mb-6 md:mb-8 leading-[1.1] mx-auto">
+                <h1 className="text-2xl min-[360px]:text-3xl sm:text-5xl md:text-6xl lg:text-7xl 3xl:text-8xl font-black tracking-tight mb-6 md:mb-8 leading-[1.1] mx-auto">
                     <span className="whitespace-nowrap">우리는 <span className="text-emerald-500">웹툰 음악</span>을</span> <br />
                     만듭니다.
                 </h1>

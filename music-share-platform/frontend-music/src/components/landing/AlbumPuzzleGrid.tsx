@@ -117,7 +117,7 @@ export const AlbumPuzzleGrid = () => {
     };
 
     return (
-        <section className="relative py-24 px-6 bg-[#0a0a0a] overflow-hidden">
+        <section className="relative py-24 px-4 min-[360px]:px-6 bg-[#0a0a0a] overflow-hidden">
             {/* 상단 그라데이션 - WhyNotStock에서 자연스럽게 연결 */}
             <div className="absolute top-0 left-0 right-0 h-40 bg-gradient-to-b from-black to-transparent pointer-events-none z-10" />
             <div className="max-w-7xl mx-auto">
@@ -128,7 +128,7 @@ export const AlbumPuzzleGrid = () => {
                     viewport={{ once: true }}
                     className="text-center mb-16"
                 >
-                    <h2 className="text-3xl md:text-5xl 3xl:text-7xl font-black mb-6">
+                    <h2 className="text-2xl min-[360px]:text-3xl md:text-5xl 3xl:text-7xl font-black mb-6">
                         작품의 서사를 담은<br className="md:hidden" /> <span className="text-emerald-500">OST 앨범</span> 까지.
                     </h2>
                     <p className="text-white/50 text-base md:text-lg 3xl:text-2xl">

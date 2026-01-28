@@ -105,11 +105,11 @@ const StepCard = ({ step }: { step: typeof steps[0] }) => (
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-black/20" />
 
         {/* 텍스트 - 왼쪽 하단 */}
-        <div className="absolute bottom-0 left-0 right-0 p-5">
-            <h3 className="text-lg md:text-xl font-bold text-white mb-1 break-keep">
+        <div className="absolute bottom-0 left-0 right-0 p-3 min-[360px]:p-5">
+            <h3 className="text-base min-[360px]:text-lg md:text-xl font-bold text-white mb-1 break-keep">
                 {step.title}
             </h3>
-            <p className="text-sm md:text-base text-white/70 break-keep leading-relaxed">
+            <p className="text-xs min-[360px]:text-sm md:text-base text-white/70 break-keep leading-relaxed">
                 {step.description}
             </p>
         </div>
@@ -118,10 +118,10 @@ const StepCard = ({ step }: { step: typeof steps[0] }) => (
 
 export const Process = () => {
     return (
-        <section id="process" className="py-24 mt-16 px-6 bg-black overflow-hidden scroll-mt-16">
+        <section id="process" className="py-24 mt-16 px-4 min-[360px]:px-6 bg-black overflow-hidden scroll-mt-16">
             <div className="max-w-6xl mx-auto">
                 <div className="text-center mb-16">
-                    <h2 className="text-3xl md:text-5xl 3xl:text-7xl font-black mb-6">
+                    <h2 className="text-2xl min-[360px]:text-3xl md:text-5xl 3xl:text-7xl font-black mb-6">
                         웹툰을 더 재밌게, <br />
                         <span className="text-emerald-500">마감일까지 체계적으로.</span>
                     </h2>

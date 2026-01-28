@@ -1,9 +1,10 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 
-// 모바일 감지 훅 (768px 미만) - debounce 적용
+// 모바일 감지 훅 (1033px 미만 = Tailwind md 브레이크포인트와 동일) - debounce 적용
 export const useIsMobile = () => {
+    const MD_BREAKPOINT = 1033;
     const [isMobile, setIsMobile] = useState(() =>
-        typeof window !== 'undefined' ? window.innerWidth < 768 : false
+        typeof window !== 'undefined' ? window.innerWidth < MD_BREAKPOINT : false
     );
     const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -13,13 +14,13 @@ export const useIsMobile = () => {
             clearTimeout(timeoutRef.current);
         }
         timeoutRef.current = setTimeout(() => {
-            setIsMobile(window.innerWidth < 768);
+            setIsMobile(window.innerWidth < MD_BREAKPOINT);
         }, 150);
     }, []);
 
     useEffect(() => {
         // 초기값 설정
-        setIsMobile(window.innerWidth < 768);
+        setIsMobile(window.innerWidth < MD_BREAKPOINT);
 
         window.addEventListener('resize', checkMobile, { passive: true });
         return () => {
@@ -38,8 +39,8 @@ export const useCardSize = () => {
     const getCardSize = (width: number) => {
         if (width < 640) {
             return { width: 240, margin: 8, offset: 128 }; // 모바일
-        } else if (width < 768) {
-            return { width: 360, margin: 16, offset: 196 }; // 태블릿
+        } else if (width < 1033) {
+            return { width: 360, margin: 16, offset: 196 }; // 태블릿 (md 브레이크포인트 미만)
         } else {
             return { width: 520, margin: 20, offset: 280 }; // PC
         }

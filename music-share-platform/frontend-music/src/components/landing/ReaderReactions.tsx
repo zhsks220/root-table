@@ -734,7 +734,7 @@ export const ReaderReactions = () => {
                                 animate={{ opacity: 1, x: 0, scale: 1 }}
                                 exit={{ opacity: 0, x: -100, scale: 0.9 }}
                                 transition={{ duration: 0.3, ease: "easeInOut" }}
-                                className="w-[280px] cursor-pointer"
+                                className="w-[min(280px,85vw)] cursor-pointer"
                             >
                                 <div className="bg-white rounded-xl shadow-2xl p-4 border border-gray-100">
                                     <div className="flex gap-3">
@@ -846,9 +846,9 @@ export const ReaderReactions = () => {
                     viewport={{ once: true }}
                     className="text-center"
                 >
-                    <p className="text-white/50 text-base md:text-lg 3xl:text-2xl leading-relaxed">
+                    <p className="text-white/50 text-sm min-[360px]:text-base md:text-lg 3xl:text-2xl leading-relaxed break-keep">
                         이런 반응은, <br />
-                        음악을 '곡'이 아니라 연출로 설계했을 때 나옵니다.
+                        음악을 '곡'이 아니라 <br className="min-[360px]:hidden" />연출로 설계했을 때 나옵니다.
                     </p>
                 </motion.div>
             </div>

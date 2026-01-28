@@ -140,7 +140,7 @@ export const SocialProof = () => {
     };
 
     return (
-        <section ref={sectionRef} className="relative py-24 px-6 bg-[#0a0a0a] overflow-hidden">
+        <section ref={sectionRef} className="relative py-24 px-4 min-[360px]:px-6 bg-[#0a0a0a] overflow-hidden">
             {/* 슬라이딩 웹툰 썸네일 배경 - 두 줄 */}
             <div className="absolute inset-0 z-0 flex flex-col justify-center gap-4">
                 {/* 첫 번째 줄 - 왼쪽으로 이동 */}
@@ -232,7 +232,7 @@ export const SocialProof = () => {
                     viewport={{ once: true }}
                     className="text-center mb-12"
                 >
-                    <h2 className="text-3xl md:text-4xl font-black mb-4">
+                    <h2 className="text-2xl min-[360px]:text-3xl md:text-4xl font-black mb-4">
                         이미, 웹툰 안에서 <br className="sm:hidden" /><span className="text-emerald-500">증명</span>했습니다.
                     </h2>
                 </motion.div>
@@ -255,7 +255,7 @@ export const SocialProof = () => {
                                 transition={{ duration: 0.5, ease: "easeOut" }}
                                 className="text-center px-8"
                             >
-                                <div className="text-7xl sm:text-8xl md:text-9xl font-black text-white mb-4 tracking-tight">
+                                <div className="text-5xl min-[360px]:text-7xl sm:text-8xl md:text-9xl font-black text-white mb-4 tracking-tight">
                                     {stats[currentIndex].value}
                                 </div>
                                 <div className="text-xl md:text-2xl text-white/80 font-bold mb-3">

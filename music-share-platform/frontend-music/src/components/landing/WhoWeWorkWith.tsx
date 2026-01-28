@@ -35,7 +35,7 @@ const Headline = ({ progress }: { progress: MotionValue<number> }) => {
 
     return (
         <motion.div className="text-center mb-8" style={{ opacity }}>
-            <h2 className="text-3xl md:text-5xl 3xl:text-7xl font-black mb-4">
+            <h2 className="text-2xl min-[360px]:text-3xl md:text-5xl 3xl:text-7xl font-black mb-4">
                 <span className="whitespace-nowrap">잘 맞는 <span className="text-emerald-500">프로젝트</span>가</span> <br />
                 있습니다.
             </h2>
@@ -57,7 +57,7 @@ const ConclusionText = ({ progress }: { progress: MotionValue<number> }) => {
                 willChange: 'transform, opacity',
             }}
         >
-            <h3 className="text-4xl md:text-6xl 3xl:text-8xl font-black leading-tight text-center">
+            <h3 className="text-3xl min-[360px]:text-4xl md:text-6xl 3xl:text-8xl font-black leading-tight text-center">
                 이런 고민들, <br />
                 <span className="text-emerald-500">우리가 해결합니다.</span>
             </h3>
@@ -101,7 +101,7 @@ const ThoughtBubble = ({
         >
             {/* 메인 말풍선 - 코믹북 스타일 */}
             <div
-                className="relative px-6 py-4 md:px-10 md:py-6 3xl:px-12 3xl:py-8"
+                className="relative px-4 py-3 min-[360px]:px-6 min-[360px]:py-4 md:px-10 md:py-6 3xl:px-12 3xl:py-8"
                 style={{
                     borderRadius: '30px',
                     transform: `rotate(${position.rotate}deg)`,
@@ -110,7 +110,7 @@ const ThoughtBubble = ({
                     boxShadow: '4px 4px 0 #fff',
                 }}
             >
-                <span className="text-base md:text-xl 3xl:text-3xl text-white font-bold leading-snug whitespace-pre-line text-center block">
+                <span className="text-sm min-[360px]:text-base md:text-xl 3xl:text-3xl text-white font-bold leading-snug whitespace-pre-line text-center block">
                     {children}
                 </span>
             </div>
@@ -189,7 +189,7 @@ export const WhoWeWorkWith = () => {
             {/* 스크롤 영역 */}
             <div ref={containerRef} className="relative h-[250vh]">
                 {/* Sticky 컨테이너 */}
-                <div className="sticky top-0 h-screen flex flex-col items-center justify-center pt-16 md:pt-20 px-6 overflow-hidden">
+                <div className="sticky top-0 h-screen flex flex-col items-center justify-center pt-16 md:pt-20 px-4 min-[360px]:px-6 overflow-hidden">
                     {/* 헤드라인 - 스크롤 시 사라짐 */}
                     <Headline progress={scrollYProgress} />
 

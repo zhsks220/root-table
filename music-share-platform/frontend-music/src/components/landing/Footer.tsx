@@ -4,7 +4,7 @@ export const Footer = () => {
     const currentYear = new Date().getFullYear();
 
     return (
-        <footer className="bg-black border-t border-white/10 py-12 px-6">
+        <footer className="bg-black border-t border-white/10 py-12 px-4 min-[360px]:px-6">
             <div className="max-w-6xl mx-auto">
                 {/* 상단 영역 */}
                 <div className="flex flex-col md:flex-row justify-between gap-8 mb-10">
@@ -15,7 +15,7 @@ export const Footer = () => {
                             alt="ROUTELABEL"
                             className="h-12 object-contain"
                         />
-                        <div className="text-white/40 text-sm space-y-1">
+                        <div className="text-white/40 text-xs min-[360px]:text-sm space-y-1">
                             <p>상호명: 주식회사 루트레이블</p>
                             <p>대표: 최선</p>
                             <p>사업자등록번호: 846-81-08268</p>
@@ -25,7 +25,7 @@ export const Footer = () => {
                     </div>
 
                     {/* 링크 영역 */}
-                    <div className="flex gap-12">
+                    <div className="flex gap-8 min-[360px]:gap-12">
                         <div className="space-y-3">
                             <h4 className="text-white font-medium text-sm">서비스</h4>
                             <ul className="space-y-2 text-white/40 text-sm">

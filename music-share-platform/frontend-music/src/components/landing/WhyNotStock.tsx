@@ -292,7 +292,7 @@ export const WhyNotStock = () => {
     };
 
     return (
-        <section id="genre-bgm" ref={sectionRef} className="py-24 px-6 bg-black overflow-hidden scroll-mt-0">
+        <section id="genre-bgm" ref={sectionRef} className="py-24 px-4 min-[360px]:px-6 bg-black overflow-hidden scroll-mt-0">
             {/* 오디오 요소 - 장르별 샘플 음악 (metadata만 프리로드하여 초기 로딩 최적화) */}
             <audio
                 ref={audioRef}
@@ -307,7 +307,7 @@ export const WhyNotStock = () => {
                     viewport={{ once: true }}
                     className="text-center mb-16"
                 >
-                    <h2 className="text-3xl md:text-5xl 3xl:text-7xl font-black mb-6">
+                    <h2 className="text-2xl min-[360px]:text-3xl md:text-5xl 3xl:text-7xl font-black mb-6">
                         어떤 <span className="text-emerald-500">BGM</span>이 필요하신가요?
                     </h2>
                     <p className="text-white/50 text-base md:text-lg 3xl:text-2xl">
@@ -396,7 +396,7 @@ export const WhyNotStock = () => {
 
                                         {/* 카드 내용 */}
                                         <div
-                                            className={`relative w-full h-full p-5 sm:p-6 md:p-8 rounded-3xl transition-all duration-500 ${
+                                            className={`relative w-full h-full p-4 min-[360px]:p-5 sm:p-6 md:p-8 rounded-3xl transition-all duration-500 ${
                                                 isActive
                                                     ? `bg-white/[0.03] border-2 ${card.accentBorder}`
                                                     : 'bg-white/[0.02] border-2 border-white/20 md:group-hover:border-transparent'
@@ -428,7 +428,7 @@ export const WhyNotStock = () => {
 
                                         <div className="relative z-10">
                                             {/* 장르 타이틀 */}
-                                            <h3 className={`text-2xl md:text-3xl 3xl:text-5xl font-bold mb-3 break-keep ${
+                                            <h3 className={`text-xl min-[360px]:text-2xl md:text-3xl 3xl:text-5xl font-bold mb-3 break-keep ${
                                                 isActive ? card.accentText : 'text-white/60'
                                             }`}>
                                                 {card.genre}

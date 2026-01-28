@@ -189,7 +189,7 @@ export const WhoWeWorkWith = () => {
             {/* 스크롤 영역 */}
             <div ref={containerRef} className="relative h-[250vh]">
                 {/* Sticky 컨테이너 */}
-                <div className="sticky top-0 h-screen flex flex-col items-center justify-center px-6 overflow-hidden">
+                <div className="sticky top-0 h-screen flex flex-col items-center justify-center pt-16 md:pt-20 px-6 overflow-hidden">
                     {/* 헤드라인 - 스크롤 시 사라짐 */}
                     <Headline progress={scrollYProgress} />
 

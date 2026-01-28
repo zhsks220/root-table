@@ -71,7 +71,7 @@ export const Footer = () => {
                         &copy; {currentYear} ROUTELABEL. All rights reserved.
                     </p>
                     <Link
-                        to="/login"
+                        to="/partner/login"
                         className="text-white/20 text-xs hover:text-white/40 transition-colors"
                     >
                         파트너 로그인

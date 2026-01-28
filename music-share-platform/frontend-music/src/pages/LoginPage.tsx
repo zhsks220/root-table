@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useThemeStore } from '../store/themeStore';
@@ -9,7 +9,23 @@ import { cn } from '../lib/utils';
 
 export default function LoginPage() {
   const navigate = useNavigate();
+  const { isAuthenticated, user } = useAuthStore();
   const setAuth = useAuthStore((state) => state.setAuth);
+
+  // 이미 로그인된 경우 역할에 맞는 대시보드로 이동
+  useEffect(() => {
+    if (isAuthenticated && user) {
+      if (user.role === 'admin') {
+        navigate('/admin', { replace: true });
+      } else if (user.role === 'developer') {
+        navigate('/admin/monitoring', { replace: true });
+      } else if (user.role === 'partner') {
+        navigate('/partner/dashboard', { replace: true });
+      } else {
+        navigate('/my-tracks', { replace: true });
+      }
+    }
+  }, [isAuthenticated, user, navigate]);
   const { theme } = useThemeStore();
   const isDark = theme === 'dark';
   const [email, setEmail] = useState('');

@@ -44,7 +44,7 @@ export default function PartnerLoginPage() {
         navigate('/partner/dashboard');
       }
     } else if (isAuthenticated && user?.role === 'admin') {
-      navigate('/cms');
+      navigate('/admin');
     }
   }, [isAuthenticated, user, inviteCode, navigate]);
 
@@ -97,7 +97,7 @@ export default function PartnerLoginPage() {
           navigate('/partner/dashboard');
         }
       } else if (user?.role === 'admin') {
-        navigate('/cms');
+        navigate('/admin');
       } else {
         navigate('/');
       }

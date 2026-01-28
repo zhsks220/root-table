@@ -1,39 +1,40 @@
-import panel1 from '../../assets/panels/panel1.png';
-import panel2 from '../../assets/panels/panel2.png';
-import panel3 from '../../assets/panels/panel3.png';
-import panel4 from '../../assets/panels/panel4.png';
-import panel5 from '../../assets/panels/panel5.png';
+import processAnalysis from '../../assets/process/원고 콘티 분석.jpg';
+import processEmotion from '../../assets/process/감정선 & 캐릭터 매핑.jpg';
+import processPlot from '../../assets/process/음악 플롯 설계.jpg';
+import processDirection from '../../assets/process/음악 연출.jpg';
+import processRevision from '../../assets/process/수정 & 마감.jpg';
+import processExpansion from '../../assets/process/OST : 앨범 : 확장 고려.jpg';
 
 const steps = [
     {
         title: "원고·콘티 분석",
         description: "작품의 서사 구조와 장면 흐름을 면밀히 분석합니다.",
-        image: panel1,
+        image: processAnalysis,
     },
     {
         title: "감정선 & 캐릭터 매핑",
         description: "회차별 감정의 고저와 캐릭터 관계를 음악적으로 해석합니다.",
-        image: panel2,
+        image: processEmotion,
     },
     {
         title: "음악 플롯 설계",
         description: "작품에 어울리는 음악을 설계합니다.",
-        image: panel3,
+        image: processPlot,
     },
     {
         title: "음악 연출",
         description: "원고를 읽는 속도에 맞춰 적절한 타이밍에 음악을 연출합니다.",
-        image: null,
+        image: processDirection,
     },
     {
-        title: "제작 & 수정",
+        title: "수정 & 마감",
         description: "현업 작곡진의 제작과 피드백 기반 수정을 진행합니다.",
-        image: panel4,
+        image: processRevision,
     },
     {
         title: "OST / 앨범 / 확장 고려",
         description: "작품의 IP 확장까지 고려한 음악 설계를 완성합니다.",
-        image: panel5,
+        image: processExpansion,
     },
 ];
 

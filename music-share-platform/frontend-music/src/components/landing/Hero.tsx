@@ -33,7 +33,7 @@ export const Hero = () => {
                 </h1>
 
                 <p className="text-base sm:text-lg md:text-xl 3xl:text-3xl text-white/50 max-w-2xl 3xl:max-w-4xl mx-auto mb-8 md:mb-10 leading-relaxed">
-                    단순히 곡을 만들어 낼뿐 아니라, <br />
+                    단순히 곡을 만들어 낼 뿐 아니라, <br />
                     음악으로 회차, 장면, 캐릭터를 더 돋보이게 합니다.
                 </p>
 

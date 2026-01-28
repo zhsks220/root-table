@@ -3,7 +3,7 @@ import processEmotion from '../../assets/process/감정선 & 캐릭터 매핑.jp
 import processPlot from '../../assets/process/음악 플롯 설계.jpg';
 import processDirection from '../../assets/process/음악 연출.jpg';
 import processRevision from '../../assets/process/수정 & 마감.jpg';
-import processExpansion from '../../assets/process/OST : 앨범 : 확장 고려.jpg';
+import processExpansion from '../../assets/process/OST 앨범 확장 고려.jpg';
 
 const steps = [
     {

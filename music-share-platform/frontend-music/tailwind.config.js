@@ -8,8 +8,8 @@ export default {
   theme: {
     extend: {
       screens: {
-        // md를 1024px로 올려서 태블릿 세로 모드가 모바일 레이아웃 사용
-        'md': '1024px',
+        // md를 1033px로 올려서 iPad Pro 13인치 M4 세로(1032px)도 모바일 레이아웃 사용
+        'md': '1033px',
         // 커스텀 브레이크포인트: 2560px 이상 (27인치 QHD, 4K 등)
         '3xl': '2560px',
       },

@@ -17,7 +17,7 @@ export const Hero = () => {
         <section className="relative min-h-screen flex flex-col justify-center items-center px-6 pt-20 overflow-hidden bg-black text-white">
             {/* Background Interactive Glow */}
             <div
-                className="fixed inset-0 z-40 pointer-events-none transition-opacity duration-300"
+                className="hidden md:block fixed inset-0 z-40 pointer-events-none transition-opacity duration-300"
                 style={glowStyle}
             />
 

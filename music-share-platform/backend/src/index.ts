@@ -55,6 +55,7 @@ const allowedOrigins = [
   'http://localhost:3002', // Music download site
   'http://localhost:3003', // Admin site
   'http://localhost:3004', // Partner portal
+  'http://172.30.1.21:3000', // LAN 테스트용
 ];
 
 // 환경변수에서 추가 CORS 도메인 로드 (Vercel 배포 등)

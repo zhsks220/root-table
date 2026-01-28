@@ -1,4 +1,4 @@
-import { useState, useEffect, ReactNode } from 'react';
+import { useState, useEffect, useRef, ReactNode } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ThumbsUp, ThumbsDown } from 'lucide-react';
 import { useIsMobile } from '../../hooks/useResponsive';
@@ -494,8 +494,6 @@ export const ReaderReactions = () => {
     // 메인 카드 hover 시 자동 순환 멈춤
     const [isHovering, setIsHovering] = useState(false);
     // 모바일 터치 상태
-    const [touchStart, setTouchStart] = useState<number | null>(null);
-    const [touchEnd, setTouchEnd] = useState<number | null>(null);
     const [isTouching, setIsTouching] = useState(false);
 
     // 처음 마운트 시 한 번만 셔플된 인덱스 생성 (중복 없이 랜덤)
@@ -526,28 +524,55 @@ export const ReaderReactions = () => {
         return () => clearInterval(interval);
     }, [isHovering, isMobile, isTouching, shuffledOrder.length, totalPages]);
 
-    // 모바일 터치 핸들러
+    // 모바일 터치 핸들러 (방향 잠금 포함 - native listener로 preventDefault 허용)
+    const touchStartY = useRef<number | null>(null);
+    const isHorizontalSwipe = useRef<boolean | null>(null);
+    const touchStartRef = useRef<number | null>(null);
+    const touchEndRef = useRef<number | null>(null);
+    const touchContainerRef = useRef<HTMLDivElement>(null);
+
     const onTouchStart = (e: React.TouchEvent) => {
         setIsTouching(true);
-        setTouchEnd(null);
-        setTouchStart(e.targetTouches[0].clientX);
+        touchStartRef.current = e.targetTouches[0].clientX;
+        touchEndRef.current = null;
+        touchStartY.current = e.targetTouches[0].clientY;
+        isHorizontalSwipe.current = null;
     };
 
-    const onTouchMove = (e: React.TouchEvent) => {
-        setTouchEnd(e.targetTouches[0].clientX);
-    };
+    useEffect(() => {
+        const el = touchContainerRef.current;
+        if (!el) return;
+
+        const handleTouchMove = (e: TouchEvent) => {
+            const clientX = e.touches[0].clientX;
+            touchEndRef.current = clientX;
+
+            if (isHorizontalSwipe.current === null && touchStartRef.current !== null && touchStartY.current !== null) {
+                const dx = Math.abs(clientX - touchStartRef.current);
+                const dy = Math.abs(e.touches[0].clientY - touchStartY.current);
+                if (dx > 10 || dy > 10) {
+                    isHorizontalSwipe.current = dx > dy;
+                }
+            }
+
+            if (isHorizontalSwipe.current) {
+                e.preventDefault();
+            }
+        };
+
+        el.addEventListener('touchmove', handleTouchMove, { passive: false });
+        return () => el.removeEventListener('touchmove', handleTouchMove);
+    }, []);
 
     const onTouchEnd = () => {
         setIsTouching(false);
-        if (!touchStart || !touchEnd) return;
+        if (!touchStartRef.current || !touchEndRef.current || !isHorizontalSwipe.current) return;
 
-        const distance = touchStart - touchEnd;
+        const distance = touchStartRef.current - touchEndRef.current;
         if (distance > minSwipeDistance) {
-            // 왼쪽으로 스와이프 → 다음 카드
             setMobileIndex((prev) => (prev + 1) % shuffledOrder.length);
         }
         if (distance < -minSwipeDistance) {
-            // 오른쪽으로 스와이프 → 이전 카드
             setMobileIndex((prev) => (prev - 1 + shuffledOrder.length) % shuffledOrder.length);
         }
     };
@@ -654,11 +679,12 @@ export const ReaderReactions = () => {
 
                 {/* 중앙 댓글 카드 - 모바일: 1개 카드 + 스와이프 / PC: 6개 카드 산개 배치 */}
                 <div
+                    ref={touchContainerRef}
                     className="relative h-[300px] md:h-[450px] flex items-center justify-center mb-12"
+                    style={isMobile ? { touchAction: 'pan-y' } : undefined}
                     onMouseEnter={() => setIsHovering(true)}
                     onMouseLeave={() => setIsHovering(false)}
                     onTouchStart={isMobile ? onTouchStart : undefined}
-                    onTouchMove={isMobile ? onTouchMove : undefined}
                     onTouchEnd={isMobile ? onTouchEnd : undefined}
                 >
                     {/* 모바일 인디케이터 - Instagram 스타일 Dynamic Dots */}

@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
@@ -69,6 +69,11 @@ export const AlbumPuzzleGrid = () => {
     const navigate = useNavigate();
     const [displayCount, setDisplayCount] = useState(INITIAL_DISPLAY_COUNT);
     const [hoveredId, setHoveredId] = useState<string | null>(null);
+    const [isTouchDevice, setIsTouchDevice] = useState(false);
+
+    useEffect(() => {
+        setIsTouchDevice(window.matchMedia('(hover: none)').matches);
+    }, []);
 
     const displayedAlbums = useMemo(() => {
         return albumsData.slice(0, displayCount);
@@ -149,8 +154,8 @@ export const AlbumPuzzleGrid = () => {
                             whileInView={{ opacity: 1, scale: 1 }}
                             viewport={{ once: true }}
                             transition={{ delay: index * 0.03 }}
-                            onMouseEnter={() => setHoveredId(album.id)}
-                            onMouseLeave={() => setHoveredId(null)}
+                            onMouseEnter={isTouchDevice ? undefined : () => setHoveredId(album.id)}
+                            onMouseLeave={isTouchDevice ? undefined : () => setHoveredId(null)}
                             onClick={() => handleAlbumClick(album)}
                         >
                             {/* 앨범 커버 이미지 */}

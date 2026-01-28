@@ -89,8 +89,6 @@ export const WhyNotStock = () => {
     const [isPlaying, setIsPlaying] = useState(false);
     const [volume, setVolume] = useState(0.7);
     const [isMuted, setIsMuted] = useState(false);
-    const [touchStart, setTouchStart] = useState<number | null>(null);
-    const [touchEnd, setTouchEnd] = useState<number | null>(null);
 
     const sectionRef = useRef<HTMLElement>(null);
     const audioRef = useRef<HTMLAudioElement>(null);
@@ -241,20 +239,49 @@ export const WhyNotStock = () => {
         setCurrentIndex(index);
     };
 
-    // 터치 이벤트
+    // 터치 이벤트 (방향 잠금 포함 - native listener로 preventDefault 허용)
+    const touchStartY = useRef<number | null>(null);
+    const isHorizontalSwipe = useRef<boolean | null>(null);
+    const touchStartRef = useRef<number | null>(null);
+    const touchEndRef = useRef<number | null>(null);
+    const carouselTouchRef = useRef<HTMLDivElement>(null);
+
     const onTouchStart = (e: React.TouchEvent) => {
-        setTouchEnd(null);
-        setTouchStart(e.targetTouches[0].clientX);
+        touchStartRef.current = e.targetTouches[0].clientX;
+        touchEndRef.current = null;
+        touchStartY.current = e.targetTouches[0].clientY;
+        isHorizontalSwipe.current = null;
     };
 
-    const onTouchMove = (e: React.TouchEvent) => {
-        setTouchEnd(e.targetTouches[0].clientX);
-    };
+    useEffect(() => {
+        const el = carouselTouchRef.current;
+        if (!el) return;
+
+        const handleTouchMove = (e: TouchEvent) => {
+            const clientX = e.touches[0].clientX;
+            touchEndRef.current = clientX;
+
+            if (isHorizontalSwipe.current === null && touchStartRef.current !== null && touchStartY.current !== null) {
+                const dx = Math.abs(clientX - touchStartRef.current);
+                const dy = Math.abs(e.touches[0].clientY - touchStartY.current);
+                if (dx > 10 || dy > 10) {
+                    isHorizontalSwipe.current = dx > dy;
+                }
+            }
+
+            if (isHorizontalSwipe.current) {
+                e.preventDefault();
+            }
+        };
+
+        el.addEventListener('touchmove', handleTouchMove, { passive: false });
+        return () => el.removeEventListener('touchmove', handleTouchMove);
+    }, []);
 
     const onTouchEnd = () => {
-        if (!touchStart || !touchEnd) return;
+        if (!touchStartRef.current || !touchEndRef.current || !isHorizontalSwipe.current) return;
 
-        const distance = touchStart - touchEnd;
+        const distance = touchStartRef.current - touchEndRef.current;
         if (distance > minSwipeDistance) goToNext();
         if (distance < -minSwipeDistance) goToPrevious();
     };
@@ -320,7 +347,9 @@ export const WhyNotStock = () => {
                         )}
 
                         <motion.div
+                            ref={carouselTouchRef}
                             className="flex items-center"
+                            style={{ touchAction: 'pan-y' }}
                             animate={showSwipeHint && isMobile ? swipeHintControls : {
                                 x: `calc(50% - ${cardSize.offset}px - ${currentIndex * (cardSize.width + cardSize.margin * 2)}px)`,
                             }}
@@ -329,7 +358,6 @@ export const WhyNotStock = () => {
                             }}
                             transition={{ duration: 0.5, ease: "easeInOut" }}
                             onTouchStart={onTouchStart}
-                            onTouchMove={onTouchMove}
                             onTouchEnd={onTouchEnd}
                         >
                             {genreCards.map((card, idx) => {

@@ -44,8 +44,6 @@ const webtoonImages = [
 export const SocialProof = () => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const [isAutoPlay, setIsAutoPlay] = useState(true);
-    const [touchStart, setTouchStart] = useState<number | null>(null);
-    const [touchEnd, setTouchEnd] = useState<number | null>(null);
     const sectionRef = useRef<HTMLElement>(null);
     const isInView = useInView(sectionRef, { once: false, amount: 0.5 });
 
@@ -93,29 +91,52 @@ export const SocialProof = () => {
         goToSlide(newIndex);
     };
 
-    // 터치 이벤트 핸들러
+    // 터치 이벤트 핸들러 (방향 잠금 포함)
+    const touchStartY = useRef<number | null>(null);
+    const isHorizontalSwipe = useRef<boolean | null>(null);
+    const touchStartRef = useRef<number | null>(null);
+    const touchEndRef = useRef<number | null>(null);
+    const sliderRef = useRef<HTMLDivElement>(null);
+
     const onTouchStart = (e: React.TouchEvent) => {
-        setTouchEnd(null);
-        setTouchStart(e.targetTouches[0].clientX);
+        touchStartRef.current = e.targetTouches[0].clientX;
+        touchEndRef.current = null;
+        touchStartY.current = e.targetTouches[0].clientY;
+        isHorizontalSwipe.current = null;
     };
 
-    const onTouchMove = (e: React.TouchEvent) => {
-        setTouchEnd(e.targetTouches[0].clientX);
-    };
+    // 네이티브 touchmove 등록 (passive: false로 preventDefault 허용)
+    useEffect(() => {
+        const el = sliderRef.current;
+        if (!el) return;
+
+        const handleTouchMove = (e: TouchEvent) => {
+            const clientX = e.touches[0].clientX;
+            touchEndRef.current = clientX;
+
+            if (isHorizontalSwipe.current === null && touchStartRef.current !== null && touchStartY.current !== null) {
+                const dx = Math.abs(clientX - touchStartRef.current);
+                const dy = Math.abs(e.touches[0].clientY - touchStartY.current);
+                if (dx > 10 || dy > 10) {
+                    isHorizontalSwipe.current = dx > dy;
+                }
+            }
+
+            if (isHorizontalSwipe.current) {
+                e.preventDefault();
+            }
+        };
+
+        el.addEventListener('touchmove', handleTouchMove, { passive: false });
+        return () => el.removeEventListener('touchmove', handleTouchMove);
+    }, []);
 
     const onTouchEnd = () => {
-        if (!touchStart || !touchEnd) return;
+        if (!touchStartRef.current || !touchEndRef.current || !isHorizontalSwipe.current) return;
 
-        const distance = touchStart - touchEnd;
-        const isLeftSwipe = distance > minSwipeDistance;
-        const isRightSwipe = distance < -minSwipeDistance;
-
-        if (isLeftSwipe) {
-            goToNext();
-        }
-        if (isRightSwipe) {
-            goToPrevious();
-        }
+        const distance = touchStartRef.current - touchEndRef.current;
+        if (distance > minSwipeDistance) goToNext();
+        if (distance < -minSwipeDistance) goToPrevious();
     };
 
     return (
@@ -218,9 +239,10 @@ export const SocialProof = () => {
 
                 {/* 메인 통계 슬라이더 */}
                 <div
+                    ref={sliderRef}
                     className="relative flex items-center justify-center min-h-[280px] mb-12"
+                    style={{ touchAction: 'pan-y' }}
                     onTouchStart={onTouchStart}
-                    onTouchMove={onTouchMove}
                     onTouchEnd={onTouchEnd}
                 >
                     <AnimatePresence mode="wait">

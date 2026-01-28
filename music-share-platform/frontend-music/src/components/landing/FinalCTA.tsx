@@ -112,7 +112,7 @@ ${formData.message || '(없음)'}`;
 
     return (
         <>
-            <section id="contact" className="py-24 mt-16 px-6 bg-gradient-to-b from-black to-[#0a0a0a] relative overflow-hidden -scroll-mt-14">
+            <section id="contact" className="pt-24 pb-12 mt-16 px-6 bg-gradient-to-b from-black to-[#0a0a0a] relative overflow-hidden -scroll-mt-14">
                 {/* Background Logo Watermark */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03]">
                     <img
@@ -247,7 +247,7 @@ ${formData.message || '(없음)'}`;
                             </div>
                             <div>
                                 <label htmlFor="serialStatus" className="block text-xs md:text-sm font-medium text-white/80 mb-1">
-                                    연재 <span className="text-emerald-500">*</span>
+                                    연재 유/무 <span className="text-emerald-500">*</span>
                                 </label>
                                 <select
                                     id="serialStatus"
@@ -291,9 +291,13 @@ ${formData.message || '(없음)'}`;
                         </motion.button>
 
                         <p className="text-white/50 text-[10px] md:text-xs text-center">
-                            레퍼런스 없이 시작해도 괜찮습니다. 작품 링크만 보내주세요.
+                            부담없이 문의주셔도 괜찮습니다.
                         </p>
                     </motion.form>
+
+                    <p className="text-center text-emerald-500 text-xl mt-12 tracking-widest font-bold leading-relaxed">
+                        route@routelabel.org
+                    </p>
                 </div>
             </section>
 

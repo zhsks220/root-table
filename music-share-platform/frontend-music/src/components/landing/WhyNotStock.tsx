@@ -441,8 +441,7 @@ export const WhyNotStock = () => {
                                                     rel="noopener noreferrer"
                                                     className={`absolute -bottom-3 -right-2 sm:-bottom-5 sm:-right-4 inline-flex items-center gap-1 sm:gap-2 px-2.5 py-1.5 sm:px-4 sm:py-2 rounded-full text-xs sm:text-sm font-medium transition-all duration-300 ${card.accentText} bg-white/5 hover:bg-white/10 border border-white/10 hover:border-white/20`}
                                                 >
-                                                    <span className="sm:hidden">더보기</span>
-                                                    <span className="hidden sm:inline">다른 작품 보기</span>
+                                                    자세히
                                                     <ExternalLink className="w-3 h-3 sm:w-3.5 sm:h-3.5" />
                                                 </motion.a>
                                             )}
@@ -552,8 +551,7 @@ export const WhyNotStock = () => {
                     viewport={{ once: true }}
                     className="text-center text-white/50 text-base md:text-lg 3xl:text-2xl max-w-2xl 3xl:max-w-4xl mx-auto leading-relaxed"
                 >
-                    우리는 단순히 음악을 만드는 팀이 아니라, <br />
-                    웹툰의 흐름을 함께 설계하는 팀입니다.
+                    
                 </motion.p>
             </div>
         </section>

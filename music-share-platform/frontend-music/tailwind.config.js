@@ -10,6 +10,8 @@ export default {
       screens: {
         // md를 1033px로 올려서 iPad Pro 13인치 M4 세로(1032px)도 모바일 레이아웃 사용
         'md': '1033px',
+        // lg를 md보다 높게 설정 (기본 1024px → 1280px)
+        'lg': '1280px',
         // 커스텀 브레이크포인트: 2560px 이상 (27인치 QHD, 4K 등)
         '3xl': '2560px',
       },

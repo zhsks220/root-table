@@ -117,10 +117,10 @@ async function getCachedWebtoonImageUrl(key: string): Promise<string> {
   return url;
 }
 
-// 이미지 업로드 설정 (10MB 제한)
+// 이미지 업로드 설정 (30MB 제한 - 세로로 긴 웹툰 이미지 대응)
 const imageUpload = multer({
   storage: multer.memoryStorage(),
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  limits: { fileSize: 30 * 1024 * 1024 }, // 30MB
   fileFilter: (req, file, cb) => {
     const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
     if (allowedTypes.includes(file.mimetype)) {

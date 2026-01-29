@@ -154,7 +154,7 @@ export async function ensureWebtoonBucketExists(): Promise<void> {
       console.log('📦 Creating webtoon-images bucket...');
       const { error: createError } = await supabase.storage.createBucket('webtoon-images', {
         public: false,
-        fileSizeLimit: 10485760, // 10MB
+        fileSizeLimit: 31457280, // 30MB
         allowedMimeTypes: ['image/jpeg', 'image/jpg', 'image/png', 'image/webp', 'image/gif']
       });
 

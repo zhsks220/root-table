@@ -85,6 +85,16 @@ export function WebToonProjectsView({ projectId: initialProjectId, onClose }: We
   const [timerSeconds, setTimerSeconds] = useState(0);
   const timerIntervalRef = useRef<number | null>(null);
 
+  // 모바일 스크롤 위치 (커스텀 스크롤바용)
+  const [scrollInfo, setScrollInfo] = useState({ top: 0, height: 0 });
+  const scrollbarTrackRef = useRef<HTMLDivElement>(null);
+  const isDraggingScrollbarRef = useRef(false);
+
+  // 모바일 음악 끄기 상태
+  const [musicMuted, setMusicMuted] = useState(false);
+  const musicMutedRef = useRef(false);
+  const lastTriggeredTrackRef = useRef<Track | null>(null);
+
   // 드래그 중인 메모 ID (휴지통 표시용)
   const [draggingMemoId, setDraggingMemoId] = useState<string | null>(null);
 
@@ -106,13 +116,20 @@ export function WebToonProjectsView({ projectId: initialProjectId, onClose }: We
   const [cachedImages, setCachedImages] = useState<Record<string, string>>({});
   const cacheLoadedRef = useRef(false);
 
+  // 뮤트 상태에서도 마커 위치는 추적하되 소리만 안 내는 래퍼
+  const wrappedPlayTrack = useCallback(async (track: Track) => {
+    lastTriggeredTrackRef.current = track;
+    if (musicMutedRef.current) return;
+    await playTrack(track);
+  }, [playTrack]);
+
   // Intersection Observer 기반 스크롤 재생 훅
   const { registerMarkerElement, resetPassedMarkers, addToPassedMarkers } = useScrollBasedPlayback(
     previewContainerRef,
     trackMarkers,
     currentTrack?.id,
     isPlaying,
-    playTrack,
+    wrappedPlayTrack,
     { enabled: trackMarkers.length > 0 },
     mobileContainerRef,
     preloadTrack
@@ -659,21 +676,33 @@ export function WebToonProjectsView({ projectId: initialProjectId, onClose }: We
     const currentScrollY = mobileContainerRef.current.scrollTop;
     const delta = currentScrollY - lastScrollY.current;
 
-    // 스크롤 양이 5px 이상일 때만 반응 (너무 민감하지 않게)
-    if (Math.abs(delta) > 5) {
-      if (delta > 0) {
-        // 아래로 스크롤 - 헤더 숨김
-        setMobileHeaderVisible(false);
-      } else {
-        // 위로 스크롤 - 헤더 표시
+    // 스크롤바 드래그 중에는 헤더 숨김/표시 스킵
+    if (!isDraggingScrollbarRef.current) {
+      // 스크롤 양이 5px 이상일 때만 반응 (너무 민감하지 않게)
+      if (Math.abs(delta) > 5) {
+        if (delta > 0) {
+          // 아래로 스크롤 - 헤더 숨김
+          setMobileHeaderVisible(false);
+        } else {
+          // 위로 스크롤 - 헤더 표시
+          setMobileHeaderVisible(true);
+        }
+        lastScrollY.current = currentScrollY;
+      }
+
+      // 최상단이면 헤더 표시
+      if (currentScrollY <= 0) {
         setMobileHeaderVisible(true);
       }
-      lastScrollY.current = currentScrollY;
     }
 
-    // 최상단이면 헤더 표시
-    if (currentScrollY <= 0) {
-      setMobileHeaderVisible(true);
+    // 커스텀 스크롤바 위치 업데이트
+    const container = mobileContainerRef.current;
+    if (container && container.scrollHeight > container.clientHeight) {
+      setScrollInfo({
+        top: (container.scrollTop / container.scrollHeight) * 100,
+        height: (container.clientHeight / container.scrollHeight) * 100,
+      });
     }
   }, []);
 
@@ -1214,10 +1243,11 @@ export function WebToonProjectsView({ projectId: initialProjectId, onClose }: We
             'md:flex md:flex-col md:items-center md:justify-center md:p-8 md:gap-4'
           )}>
             {/* 모바일 풀스크린 이미지 */}
+            <div className="md:hidden w-full h-full relative">
             <div
               ref={mobileContainerRef}
               className={cn(
-                'md:hidden w-full h-full overflow-y-auto relative pt-14',
+                'w-full h-full overflow-y-auto relative pt-14 webtoon-scroll-container',
                 isDark ? 'bg-black' : 'bg-white'
               )}
             >
@@ -1285,7 +1315,7 @@ export function WebToonProjectsView({ projectId: initialProjectId, onClose }: We
 
               {/* 모바일 FAB 버튼 (우측 하단) */}
               {scenes.length > 0 && !draggingMemoId && (
-                <div className="fixed bottom-24 right-4 z-30">
+                <div className="fixed bottom-6 right-[22px] z-30">
                   {showFabMenu && (
                     <>
                       <div className="fixed inset-0 z-[55]" onClick={() => setShowFabMenu(false)} />
@@ -1325,33 +1355,115 @@ export function WebToonProjectsView({ projectId: initialProjectId, onClose }: We
                 </div>
               )}
 
+              {/* 모바일 오른쪽 상단 원형 음악 아이콘 */}
+              {trackMarkers.length > 0 && (
+                <button
+                  onClick={() => {
+                    if (musicMuted) {
+                      setMusicMuted(false);
+                      musicMutedRef.current = false;
+                      if (lastTriggeredTrackRef.current) {
+                        playTrack(lastTriggeredTrackRef.current);
+                      }
+                    } else {
+                      setMusicMuted(true);
+                      musicMutedRef.current = true;
+                      stop();
+                    }
+                  }}
+                  className={cn(
+                    'fixed top-20 right-[22px] z-30 md:hidden w-8 h-8 rounded-full flex items-center justify-center shadow-md transition-all duration-300',
+                    musicMuted ? 'bg-gray-500' : 'bg-gray-900',
+                    mobileHeaderVisible ? 'opacity-100 translate-y-0' : 'opacity-0 -translate-y-4 pointer-events-none'
+                  )}
+                >
+                  <div className="relative">
+                    <Music className="w-4 h-4 text-white" />
+                    {musicMuted && (
+                      <div className="absolute -top-0.5 -right-0.5 left-0.5 bottom-0.5 flex items-center justify-center">
+                        <div className="w-[2px] h-5 bg-white rotate-45" />
+                      </div>
+                    )}
+                  </div>
+                </button>
+              )}
+
               {/* 모바일 타이머 UI (상단 중앙, 투명 배경) */}
               {showTimer && (
                 <div className="fixed top-20 left-1/2 -translate-x-1/2 z-20 md:hidden">
-                  <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-black/30 backdrop-blur-sm">
-                    <span className="text-white text-xl font-mono font-bold">
+                  <div className="flex items-center gap-3 px-4 py-2 rounded-full bg-black/5">
+                    <span className="text-gray-400 text-xl font-mono font-bold">
                       {formatTimer(timerSeconds)}
                     </span>
                     <button
                       onClick={handleToggleTimer}
-                      className="p-1.5 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+                      className={cn(
+                        'p-1.5 rounded-full transition-colors',
+                        timerActive
+                          ? 'bg-red-400/80 hover:bg-red-500/80'
+                          : 'bg-black/60 hover:bg-black/70'
+                      )}
                     >
                       {timerActive ? (
-                        <Pause className="w-4 h-4 text-white" />
+                        <Pause className="w-3.5 h-3.5 text-white" />
                       ) : (
-                        <Play className="w-4 h-4 text-white" />
+                        <Play className="w-3.5 h-3.5 text-white" />
                       )}
                     </button>
                     <button
                       onClick={handleResetTimer}
-                      className="p-1.5 rounded-full bg-white/20 hover:bg-white/30 transition-colors"
+                      className="p-1.5 rounded-full bg-gray-300/60 hover:bg-gray-400/60 transition-colors"
                     >
-                      <RotateCcw className="w-4 h-4 text-white" />
+                      <RotateCcw className="w-3.5 h-3.5 text-gray-500" />
                     </button>
                   </div>
                 </div>
               )}
 
+            </div>
+            {/* 커스텀 스크롤바 (헤더 보일 때만, 헤더 아래부터) */}
+            {mobileHeaderVisible && scrollInfo.height > 0 && scrollInfo.height < 100 && (
+              <div
+                ref={scrollbarTrackRef}
+                className="absolute top-14 right-0 bottom-0 w-[20px] z-20"
+                onTouchStart={(e) => {
+                  e.preventDefault();
+                  isDraggingScrollbarRef.current = true;
+                  const doScroll = (clientY: number) => {
+                    const el = scrollbarTrackRef.current;
+                    if (!el || !mobileContainerRef.current) return;
+                    const rect = el.getBoundingClientRect();
+                    const ratio = Math.max(0, Math.min(1, (clientY - rect.top) / rect.height));
+                    mobileContainerRef.current.scrollTop = ratio * (mobileContainerRef.current.scrollHeight - mobileContainerRef.current.clientHeight);
+                  };
+                  doScroll(e.touches[0].clientY);
+                  const handleTouch = (ev: TouchEvent) => {
+                    ev.preventDefault();
+                    doScroll(ev.touches[0].clientY);
+                  };
+                  const handleEnd = () => {
+                    isDraggingScrollbarRef.current = false;
+                    document.removeEventListener('touchmove', handleTouch);
+                    document.removeEventListener('touchend', handleEnd);
+                  };
+                  document.addEventListener('touchmove', handleTouch, { passive: false });
+                  document.addEventListener('touchend', handleEnd);
+                }}
+              >
+                <div
+                  className="absolute right-[2px] bg-gray-400/70 rounded-sm flex flex-col items-center justify-between py-1"
+                  style={{
+                    width: '18px',
+                    top: `${scrollInfo.top}%`,
+                    height: `${Math.max(scrollInfo.height, 4)}%`,
+                    minHeight: '36px',
+                  }}
+                >
+                  <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 5L5 1L9 5" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                  <svg width="10" height="6" viewBox="0 0 10 6" fill="none"><path d="M1 1L5 5L9 1" stroke="white" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/></svg>
+                </div>
+              </div>
+            )}
             </div>
 
             {/* 데스크톱: 버튼들 */}
@@ -1625,46 +1737,7 @@ export function WebToonProjectsView({ projectId: initialProjectId, onClose }: We
           </aside>
         </div>
 
-        {/* 모바일 하단 재생바 */}
-        <div className={cn(
-          'md:hidden flex items-center gap-3 px-4 py-3 border-t',
-          isDark ? 'bg-gray-900 border-gray-800' : 'bg-white border-gray-200'
-        )}>
-          {currentTrack ? (
-            <>
-              {/* 트랙 정보 */}
-              <div className="flex-1 min-w-0">
-                <p className={cn('text-sm font-medium truncate', isDark ? 'text-white' : 'text-gray-900')}>
-                  {currentTrack.title}
-                </p>
-                <p className={cn('text-xs truncate', isDark ? 'text-gray-400' : 'text-gray-500')}>
-                  {currentTrack.artist}
-                </p>
-              </div>
-
-              {/* 재생/일시정지 버튼 */}
-              <button
-                onClick={togglePlay}
-                className={cn(
-                  'p-3 rounded-full transition-colors',
-                  isDark
-                    ? 'bg-emerald-600 hover:bg-emerald-700 text-white'
-                    : 'bg-emerald-500 hover:bg-emerald-600 text-white'
-                )}
-              >
-                {isPlaying ? (
-                  <Pause className="w-5 h-5" />
-                ) : (
-                  <Play className="w-5 h-5 ml-0.5" />
-                )}
-              </button>
-            </>
-          ) : (
-            <p className={cn('text-sm', isDark ? 'text-gray-500' : 'text-gray-400')}>
-              음원 마커를 추가하세요
-            </p>
-          )}
-        </div>
+        {/* 모바일 하단 재생바 제거됨 */}
       </div>
 
       {/* 모바일 전용: 드래그 시 휴지통 (화면 하단 중앙) */}

@@ -76,7 +76,7 @@ export function MobileLayout({
 
   // 로고 클릭 시 역할별 홈 + 첫 탭으로 이동
   const handleLogoClick = () => {
-    const homePath = !user ? '/' : user.role === 'partner' ? '/partner' : '/admin';
+    const homePath = !user ? '/' : user.role === 'partner' ? '/partner/dashboard' : '/admin';
     navigate(homePath);
     if (menuItems.length > 0) {
       onTabChange(menuItems[0].id);

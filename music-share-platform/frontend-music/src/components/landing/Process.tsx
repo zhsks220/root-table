@@ -7,13 +7,13 @@ import processExpansion from '../../assets/process/OST 앨범 확장 고려.jpg'
 
 const steps = [
     {
-        title: "원고·콘티 분석",
-        description: "작품의 서사 구조와 장면 흐름을 면밀히 분석합니다.",
+        title: "원고,콘티 분석",
+        description: "회차 스토리, 컷 구성, 캐릭터 감정선을 함께 읽습니다.",
         image: processAnalysis,
     },
     {
-        title: "기획 & 설계",
-        description: "회차별 감정선과 스토리를 음악적으로 설계합니다.",
+        title: "무드 스케치",
+        description: "회차의 감정선과 스토리를 음악적으로 설계합니다.",
         image: processEmotion,
     },
     {
@@ -32,8 +32,8 @@ const steps = [
         image: processRevision,
     },
     {
-        title: "OST / 앨범 / IP 확장",
-        description: "작품의 IP 확장을 완성합니다.",
+        title: "OST 확장",
+        description: "필요 시 시리즈 전체를 아우르는 앨범/테마로 확장합니다.",
         image: processExpansion,
     },
 ];
@@ -122,8 +122,8 @@ export const Process = () => {
             <div className="max-w-6xl mx-auto">
                 <div className="text-center mb-16">
                     <h2 className="text-2xl min-[360px]:text-3xl md:text-5xl 3xl:text-7xl font-black mb-6">
-                        웹툰을 더 재밌게, <br />
-                        <span className="text-emerald-500">마감일까지 체계적으로.</span>
+                        웹툰을 끝까지 읽게 만드는 <br />
+                        <span className="text-emerald-500">사운드 프로세스.</span>
                     </h2>
                 </div>
 

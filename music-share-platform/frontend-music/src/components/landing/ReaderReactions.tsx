@@ -672,8 +672,8 @@ export const ReaderReactions = () => {
                     <h2 className="text-3xl md:text-5xl 3xl:text-7xl font-black mb-6">
                         독자들은, <span className="text-emerald-500">차이</span>를 <br className="sm:hidden" />먼저 느낍니다.
                     </h2>
-                    <p className="text-white/50 text-base md:text-lg 3xl:text-2xl">
-                        실제 독자들의 반응입니다
+                    <p className="text-white/50 text-sm min-[360px]:text-base md:text-lg 3xl:text-2xl">
+                        실제 독자들의 반응입니다.
                     </p>
                 </motion.div>
 
@@ -847,8 +847,8 @@ export const ReaderReactions = () => {
                     className="text-center"
                 >
                     <p className="text-white/50 text-sm min-[360px]:text-base md:text-lg 3xl:text-2xl leading-relaxed break-keep">
-                        이런 반응은, <br />
-                        음악을 '곡'이 아니라 <br className="min-[360px]:hidden" />연출로 설계했을 때 나옵니다.
+                        이 반응은 음악이 '배경'이 아니라, <br />
+                        회차의 일부로 작동할 때 나옵니다.
                     </p>
                 </motion.div>
             </div>

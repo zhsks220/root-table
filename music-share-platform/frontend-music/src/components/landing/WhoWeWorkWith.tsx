@@ -36,9 +36,12 @@ const Headline = ({ progress }: { progress: MotionValue<number> }) => {
     return (
         <motion.div className="text-center mb-8" style={{ opacity }}>
             <h2 className="text-2xl min-[360px]:text-3xl md:text-5xl 3xl:text-7xl font-black mb-4">
-                <span className="whitespace-nowrap">잘 맞는 <span className="text-emerald-500">프로젝트</span>가</span> <br />
-                있습니다.
+                <span className="whitespace-nowrap">이런 고민이면,</span> <br />
+                <span className="text-emerald-500">우리는</span> 이미 알고 있습니다.
             </h2>
+            <p className="text-white/50 text-sm min-[360px]:text-base md:text-lg 3xl:text-2xl mt-4">
+                우리는 '설명하기 어려운 느낌'을 <br className="sm:hidden" />언어 대신 음악으로 정리해드립니다.
+            </p>
         </motion.div>
     );
 };

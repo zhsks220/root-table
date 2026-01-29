@@ -129,11 +129,10 @@ export const AlbumPuzzleGrid = () => {
                     className="text-center mb-16"
                 >
                     <h2 className="text-2xl min-[360px]:text-3xl md:text-5xl 3xl:text-7xl font-black mb-6">
-                        작품의 서사를 담은<br className="md:hidden" /> <span className="text-emerald-500">OST 앨범</span> 까지.
+                        웹툰을 넘어, <br className="md:hidden" />기억에 남는 <span className="text-emerald-500">OST</span>까지.
                     </h2>
-                    <p className="text-white/50 text-base md:text-lg 3xl:text-2xl">
-                        웹툰 OST 제작도 문제 없습니다.<br />
-                        우리가 제작한 앨범들을 만나보세요.
+                    <p className="text-white/50 text-sm min-[360px]:text-base md:text-lg 3xl:text-2xl">
+                        연재가 끝나도 플레이리스트에 남는 <br className="sm:hidden" />앨범을 목표로 합니다.
                     </p>
                 </motion.div>
 

@@ -292,7 +292,7 @@ export const WhyNotStock = () => {
     };
 
     return (
-        <section id="genre-bgm" ref={sectionRef} className="py-24 px-4 min-[360px]:px-6 bg-black overflow-hidden scroll-mt-0">
+        <section id="genre-bgm" ref={sectionRef} className="py-24 px-4 min-[360px]:px-6 bg-black overflow-hidden scroll-mt-16">
             {/* 오디오 요소 - 장르별 샘플 음악 (metadata만 프리로드하여 초기 로딩 최적화) */}
             <audio
                 ref={audioRef}
@@ -308,10 +308,10 @@ export const WhyNotStock = () => {
                     className="text-center mb-16"
                 >
                     <h2 className="text-2xl min-[360px]:text-3xl md:text-5xl 3xl:text-7xl font-black mb-6">
-                        어떤 <span className="text-emerald-500">BGM</span>이 필요하신가요?
+                        당신의 작품에는 <br />어떤 <span className="text-emerald-500">무드</span>가 필요한가요?
                     </h2>
-                    <p className="text-white/50 text-base md:text-lg 3xl:text-2xl">
-                        웹툰만을 위한 루트레이블의 음악들입니다.
+                    <p className="text-white/50 text-sm min-[360px]:text-base md:text-lg 3xl:text-2xl">
+                        루트레이블이 큐레이션한 장르별 웹툰 BGM 입니다.
                     </p>
                 </motion.div>
 
@@ -577,7 +577,7 @@ export const WhyNotStock = () => {
                     initial={{ opacity: 0 }}
                     whileInView={{ opacity: 1 }}
                     viewport={{ once: true }}
-                    className="text-center text-white/50 text-base md:text-lg 3xl:text-2xl max-w-2xl 3xl:max-w-4xl mx-auto leading-relaxed"
+                    className="text-center text-white/50 text-sm min-[360px]:text-base md:text-lg 3xl:text-2xl max-w-2xl 3xl:max-w-4xl mx-auto leading-relaxed"
                 >
                     
                 </motion.p>

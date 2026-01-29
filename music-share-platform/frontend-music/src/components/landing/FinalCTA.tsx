@@ -112,7 +112,7 @@ ${formData.message || '(없음)'}`;
 
     return (
         <>
-            <section id="contact" className="pt-24 pb-12 mt-16 px-4 min-[360px]:px-6 bg-gradient-to-b from-black to-[#0a0a0a] relative overflow-hidden -scroll-mt-14">
+            <section id="contact" className="pt-24 pb-12 mt-16 px-4 min-[360px]:px-6 bg-gradient-to-b from-black to-[#0a0a0a] relative overflow-hidden scroll-mt-[68px]">
                 {/* Background Logo Watermark */}
                 <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-[0.03]">
                     <img
@@ -129,14 +129,9 @@ ${formData.message || '(없음)'}`;
                         viewport={{ once: true }}
                         className="text-center mb-12"
                     >
-                        <p className="text-lg md:text-xl text-white/70 mb-6 max-w-xl mx-auto leading-relaxed">
-                            우리는 콘티를 읽고, 작품을 보며 <br />
-                            웹툰과 딱 맞는 곡을 설계합니다.
-                        </p>
-
-                        <h3 className="text-xl min-[360px]:text-2xl md:text-4xl font-black leading-tight">
-                            <span className="whitespace-nowrap">지금, <span className="text-emerald-500">작품</span>에 대해서</span> <br />
-                            이야기해 주세요.
+                        <h3 className="text-xl min-[360px]:text-2xl md:text-4xl font-black leading-tight mb-6">
+                            <span className="whitespace-nowrap">이제, <span className="text-emerald-500">작품</span> 이야기를</span> <br />
+                            들려주세요.
                         </h3>
                     </motion.div>
 
@@ -209,7 +204,7 @@ ${formData.message || '(없음)'}`;
                                 name="workLink"
                                 value={formData.workLink}
                                 onChange={handleChange}
-                                placeholder="webtoon.com/..."
+                                placeholder="webtoon.com / 시놉시스 / 파일 링크 등 어떤 형식도 괜찮아요"
                                 className="w-full bg-black/50 border border-white/20 rounded-lg md:rounded-xl px-3 md:px-4 py-2 md:py-2.5 text-sm md:text-base text-white placeholder-white/40 focus:outline-none focus:border-emerald-500/50 focus:bg-black/70 transition-all"
                             />
                         </div>
@@ -289,10 +284,6 @@ ${formData.message || '(없음)'}`;
                             문의하기
                             <Send className="w-4 h-4 md:w-5 md:h-5" />
                         </motion.button>
-
-                        <p className="text-white/50 text-[10px] md:text-xs text-center">
-                            부담없이 문의주셔도 괜찮습니다.
-                        </p>
                     </motion.form>
 
                     <p className="text-center text-emerald-500 text-xl mt-12 tracking-widest font-bold leading-relaxed">

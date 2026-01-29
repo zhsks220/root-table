@@ -38,16 +38,11 @@ export const Navbar = () => {
             </a>
 
             <div className="flex items-center gap-2 min-[360px]:gap-4 md:gap-12 text-[10px] min-[360px]:text-xs md:text-sm lg:text-base font-medium text-white/80 whitespace-nowrap ml-auto md:ml-0 md:absolute md:left-1/2 md:-translate-x-1/2">
-                <a href="#genre-bgm" className="hover:text-white transition-colors">장르별 BGM</a>
-                <a href="#testimonials" className="hover:text-white transition-colors">독자 반응</a>
-                <a href="#process" className="hover:text-white transition-colors">
-                    <span className="md:hidden">프로세스</span>
-                    <span className="hidden md:inline">제작 프로세스</span>
-                </a>
-                <a href="#contact" className="hover:text-white transition-colors">
-                    <span className="md:hidden">문의</span>
-                    <span className="hidden md:inline">문의하기</span>
-                </a>
+                <a href="#" className="hover:text-white transition-colors">Label</a>
+                <a href="#genre-bgm" className="hover:text-white transition-colors">Works</a>
+                <a href="#testimonials" className="hover:text-white transition-colors">Voices</a>
+                <a href="#process" className="hover:text-white transition-colors">Process</a>
+                <a href="#contact" className="hover:text-white transition-colors">Contact</a>
             </div>
 
         </nav>

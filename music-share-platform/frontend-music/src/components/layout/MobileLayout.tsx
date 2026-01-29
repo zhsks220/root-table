@@ -74,6 +74,13 @@ export function MobileLayout({
     setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
+  // 역할별 홈 경로
+  const getHomePath = () => {
+    if (!user) return '/';
+    if (user.role === 'partner') return '/partner';
+    return '/admin';
+  };
+
   const handleLogout = () => {
     logout();
     navigate('/');
@@ -112,7 +119,7 @@ export function MobileLayout({
             )}
           </button>
 
-          <button onClick={() => navigate('/')} className="flex items-center gap-2">
+          <button onClick={() => navigate(getHomePath())} className="flex items-center gap-2">
             {logoImage ? (
               <>
                 <img src={isDark && logoImageDark ? logoImageDark : logoImage} alt="Logo" className="h-6" />
@@ -177,7 +184,7 @@ export function MobileLayout({
             "p-6 border-b",
             isDark ? "border-white/10" : "border-gray-200"
           )}>
-            <button onClick={() => navigate('/')} className="text-left">
+            <button onClick={() => navigate(getHomePath())} className="text-left">
               {logoImage ? (
                 <div>
                   <div className="flex items-center gap-3">
@@ -335,7 +342,7 @@ export function MobileLayout({
           isDark ? "bg-black" : "bg-[#fbfbfb] border-r border-gray-100"
         )}>
           <div className="p-6">
-            <button onClick={() => navigate('/')} className="mb-8 text-left">
+            <button onClick={() => navigate(getHomePath())} className="mb-8 text-left">
               {logoImage ? (
                 <div>
                   <div className="flex items-center gap-3">

@@ -1,0 +1,10 @@
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /cms
+Disallow: /login
+Disallow: /register
+Disallow: /invite
+Disallow: /api
+
+Sitemap: https://routelabel.org/sitemap.xml

@@ -974,7 +974,7 @@ export function WebToonProjectsView({ projectId: initialProjectId, onClose }: We
         {/* 헤더 - 모바일 (스크롤 시 숨김) */}
         <header className={cn(
           'md:hidden flex items-center justify-between px-4 py-3 border-b transition-transform duration-300 absolute top-0 left-0 right-0 z-30',
-          isDark ? 'bg-black border-gray-800' : 'bg-white border-gray-200',
+          isDark ? 'bg-gray-700 border-gray-600' : 'bg-white border-gray-200',
           mobileHeaderVisible ? 'translate-y-0' : '-translate-y-full'
         )}>
           {/* 왼쪽: 뒤로가기 */}
